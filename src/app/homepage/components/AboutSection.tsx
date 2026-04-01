@@ -1,10 +1,20 @@
 'use client';
 
-import { useLang } from './LanguageContext';
+interface AboutSectionProps {
+  about: {
+    sectionNumber: string;
+    sectionLabel: string;
+    heading: string;
+    bio: string;
+    quote: string;
+    location: string;
+    details: string;
+    established: string;
+  };
+}
 
-export default function AboutSection() {
-  const { t } = useLang();
-  const headingLines = t?.aboutHeading?.split('\n');
+export default function AboutSection({ about }: AboutSectionProps) {
+  const headingLines = about.heading.split('\n');
 
   return (
     <section
@@ -24,7 +34,7 @@ export default function AboutSection() {
             opacity: 0.7,
           }}
         >
-          {t?.aboutLabel}
+          {about.sectionNumber} - {about.sectionLabel}
         </p>
 
         <div className="flex flex-col md:flex-row gap-10 md:gap-0">
@@ -54,7 +64,7 @@ export default function AboutSection() {
                 color: 'var(--muted-parchment)',
               }}
             >
-              {t?.aboutBio1}
+              {about.bio}
             </p>
 
             <p
@@ -65,7 +75,7 @@ export default function AboutSection() {
                 color: 'var(--muted-parchment)',
               }}
             >
-              {t?.aboutBio2}
+              {about.details}
             </p>
 
             {/* Pull quote */}
@@ -80,7 +90,7 @@ export default function AboutSection() {
                 lineHeight: 1.45,
               }}
             >
-              {t?.aboutQuote}
+              "{about.quote}"
             </blockquote>
           </div>
 
@@ -114,9 +124,9 @@ export default function AboutSection() {
                 lineHeight: 2,
               }}
             >
-              <p>{t?.aboutLocation}</p>
-              <p>{t?.aboutAppointment}</p>
-              <p>{t?.aboutEst}</p>
+              <p>{about.location}</p>
+              <p>{about.details}</p>
+              <p>{about.established}</p>
             </div>
 
             {/* Small decorative rule */}

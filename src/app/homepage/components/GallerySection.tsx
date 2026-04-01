@@ -1,37 +1,16 @@
 'use client';
 
-import { useLang } from './LanguageContext';
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import type { PortfolioImage } from '@/lib/content';
 
-const GALLERY_STORAGE_KEY = 'serbero_gallery_images';
-
-interface GalleryImage {
-  id: number;
-  src: string | null;
-}
-
-function useGalleryImages(): GalleryImage[] {
-  const [images, setImages] = useState<GalleryImage[]>([
-    { id: 1, src: null }, { id: 2, src: null }, { id: 3, src: null },
-    { id: 4, src: null }, { id: 5, src: null }, { id: 6, src: null },
-    { id: 7, src: null },
-  ]);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(GALLERY_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as Record<string, string>;
-        setImages((prev) =>
-          prev.map((img) => ({ ...img, src: parsed[img.id] ?? null }))
-        );
-      }
-    } catch {
-      // no-op
-    }
-  }, []);
-
-  return images;
+interface GallerySectionProps {
+  portfolio: {
+    sectionNumber: string;
+    sectionLabel: string;
+    subtitle: string;
+    images: PortfolioImage[];
+  };
 }
 
 function useItemReveal(count: number) {
@@ -39,7 +18,12 @@ function useItemReveal(count: number) {
   const [visible, setVisible] = useState<boolean[]>(Array(count).fill(false));
 
   useEffect(() => {
+    setVisible(Array(count).fill(false));
+  }, [count]);
+
+  useEffect(() => {
     const observers: IntersectionObserver[] = [];
+
     refs.current.forEach((el, i) => {
       if (!el) return;
       const obs = new IntersectionObserver(
@@ -51,7 +35,7 @@ function useItemReveal(count: number) {
                 next[i] = true;
                 return next;
               });
-            }, i * 80); // stagger 80ms per item
+            }, i * 80);
             obs.disconnect();
           }
         },
@@ -60,82 +44,20 @@ function useItemReveal(count: number) {
       obs.observe(el);
       observers.push(obs);
     });
+
     return () => observers.forEach((o) => o.disconnect());
-  }, []);
+  }, [count]);
 
   return { refs, visible };
 }
 
-interface GalleryItemProps {
-  colClass: string;
-  aspect: string;
-  bgClass: string;
-  label: string;
-  imageSrc: string | null;
-  index: number;
-  isVisible: boolean;
-  refCallback: (el: HTMLDivElement | null) => void;
+function resolveAspect(index: number): string {
+  const map = ['3/4', '4/3', '16/9', '3/4', '3/4', '3/4', '3/4'];
+  return map[index % map.length] || '3/4';
 }
 
-function GalleryItem({ colClass, aspect, bgClass, label, imageSrc, index, isVisible, refCallback }: GalleryItemProps) {
-  const [imgLoaded, setImgLoaded] = useState(false);
-
-  return (
-    <div
-      ref={refCallback}
-      className={`gallery-img ${colClass}`}
-      style={{
-        aspectRatio: aspect,
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(24px)',
-        transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${index * 0.06}s, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${index * 0.06}s`,
-      }}
-      role="img"
-      aria-label={label}
-    >
-      {imageSrc ? (
-        <>
-          {!imgLoaded && <div className={`gallery-skeleton w-full h-full ${bgClass}`} />}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageSrc}
-            alt={label}
-            loading="lazy"
-            decoding="async"
-            className="gallery-img-inner"
-            style={{
-              opacity: imgLoaded ? 1 : 0,
-              transition: 'opacity 0.5s ease',
-              position: imgLoaded ? 'relative' : 'absolute',
-              inset: 0,
-            }}
-            onLoad={() => setImgLoaded(true)}
-          />
-        </>
-      ) : (
-        <div className={`w-full h-full ${bgClass}`} />
-      )}
-      <GalleryLabel label={label} />
-    </div>
-  );
-}
-
-export default function GallerySection() {
-  const { t } = useLang();
-  const images = useGalleryImages();
-
-  const galleryItems = [
-    { id: 1, colClass: 'col-span-1',            aspect: '3/4',  bg: 'gp-1', label: t.galleryItem1 },
-    { id: 2, colClass: 'col-span-1 md:col-span-2', aspect: '4/3',  bg: 'gp-2', label: t.galleryItem2 },
-    { id: 3, colClass: 'col-span-2 md:col-span-2', aspect: '16/9', bg: 'gp-3', label: t.galleryItem3 },
-    { id: 4, colClass: 'col-span-2 md:col-span-1', aspect: '3/4',  bg: 'gp-4', label: t.galleryItem4 },
-    { id: 5, colClass: 'col-span-1',            aspect: '3/4',  bg: 'gp-5', label: t.galleryItem5 },
-    { id: 6, colClass: 'col-span-1',            aspect: '3/4',  bg: 'gp-6', label: t.galleryItem6 },
-    { id: 7, colClass: 'col-span-2 md:col-span-1', aspect: '3/4',  bg: 'gp-7', label: t.galleryItem7 },
-  ];
-
-  const { refs, visible } = useItemReveal(galleryItems.length);
-  const descLines = t.galleryDesc.split('\n');
+export default function GallerySection({ portfolio }: GallerySectionProps) {
+  const { refs, visible } = useItemReveal(portfolio.images.length);
 
   return (
     <section
@@ -144,8 +66,6 @@ export default function GallerySection() {
       style={{ contentVisibility: 'auto', containIntrinsicSize: '0 800px' } as React.CSSProperties}
     >
       <div className="max-w-6xl mx-auto">
-
-        {/* Off-center heading */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10 md:mb-16 gap-4">
           <div>
             <p
@@ -158,7 +78,7 @@ export default function GallerySection() {
                 opacity: 0.7,
               }}
             >
-              {t.galleryLabel}
+              {portfolio.sectionNumber} - Portfolio
             </p>
             <h2
               id="gallery-heading"
@@ -172,7 +92,7 @@ export default function GallerySection() {
                 letterSpacing: '-0.02em',
               }}
             >
-              THE<br />WORK.
+              {portfolio.sectionLabel}
             </h2>
           </div>
           <p
@@ -181,73 +101,60 @@ export default function GallerySection() {
               fontSize: '0.72rem',
               lineHeight: 1.9,
               color: 'var(--muted-parchment)',
-              maxWidth: '240px',
+              maxWidth: '280px',
             }}
           >
-            {descLines.map((line, i) => (
-              <span key={i}>{line}{i < descLines.length - 1 && <br />}</span>
-            ))}
+            {portfolio.subtitle}
           </p>
         </div>
 
-        {/* Asymmetric gallery grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
-          {galleryItems.map((item, index) => {
-            const imgData = images.find((img) => img.id === item.id);
-            return (
-              <GalleryItem
-                key={item.id}
-                colClass={item.colClass}
-                aspect={item.aspect}
-                bgClass={item.bg}
-                label={item.label}
-                imageSrc={imgData?.src ?? null}
-                index={index}
-                isVisible={visible[index]}
-                refCallback={(el) => { refs.current[index] = el; }}
+          {portfolio.images.map((image, index) => (
+            <div
+              key={image.id}
+              ref={(el) => {
+                refs.current[index] = el;
+              }}
+              className={`gallery-img ${index % 4 === 2 ? 'col-span-2 md:col-span-2' : 'col-span-1'}`}
+              style={{
+                aspectRatio: resolveAspect(index),
+                opacity: visible[index] ? 1 : 0,
+                transform: visible[index] ? 'translateY(0)' : 'translateY(24px)',
+                transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${index * 0.06}s, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${index * 0.06}s`,
+              }}
+              role="img"
+              aria-label={`${image.title}, ${image.year}`}
+            >
+              <Image
+                src={image.src}
+                alt={`${image.title} ${image.year}`}
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                style={{ objectFit: 'cover' }}
               />
-            );
-          })}
+              <div
+                className="absolute bottom-0 left-0 right-0 p-3"
+                style={{
+                  background: 'linear-gradient(to top, rgba(10,10,10,0.85) 0%, transparent 100%)',
+                  zIndex: 4,
+                }}
+              >
+                <p
+                  className="font-mono-body"
+                  style={{
+                    fontSize: '0.58rem',
+                    letterSpacing: '0.28em',
+                    color: 'rgba(240,234,214,0.6)',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {image.title} - {image.year}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
-
-        {/* Bottom note */}
-        <p
-          className="font-mono-body mt-8 md:mt-10 text-center"
-          style={{
-            fontSize: '0.62rem',
-            letterSpacing: '0.35em',
-            color: 'var(--faded-gold)',
-            textTransform: 'uppercase',
-            opacity: 0.5,
-          }}
-        >
-          {t.galleryNote}
-        </p>
       </div>
     </section>
-  );
-}
-
-function GalleryLabel({ label }: { label: string }) {
-  return (
-    <div
-      className="absolute bottom-0 left-0 right-0 p-3"
-      style={{
-        background: 'linear-gradient(to top, rgba(10,10,10,0.85) 0%, transparent 100%)',
-        zIndex: 4,
-      }}
-    >
-      <p
-        className="font-mono-body"
-        style={{
-          fontSize: '0.58rem',
-          letterSpacing: '0.28em',
-          color: 'rgba(240,234,214,0.6)',
-          textTransform: 'uppercase',
-        }}
-      >
-        {label}
-      </p>
-    </div>
   );
 }

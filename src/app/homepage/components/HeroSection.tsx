@@ -1,16 +1,21 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useLang } from './LanguageContext';
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  hero: {
+    title: string;
+    tagline: string;
+    scrollText: string;
+  };
+}
+
+export default function HeroSection({ hero }: HeroSectionProps) {
   const line1Ref = useRef<HTMLSpanElement>(null);
   const line2Ref = useRef<HTMLSpanElement>(null);
   const taglineRef = useRef<HTMLParagraphElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const portraitRef = useRef<HTMLDivElement>(null);
-  const { t } = useLang();
-
   useEffect(() => {
     const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -75,7 +80,7 @@ export default function HeroSection() {
                   opacity: 0.7,
                 }}
               >
-                {t.heroLabel}
+                {hero.title}
               </p>
 
               {/* Hero H1 */}
@@ -130,7 +135,7 @@ export default function HeroSection() {
                   transition: 'opacity 1s ease, transform 1s cubic-bezier(0.16,1,0.3,1)',
                 }}
               >
-                {t.heroTagline}
+                {hero.tagline}
               </p>
             </div>
 
@@ -162,7 +167,7 @@ export default function HeroSection() {
                     textTransform: 'uppercase',
                   }}
                 >
-                  {t.heroScroll}
+                  {hero.scrollText}
                 </span>
               </div>
             </div>
@@ -208,7 +213,7 @@ export default function HeroSection() {
                     textTransform: 'uppercase',
                   }}
                 >
-                  {t.heroArtist}
+                  The Artist
                 </span>
               </div>
               {/* Faint grid lines on portrait */}

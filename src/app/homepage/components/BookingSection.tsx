@@ -1,15 +1,32 @@
 'use client';
 
-import { useLang } from './LanguageContext';
-import { trackCtaClick } from '@/lib/analytics';
 import { useRef } from 'react';
+import { trackCtaClick } from '@/lib/analytics';
 
-const WHATSAPP_NUMBER = '1234567890'; // Replace with actual WhatsApp number
+interface BookingSectionProps {
+  contact: {
+    sectionNumber: string;
+    sectionLabel: string;
+    heading: string;
+    email: string;
+    instagram: string;
+    instagramUrl: string;
+    location: string;
+    whatsapp: string;
+    whatsappText: string;
+    ctaText: string;
+    quote: string;
+  };
+}
 
-export default function BookingSection() {
-  const { t } = useLang();
-  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hi! I\'d like to book a tattoo session with Serbero Ink.')}`;
-  const headingLines = t?.bookingHeading?.split('\n');
+function createWhatsappUrl(number: string, message: string): string {
+  const clean = number.replace(/\D+/g, '');
+  return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
+}
+
+export default function BookingSection({ contact }: BookingSectionProps) {
+  const whatsappUrl = createWhatsappUrl(contact.whatsapp, contact.whatsappText);
+  const headingLines = contact.heading.split('\n');
   const btnRef = useRef<HTMLAnchorElement>(null);
 
   const handleBtnMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -28,7 +45,8 @@ export default function BookingSection() {
     const btn = btnRef.current;
     if (!btn) return;
     btn.style.transform = 'translate(0, 0)';
-    btn.style.transition = 'transform 0.5s cubic-bezier(0.16,1,0.3,1), background-color 0.3s ease, color 0.3s ease, letter-spacing 0.3s ease';
+    btn.style.transition =
+      'transform 0.5s cubic-bezier(0.16,1,0.3,1), background-color 0.3s ease, color 0.3s ease, letter-spacing 0.3s ease';
   };
 
   return (
@@ -38,8 +56,6 @@ export default function BookingSection() {
       aria-labelledby="booking-heading"
     >
       <div className="max-w-2xl mx-auto text-center">
-
-        {/* Section label */}
         <p
           className="font-mono-body mb-10"
           style={{
@@ -50,7 +66,7 @@ export default function BookingSection() {
             opacity: 0.7,
           }}
         >
-          {t?.bookingLabel}
+          {contact.sectionNumber} - Contact
         </p>
 
         <h2
@@ -60,51 +76,46 @@ export default function BookingSection() {
             fontSize: 'clamp(2rem, 6vw, 5rem)',
             fontWeight: 900,
             fontStyle: 'italic',
-            lineHeight: 1.0,
+            lineHeight: 1,
             color: 'var(--parchment)',
             letterSpacing: '-0.02em',
           }}
         >
-          {headingLines?.[0]}<br />{headingLines?.[1]}
+          {headingLines[0]}
+          <br />
+          {headingLines[1] || ''}
         </h2>
 
-        {/* Thin rule */}
-        <div
-          className="mx-auto mb-10"
-          style={{ width: '60px', height: '1px', backgroundColor: 'var(--rule-color)' }}
-          aria-hidden="true"
-        />
+        <div className="mx-auto mb-10" style={{ width: '60px', height: '1px', backgroundColor: 'var(--rule-color)' }} aria-hidden="true" />
 
-        {/* Contact info */}
         <div
           className="font-mono-body mb-12 space-y-2"
           style={{ fontSize: '0.78rem', lineHeight: 2.2, color: 'var(--muted-parchment)', letterSpacing: '0.08em' }}
         >
           <p>
             <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
-              {t?.bookingEmail}{' '}
+              Email{' '}
             </span>
-            <a href="mailto:studio@serberoink.com" style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}>
-              studio@serberoink.com
+            <a href={`mailto:${contact.email}`} style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}>
+              {contact.email}
             </a>
           </p>
           <p>
             <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
-              {t?.bookingInstagram}{' '}
+              Instagram{' '}
             </span>
-            <a href="https://instagram.com/serbero_ink" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}>
-              @serbero_ink
+            <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}>
+              {contact.instagram}
             </a>
           </p>
           <p>
             <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
-              {t?.bookingLocation}{' '}
+              Location{' '}
             </span>
-            <span>{t?.bookingLocationVal}</span>
+            <span>{contact.location}</span>
           </p>
         </div>
 
-        {/* CTA Button — magnetic + WhatsApp redirect */}
         <div className="flex justify-center mb-8" style={{ padding: '16px 0' }}>
           <a
             ref={btnRef}
@@ -117,26 +128,16 @@ export default function BookingSection() {
             onMouseMove={handleBtnMouseMove}
             onMouseLeave={handleBtnMouseLeave}
           >
-            {t?.bookingCTA}
+            {contact.ctaText}
           </a>
         </div>
 
-        {/* Sub-note */}
         <p
           className="font-mono-body"
           style={{ fontSize: '0.65rem', letterSpacing: '0.18em', fontStyle: 'italic', color: 'var(--muted-parchment)', opacity: 0.6 }}
         >
-          {t?.bookingNote}
+          {contact.quote}
         </p>
-
-        {/* Decorative bottom mark */}
-        <div className="mt-16 flex items-center justify-center gap-6" aria-hidden="true">
-          <div style={{ width: '40px', height: '1px', backgroundColor: 'var(--rule-color)' }} />
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M7 1 L7 13 M1 7 L13 7" stroke="var(--faded-gold)" strokeWidth="0.8" strokeOpacity="0.4" />
-          </svg>
-          <div style={{ width: '40px', height: '1px', backgroundColor: 'var(--rule-color)' }} />
-        </div>
       </div>
     </section>
   );

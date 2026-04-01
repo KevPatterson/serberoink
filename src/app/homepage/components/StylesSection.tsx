@@ -1,7 +1,14 @@
 'use client';
 
-import { useLang } from './LanguageContext';
 import { useRef } from 'react';
+
+interface StylesSectionProps {
+  specialties: {
+    sectionNumber: string;
+    sectionLabel: string;
+    items: string[];
+  };
+}
 
 interface StyleCardProps {
   id: string;
@@ -75,13 +82,11 @@ function StyleCard({ id, label, icon, borderRight, borderBottom }: StyleCardProp
   );
 }
 
-export default function StylesSection() {
-  const { t } = useLang();
-
-  const specialties = [
+export default function StylesSection({ specialties }: StylesSectionProps) {
+  const specialtyCards = [
     {
       id: 'snake',
-      label: t?.specialty1,
+      label: specialties.items[0],
       icon: (
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M8 38 C8 38 12 44 20 40 C28 36 28 28 20 26 C12 24 10 18 16 14 C22 10 30 12 32 18" />
@@ -93,7 +98,7 @@ export default function StylesSection() {
     },
     {
       id: 'dagger',
-      label: t?.specialty2,
+      label: specialties.items[1],
       icon: (
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <line x1="24" y1="6" x2="24" y2="36" />
@@ -105,7 +110,7 @@ export default function StylesSection() {
     },
     {
       id: 'rose',
-      label: t?.specialty3,
+      label: specialties.items[2],
       icon: (
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M24 38 L24 22" />
@@ -120,7 +125,7 @@ export default function StylesSection() {
     },
     {
       id: 'compass',
-      label: t?.specialty4,
+      label: specialties.items[3],
       icon: (
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <circle cx="24" cy="24" r="14" />
@@ -136,7 +141,7 @@ export default function StylesSection() {
     },
     {
       id: 'moth',
-      label: t?.specialty5,
+      label: specialties.items[4],
       icon: (
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M24 14 L24 34" />
@@ -152,7 +157,7 @@ export default function StylesSection() {
     },
     {
       id: 'skull',
-      label: t?.specialty6,
+      label: specialties.items[5],
       icon: (
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M14 28 C14 18 18 10 24 10 C30 10 34 18 34 28 L34 32 L14 32 Z" />
@@ -186,7 +191,7 @@ export default function StylesSection() {
             opacity: 0.7,
           }}
         >
-          {t?.stylesLabel}
+          {specialties.sectionNumber} - Specialties
         </p>
 
         <h2
@@ -201,7 +206,7 @@ export default function StylesSection() {
             letterSpacing: '-0.01em',
           }}
         >
-          {t?.stylesHeading}
+          {specialties.sectionLabel}
         </h2>
 
         {/* 6-card grid */}
@@ -209,7 +214,7 @@ export default function StylesSection() {
           className="grid grid-cols-2 md:grid-cols-3 gap-0"
           style={{ borderTop: '1px solid var(--rule-color)' }}
         >
-          {specialties?.map((item, i) => (
+          {specialtyCards?.map((item, i) => (
             <StyleCard
               key={item?.id}
               id={item?.id}

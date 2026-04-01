@@ -1,5 +1,3 @@
-'use client';
-
 import HeroSection from './components/HeroSection';
 import AboutSection from './components/AboutSection';
 import StylesSection from './components/StylesSection';
@@ -9,26 +7,28 @@ import SiteFooter from './components/SiteFooter';
 import ScrollRevealInit from './components/ScrollRevealInit';
 import TattooPreloader from './components/TattooPreloader';
 import SiteNav from './components/SiteNav';
-import { LanguageProvider } from './components/LanguageContext';
+import { getContent } from '@/lib/content';
 
-export default function Homepage() {
+export default async function Homepage() {
+  const content = await getContent();
+
   return (
-    <LanguageProvider>
+    <>
       <TattooPreloader />
       <ScrollRevealInit />
       <SiteNav />
       <main className="bg-ink-black text-parchment overflow-x-hidden">
-        <HeroSection />
+        <HeroSection hero={content.hero} />
         <hr className="section-rule mx-8 md:mx-16" />
-        <AboutSection />
+        <AboutSection about={content.about} />
         <hr className="section-rule mx-8 md:mx-16" />
-        <StylesSection />
+        <StylesSection specialties={content.specialties} />
         <hr className="section-rule mx-8 md:mx-16" />
-        <GallerySection />
+        <GallerySection portfolio={content.portfolio} />
         <hr className="section-rule mx-8 md:mx-16" />
-        <BookingSection />
-        <SiteFooter />
+        <BookingSection contact={content.contact} />
+        <SiteFooter footer={content.footer} />
       </main>
-    </LanguageProvider>
+    </>
   );
 }

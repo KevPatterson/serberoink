@@ -1,9 +1,15 @@
 'use client';
 
-import { useLang } from './LanguageContext';
+interface SiteFooterProps {
+  footer: {
+    brand: string;
+    established: string;
+    rights: string;
+    tagline: string;
+  };
+}
 
-export default function SiteFooter() {
-  const { t } = useLang();
+export default function SiteFooter({ footer }: SiteFooterProps) {
 
   return (
     <footer
@@ -21,7 +27,7 @@ export default function SiteFooter() {
           lineHeight: 2.2,
         }}
       >
-        {t?.footerCopy}
+        {footer.brand} - {footer.established} - {footer.rights}
       </p>
       <p
         className="font-mono-body mt-2"
@@ -33,7 +39,7 @@ export default function SiteFooter() {
           opacity: 0.4,
         }}
       >
-        {t?.footerTagline}
+        {footer.tagline}
       </p>
     </footer>
   );
