@@ -1,7 +1,6 @@
 'use client';
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
-import { useSiteContent } from '@/lib/site-content';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 
 type Lang = 'en' | 'es';
 
@@ -157,7 +156,6 @@ const LanguageContext = createContext<LanguageContextType>({
 });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const siteContent = useSiteContent();
   const [lang, setLang] = useState<Lang>(() => {
     if (typeof window === 'undefined') return 'es';
     const stored = window.localStorage.getItem('serberoink-lang');
@@ -174,31 +172,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const enContent = useMemo<Translations>(() => ({
-    ...en,
-    heroLabel: siteContent.heroLabel,
-    heroTagline: siteContent.heroTagline,
-    aboutHeading: siteContent.aboutHeading,
-    aboutBio1: siteContent.aboutBio1,
-    aboutBio2: siteContent.aboutBio2,
-    aboutQuote: siteContent.aboutQuote,
-    aboutLocation: siteContent.aboutLocation,
-    bookingLocationVal: siteContent.bookingLocation,
-  }), [siteContent]);
-
-  const esContent = useMemo<Translations>(() => ({
-    ...es,
-    heroLabel: siteContent.heroLabel,
-    heroTagline: siteContent.heroTagline,
-    aboutHeading: siteContent.aboutHeading,
-    aboutBio1: siteContent.aboutBio1,
-    aboutBio2: siteContent.aboutBio2,
-    aboutQuote: siteContent.aboutQuote,
-    aboutLocation: siteContent.aboutLocation,
-    bookingLocationVal: siteContent.bookingLocation,
-  }), [siteContent]);
-
-  const t = lang === 'en' ? enContent : esContent;
+  const t = lang === 'en' ? en : es;
   return (
     <LanguageContext.Provider value={{ lang, t, toggleLang }}>
       {children}

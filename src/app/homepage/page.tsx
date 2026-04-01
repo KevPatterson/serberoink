@@ -7,6 +7,7 @@ import SiteFooter from './components/SiteFooter';
 import ScrollRevealInit from './components/ScrollRevealInit';
 import TattooPreloader from './components/TattooPreloader';
 import SiteNav from './components/SiteNav';
+import { LanguageProvider } from './components/LanguageContext';
 import { defaultSiteContent, getContent } from '@/lib/content';
 
 export default async function Homepage() {
@@ -18,7 +19,7 @@ export default async function Homepage() {
   }
 
   return (
-    <>
+    <LanguageProvider>
       <TattooPreloader />
       <ScrollRevealInit />
       <SiteNav />
@@ -34,6 +35,6 @@ export default async function Homepage() {
         <BookingSection contact={content.contact} />
         <SiteFooter footer={content.footer} />
       </main>
-    </>
+    </LanguageProvider>
   );
 }

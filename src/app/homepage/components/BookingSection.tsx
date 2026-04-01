@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import { trackCtaClick } from '@/lib/analytics';
+import { useLang } from './LanguageContext';
 
 interface BookingSectionProps {
   contact: {
@@ -25,6 +26,7 @@ function createWhatsappUrl(number: string, message: string): string {
 }
 
 export default function BookingSection({ contact }: BookingSectionProps) {
+  const { lang, t } = useLang();
   const whatsappUrl = createWhatsappUrl(contact.whatsapp, contact.whatsappText);
   const headingLines = contact.heading.split('\n');
   const btnRef = useRef<HTMLAnchorElement>(null);
@@ -66,7 +68,7 @@ export default function BookingSection({ contact }: BookingSectionProps) {
             opacity: 0.7,
           }}
         >
-          {contact.sectionNumber} - Contact
+          {lang === 'en' ? contact.sectionNumber + ' - Contact' : t.bookingLabel}
         </p>
 
         <h2
@@ -94,7 +96,7 @@ export default function BookingSection({ contact }: BookingSectionProps) {
         >
           <p>
             <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
-              Email{' '}
+              {lang === 'en' ? 'Email ' : 'Correo '}
             </span>
             <a href={`mailto:${contact.email}`} style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}>
               {contact.email}
@@ -110,7 +112,7 @@ export default function BookingSection({ contact }: BookingSectionProps) {
           </p>
           <p>
             <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
-              Location{' '}
+              {lang === 'en' ? 'Location ' : 'Ubicacion '}
             </span>
             <span>{contact.location}</span>
           </p>

@@ -1,8 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { useLang } from './LanguageContext';
 
 export default function SiteNav() {
+  const { lang, t, toggleLang } = useLang();
+
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-4"
@@ -29,6 +32,33 @@ export default function SiteNav() {
 
       {/* Right controls */}
       <div className="flex items-center gap-3 md:gap-5">
+        <button
+          onClick={toggleLang}
+          aria-label={lang === 'en' ? 'Switch to Spanish' : 'Cambiar a ingles'}
+          className="font-mono-body"
+          style={{
+            fontSize: '0.6rem',
+            letterSpacing: '0.3em',
+            textTransform: 'uppercase',
+            color: 'var(--faded-gold)',
+            background: 'none',
+            border: '1px solid rgba(200,169,110,0.35)',
+            padding: '0.35rem 0.7rem',
+            cursor: 'pointer',
+            transition: 'border-color 0.3s ease, color 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'var(--faded-gold)';
+            e.currentTarget.style.color = 'var(--parchment)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(200,169,110,0.35)';
+            e.currentTarget.style.color = 'var(--faded-gold)';
+          }}
+        >
+          {lang === 'en' ? 'ES' : 'EN'}
+        </button>
+
         {/* Admin link */}
         <Link
           href="/admin"
@@ -48,7 +78,7 @@ export default function SiteNav() {
             (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(200,169,110,0.55)';
           }}
         >
-          Admin
+          {t.adminPanel}
         </Link>
       </div>
     </nav>
