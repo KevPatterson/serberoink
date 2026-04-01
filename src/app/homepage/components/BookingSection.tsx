@@ -1,6 +1,7 @@
 'use client';
 
 import { useLang } from './LanguageContext';
+import { trackCtaClick } from '@/lib/analytics';
 
 const WHATSAPP_NUMBER = '1234567890'; // Replace with actual WhatsApp number
 
@@ -49,32 +50,20 @@ export default function BookingSection() {
         {/* Thin rule */}
         <div
           className="mx-auto mb-10"
-          style={{
-            width: '60px',
-            height: '1px',
-            backgroundColor: 'var(--rule-color)',
-          }}
+          style={{ width: '60px', height: '1px', backgroundColor: 'var(--rule-color)' }}
           aria-hidden="true"
         />
 
         {/* Contact info */}
         <div
           className="font-mono-body mb-12 space-y-2"
-          style={{
-            fontSize: '0.78rem',
-            lineHeight: 2.2,
-            color: 'var(--muted-parchment)',
-            letterSpacing: '0.08em',
-          }}
+          style={{ fontSize: '0.78rem', lineHeight: 2.2, color: 'var(--muted-parchment)', letterSpacing: '0.08em' }}
         >
           <p>
             <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
               {t?.bookingEmail}{' '}
             </span>
-            <a
-              href="mailto:studio@serberoink.com"
-              style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}
-            >
+            <a href="mailto:studio@serberoink.com" style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}>
               studio@serberoink.com
             </a>
           </p>
@@ -82,12 +71,7 @@ export default function BookingSection() {
             <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
               {t?.bookingInstagram}{' '}
             </span>
-            <a
-              href="https://instagram.com/serbero_ink"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}
-            >
+            <a href="https://instagram.com/serbero_ink" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}>
               @serbero_ink
             </a>
           </p>
@@ -107,6 +91,7 @@ export default function BookingSection() {
             rel="noopener noreferrer"
             className="cta-btn"
             aria-label="Book a session via WhatsApp"
+            onClick={() => trackCtaClick('WhatsApp Booking')}
           >
             {t?.bookingCTA}
           </a>
@@ -115,22 +100,13 @@ export default function BookingSection() {
         {/* Sub-note */}
         <p
           className="font-mono-body"
-          style={{
-            fontSize: '0.65rem',
-            letterSpacing: '0.18em',
-            fontStyle: 'italic',
-            color: 'var(--muted-parchment)',
-            opacity: 0.6,
-          }}
+          style={{ fontSize: '0.65rem', letterSpacing: '0.18em', fontStyle: 'italic', color: 'var(--muted-parchment)', opacity: 0.6 }}
         >
           {t?.bookingNote}
         </p>
 
         {/* Decorative bottom mark */}
-        <div
-          className="mt-16 flex items-center justify-center gap-6"
-          aria-hidden="true"
-        >
+        <div className="mt-16 flex items-center justify-center gap-6" aria-hidden="true">
           <div style={{ width: '40px', height: '1px', backgroundColor: 'var(--rule-color)' }} />
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
             <path d="M7 1 L7 13 M1 7 L13 7" stroke="var(--faded-gold)" strokeWidth="0.8" strokeOpacity="0.4" />
