@@ -1,689 +1,747 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import {
-  getAnalyticsSummary,
-  clearAnalytics,
-  type AnalyticsSummary,
-} from '@/lib/analytics';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import type { PortfolioImage, SiteContent } from '@/lib/content';
 
-const ADMIN_PASSWORD = 'serberoink2024';
-const SESSION_KEY = 'serbero_admin_auth';
+type SectionKey = 'portfolio' | 'hero' | 'about' | 'specialties' | 'contact' | 'footer';
+type ToastType = 'success' | 'error';
 
-interface ContentData {
-  heroLabel: string;
-  heroTagline: string;
-  aboutHeading: string;
-  aboutBio1: string;
-  aboutBio2: string;
-  aboutQuote: string;
-  aboutLocation: string;
-  bookingEmail: string;
-  bookingInstagram: string;
-  bookingLocation: string;
-  whatsappNumber: string;
-}
+const CONTENT_PATH = 'public/content/content.json';
 
-const defaultContent: ContentData = {
-  heroLabel: 'Tattoo Studio — Est. 2024',
-  heroTagline: '"permanent art. no regrets."',
-  aboutHeading: 'The Hand Behind the Needle.',
-  aboutBio1: 'Born from a city that doesn\'t sleep and a tradition that doesn\'t forget, Serbero has spent over a decade turning skin into story.',
-  aboutBio2: 'The studio operates by appointment only. No walk-ins. No rush.',
-  aboutQuote: '"Every line is intentional."',
-  aboutLocation: 'New York, NY',
-  bookingEmail: 'studio@serberoink.com',
-  bookingInstagram: '@serbero_ink',
-  bookingLocation: 'New York, NY — by appointment',
-  whatsappNumber: '1234567890',
-};
-
-const galleryPlaceholders = [
-  { id: 1, label: 'Serpent Study, 2025' },
-  { id: 2, label: 'Botanical Sleeve Detail, 2025' },
-  { id: 3, label: 'Geometric Chest Piece, 2024' },
-  { id: 4, label: 'Moth & Dagger, 2024' },
-  { id: 5, label: 'Rose Flash, 2025' },
-  { id: 6, label: 'Skull Study, 2025' },
-  { id: 7, label: 'Compass & Stars, 2024' },
+const sectionItems: { key: SectionKey; label: string }[] = [
+  { key: 'portfolio', label: 'Portfolio' },
+  { key: 'hero', label: 'Hero' },
+  { key: 'about', label: 'About' },
+  { key: 'specialties', label: 'Especialidades' },
+  { key: 'contact', label: 'Contacto' },
+  { key: 'footer', label: 'Footer' },
 ];
 
-type Tab = 'content' | 'gallery' | 'contact' | 'analytics';
-type SaveState = 'idle' | 'loading' | 'success' | 'error';
+function updateMeta(nextContent: SiteContent): SiteContent {
+  return {
+    ...nextContent,
+    _meta: {
+      lastUpdated: new Date().toISOString(),
+      version: (nextContent._meta?.version || 0) + 1,
+    },
+  };
+}
 
-/* ── Login Screen ── */
-function AdminLogin({ onLogin }: { onLogin: () => void }) {
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(false);
-  const [shake, setShake] = useState(false);
-  const [loading, setLoading] = useState(false);
+export default function AdminDashboardPage() {
+  const router = useRouter();
+  const [content, setContent] = useState<SiteContent | null>(null);
+  const [section, setSection] = useState<SectionKey>('portfolio');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ type: ToastType; message: string } | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    // Simulate brief validation delay for UX
-    await new Promise((r) => setTimeout(r, 600));
-    setLoading(false);
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, 'true');
-      onLogin();
-    } else {
-      setError(true);
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-      setTimeout(() => setError(false), 3000);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadPreview, setUploadPreview] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const [newImageTitle, setNewImageTitle] = useState('');
+  const [newImageYear, setNewImageYear] = useState('');
+  const [newImageCategory, setNewImageCategory] = useState('general');
+
+  const [dragImageIndex, setDragImageIndex] = useState<number | null>(null);
+  const [dragSpecialtyIndex, setDragSpecialtyIndex] = useState<number | null>(null);
+
+  const adminToken = useMemo(() => {
+    if (typeof window === 'undefined') return '';
+    return sessionStorage.getItem('admin_token') || '';
+  }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch('/api/cms/content', { cache: 'no-store' });
+        if (!res.ok) throw new Error('No se pudo cargar content.json');
+        const data = (await res.json()) as SiteContent;
+        setContent(data);
+      } catch (error) {
+        setToast({
+          type: 'error',
+          message: error instanceof Error ? error.message : 'Error inesperado',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!adminToken) {
+      router.replace('/admin/login');
+      return;
+    }
+
+    void load();
+  }, [adminToken, router]);
+
+  const showToast = (type: ToastType, message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 2800);
+  };
+
+  const persistContent = async (nextContent: SiteContent, message: string) => {
+    if (!adminToken) {
+      showToast('error', 'Sesion expirada. Inicia sesion otra vez.');
+      router.push('/admin/login');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const withMeta = updateMeta(nextContent);
+      const res = await fetch('/api/cms/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': adminToken,
+        },
+        body: JSON.stringify({
+          path: CONTENT_PATH,
+          content: withMeta,
+          message,
+        }),
+      });
+
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(payload.error || 'No se pudo guardar');
+      }
+
+      setContent(withMeta);
+      showToast('success', 'Cambios guardados');
+    } catch (error) {
+      showToast('error', error instanceof Error ? error.message : 'Error al guardar');
+    } finally {
+      setSaving(false);
     }
   };
 
+  const handleLogout = async () => {
+    await fetch('/api/cms/logout', { method: 'POST' });
+    sessionStorage.removeItem('admin_token');
+    router.push('/admin/login');
+  };
+
+  const uploadPortfolioImage = async () => {
+    if (!content || !uploadFile || !newImageTitle.trim() || !newImageYear.trim()) {
+      showToast('error', 'Completa archivo, titulo y anio');
+      return;
+    }
+
+    if (!adminToken) {
+      showToast('error', 'Sesion expirada');
+      router.push('/admin/login');
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(15);
+
+    try {
+      const base64 = await fileToBase64(uploadFile);
+      setUploadProgress(45);
+
+      const uploadRes = await fetch('/api/cms/upload-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': adminToken,
+        },
+        body: JSON.stringify({
+          filename: uploadFile.name,
+          base64,
+          mimeType: uploadFile.type,
+          message: `cms: upload ${uploadFile.name}`,
+        }),
+      });
+
+      if (!uploadRes.ok) {
+        const payload = (await uploadRes.json().catch(() => ({}))) as { error?: string };
+        throw new Error(payload.error || 'No se pudo subir la imagen');
+      }
+
+      const uploadPayload = (await uploadRes.json()) as { url: string; filename: string };
+      setUploadProgress(75);
+
+      const nextImage: PortfolioImage = {
+        id: `img_${Date.now()}`,
+        src: uploadPayload.url,
+        title: newImageTitle.trim(),
+        year: newImageYear.trim(),
+        category: newImageCategory.trim() || 'general',
+      };
+
+      const nextContent: SiteContent = {
+        ...content,
+        portfolio: {
+          ...content.portfolio,
+          images: [...content.portfolio.images, nextImage],
+        },
+      };
+
+      await persistContent(nextContent, `cms: append ${uploadPayload.filename} to content`);
+      setUploadProgress(100);
+      setShowUploadModal(false);
+      setUploadFile(null);
+      setUploadPreview('');
+      setNewImageTitle('');
+      setNewImageYear('');
+      setNewImageCategory('general');
+    } catch (error) {
+      showToast('error', error instanceof Error ? error.message : 'Error al subir');
+    } finally {
+      setUploading(false);
+      setTimeout(() => setUploadProgress(0), 400);
+    }
+  };
+
+  if (loading || !content) {
+    return <div className="min-h-screen" style={{ backgroundColor: 'var(--ink-black)' }} />;
+  }
+
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center px-6"
-      style={{ backgroundColor: 'var(--ink-black)', color: 'var(--parchment)' }}
-    >
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E")`,
-          opacity: 0.35,
-          zIndex: 0,
-        }}
-      />
-      <div className="relative z-10 w-full max-w-sm">
-        <div className="text-center mb-12">
-          <p className="font-serif-display" style={{ fontSize: '2rem', fontWeight: 900, fontStyle: 'italic', color: 'var(--faded-gold)', letterSpacing: '0.12em', marginBottom: '0.4rem' }}>
-            SERBERO INK
-          </p>
-          <p className="font-mono-body" style={{ fontSize: '0.55rem', letterSpacing: '0.45em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.45)' }}>
-            Admin Access
-          </p>
-        </div>
-        <div style={{ borderTop: '1px solid var(--rule-color)', marginBottom: '2.5rem' }} />
-        <form onSubmit={handleSubmit} style={{ animation: shake ? 'shake 0.4s ease' : 'none' }}>
-          <div className="mb-6">
-            <label className="font-mono-body block mb-2" style={{ fontSize: '0.58rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.65)' }}>
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoFocus
-              disabled={loading}
-              className="font-mono-body w-full px-4 py-3"
+    <div className="min-h-screen md:flex" style={{ backgroundColor: 'var(--ink-black)', color: 'var(--parchment)' }}>
+      <aside className="md:w-64 p-6" style={{ borderRight: '1px solid var(--rule-color)' }}>
+        <p className="font-serif-display" style={{ fontSize: '1.3rem', fontStyle: 'italic', color: 'var(--faded-gold)' }}>
+          SERBERO INK
+        </p>
+        <p className="font-mono-body mb-6" style={{ fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.65)' }}>
+          Admin CMS
+        </p>
+
+        <div className="space-y-1 mb-8">
+          {sectionItems.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setSection(item.key)}
+              className="w-full text-left px-3 py-2 font-mono-body"
               style={{
-                fontSize: '0.85rem',
-                background: 'rgba(240,234,214,0.04)',
-                border: `1px solid ${error ? 'rgba(180,60,60,0.7)' : 'rgba(200,169,110,0.25)'}`,
-                color: 'var(--parchment)',
-                outline: 'none',
-                letterSpacing: '0.15em',
-                transition: 'border-color 0.2s ease',
-                opacity: loading ? 0.6 : 1,
+                fontSize: '0.62rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.18em',
+                color: section === item.key ? 'var(--faded-gold)' : 'rgba(240,234,214,0.5)',
+                borderLeft: section === item.key ? '1px solid var(--faded-gold)' : '1px solid transparent',
+                backgroundColor: section === item.key ? 'rgba(200,169,110,0.08)' : 'transparent',
               }}
-              onFocus={(e) => { if (!error) e.currentTarget.style.borderColor = 'rgba(200,169,110,0.6)'; }}
-              onBlur={(e) => { if (!error) e.currentTarget.style.borderColor = 'rgba(200,169,110,0.25)'; }}
-              placeholder="Enter password"
-            />
-            {error && (
-              <p className="font-mono-body mt-2" style={{ fontSize: '0.6rem', letterSpacing: '0.2em', color: 'rgba(200,80,80,0.85)', textTransform: 'uppercase' }}>
-                ✗ Incorrect password
-              </p>
-            )}
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="font-mono-body w-full py-3 flex items-center justify-center gap-2"
-            style={{
-              fontSize: '0.65rem',
-              letterSpacing: '0.35em',
-              textTransform: 'uppercase',
-              color: 'var(--ink-black)',
-              backgroundColor: 'var(--faded-gold)',
-              border: 'none',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'background-color 0.2s ease',
-              opacity: loading ? 0.8 : 1,
-            }}
-            onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = 'var(--parchment)'; }}
-            onMouseLeave={(e) => { if (!loading) e.currentTarget.style.backgroundColor = 'var(--faded-gold)'; }}
-          >
-            {loading ? (
-              <>
-                <span style={{ display: 'inline-block', width: '10px', height: '10px', border: '1.5px solid var(--ink-black)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-                Verifying…
-              </>
-            ) : 'Enter Panel'}
-          </button>
-        </form>
-        <div className="text-center mt-8">
-          <Link href="/homepage" className="font-mono-body" style={{ fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(240,234,214,0.3)', textDecoration: 'none', transition: 'color 0.2s ease' }}>
-            ← Back to Site
-          </Link>
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
-      </div>
-      <style>{`
-        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+
+        <div className="flex flex-col gap-3">
+          <Link href="/homepage" className="font-mono-body" style={{ fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(240,234,214,0.55)', textDecoration: 'none' }}>
+            Volver al sitio
+          </Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="font-mono-body text-left"
+            style={{ fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(220,120,120,0.95)', background: 'none', border: 'none' }}
+          >
+            Cerrar sesion
+          </button>
+        </div>
+      </aside>
+
+      <main className="flex-1 p-6 md:p-8 max-w-5xl">
+        {toast && (
+          <div className="mb-6 px-4 py-3 font-mono-body" style={{ fontSize: '0.62rem', letterSpacing: '0.08em', border: `1px solid ${toast.type === 'success' ? 'rgba(120,200,120,0.45)' : 'rgba(220,100,100,0.45)'}`, color: toast.type === 'success' ? 'rgba(120,220,120,0.95)' : 'rgba(220,100,100,0.95)' }}>
+            {toast.message}
+          </div>
+        )}
+
+        {section === 'portfolio' && (
+          <AdminPortfolio
+            content={content}
+            saving={saving}
+            dragImageIndex={dragImageIndex}
+            setDragImageIndex={setDragImageIndex}
+            setContent={setContent}
+            onSave={() => persistContent(content, 'cms: update portfolio')}
+            onDelete={(id) => {
+              if (!window.confirm('Eliminar esta imagen? No se puede deshacer')) return;
+              const nextImages = content.portfolio.images.filter((img) => img.id !== id);
+              setContent({
+                ...content,
+                portfolio: { ...content.portfolio, images: nextImages },
+              });
+            }}
+            onOpenUpload={() => setShowUploadModal(true)}
+          />
+        )}
+
+        {section === 'hero' && (
+          <AdminHero
+            content={content}
+            setContent={setContent}
+            saving={saving}
+            onSave={() => {
+              if (!content.hero.title.trim() || !content.hero.tagline.trim() || !content.hero.scrollText.trim()) {
+                showToast('error', 'Todos los campos de Hero son requeridos');
+                return;
+              }
+              void persistContent(content, 'cms: update hero');
+            }}
+          />
+        )}
+
+        {section === 'about' && (
+          <AdminAbout
+            content={content}
+            setContent={setContent}
+            saving={saving}
+            onSave={() => {
+              if (!content.about.heading.trim() || !content.about.bio.trim()) {
+                showToast('error', 'Heading y Bio son requeridos');
+                return;
+              }
+              void persistContent(content, 'cms: update about');
+            }}
+          />
+        )}
+
+        {section === 'specialties' && (
+          <AdminSpecialties
+            content={content}
+            setContent={setContent}
+            saving={saving}
+            dragSpecialtyIndex={dragSpecialtyIndex}
+            setDragSpecialtyIndex={setDragSpecialtyIndex}
+            onSave={() => {
+              if (content.specialties.items.some((item) => !item.trim())) {
+                showToast('error', 'No puede haber especialidades vacias');
+                return;
+              }
+              void persistContent(content, 'cms: update specialties');
+            }}
+          />
+        )}
+
+        {section === 'contact' && (
+          <AdminContact
+            content={content}
+            setContent={setContent}
+            saving={saving}
+            onSave={() => {
+              if (!content.contact.email.trim() || !content.contact.whatsapp.trim()) {
+                showToast('error', 'Email y WhatsApp son requeridos');
+                return;
+              }
+              void persistContent(content, 'cms: update contact');
+            }}
+          />
+        )}
+
+        {section === 'footer' && (
+          <AdminFooter
+            content={content}
+            setContent={setContent}
+            saving={saving}
+            onSave={() => {
+              if (!content.footer.brand.trim() || !content.footer.tagline.trim()) {
+                showToast('error', 'Brand y tagline son requeridos');
+                return;
+              }
+              void persistContent(content, 'cms: update footer');
+            }}
+          />
+        )}
+      </main>
+
+      {showUploadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.72)' }}>
+          <div className="w-full max-w-lg p-6" style={{ backgroundColor: '#101010', border: '1px solid var(--rule-color)' }}>
+            <p className="font-mono-body mb-5" style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: 'var(--faded-gold)' }}>
+              Subir imagen
+            </p>
+
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                setUploadFile(file);
+                if (!file) {
+                  setUploadPreview('');
+                  return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => setUploadPreview((reader.result as string) || '');
+                reader.readAsDataURL(file);
+              }}
+              className="mb-4"
+            />
+
+            {uploadPreview && (
+              <img src={uploadPreview} alt="Preview" className="w-full h-44 object-cover mb-4" />
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+              <input value={newImageTitle} onChange={(e) => setNewImageTitle(e.target.value)} placeholder="Titulo" className="px-3 py-2 font-mono-body" style={inputStyle} />
+              <input value={newImageYear} onChange={(e) => setNewImageYear(e.target.value)} placeholder="Anio" className="px-3 py-2 font-mono-body" style={inputStyle} />
+              <input value={newImageCategory} onChange={(e) => setNewImageCategory(e.target.value)} placeholder="Categoria" className="px-3 py-2 font-mono-body" style={inputStyle} />
+            </div>
+
+            {uploading && (
+              <div className="mb-4">
+                <div style={{ height: '6px', backgroundColor: 'rgba(200,169,110,0.2)' }}>
+                  <div style={{ width: `${uploadProgress}%`, height: '100%', backgroundColor: 'var(--faded-gold)', transition: 'width 0.2s ease' }} />
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <button type="button" onClick={() => setShowUploadModal(false)} className="px-3 py-2 font-mono-body" style={ghostButtonStyle}>
+                Cancelar
+              </button>
+              <button type="button" onClick={() => void uploadPortfolioImage()} disabled={uploading} className="px-3 py-2 font-mono-body" style={primaryButtonStyle}>
+                {uploading ? 'Subiendo...' : 'Subir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-/* ── Analytics Dashboard ── */
-function AnalyticsDashboard() {
-  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
-  const [cleared, setCleared] = useState(false);
-
-  const load = useCallback(() => {
-    setSummary(getAnalyticsSummary());
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const handleClear = () => {
-    clearAnalytics();
-    setCleared(true);
-    load();
-    setTimeout(() => setCleared(false), 2500);
-  };
-
-  if (!summary) return null;
-
-  const maxDaily = Math.max(...summary.dailyViews.map((d) => d.count), 1);
-
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr + 'T00:00:00');
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
-  const formatTime = (ts: number) => {
-    const d = new Date(ts);
-    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  };
+function AdminPortfolio(props: {
+  content: SiteContent;
+  saving: boolean;
+  dragImageIndex: number | null;
+  setDragImageIndex: (index: number | null) => void;
+  setContent: (next: SiteContent) => void;
+  onSave: () => void;
+  onDelete: (id: string) => void;
+  onOpenUpload: () => void;
+}) {
+  const { content, saving, dragImageIndex, setDragImageIndex, setContent, onSave, onDelete, onOpenUpload } = props;
 
   return (
-    <div>
-      <SectionLabel>Analytics Overview</SectionLabel>
+    <section>
+      <SectionTitle title="Portfolio" />
+      <button type="button" onClick={onOpenUpload} className="mb-5 px-4 py-2 font-mono-body" style={primaryButtonStyle}>
+        Subir imagen
+      </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {content.portfolio.images.map((image, index) => (
+          <div
+            key={image.id}
+            draggable
+            onDragStart={() => setDragImageIndex(index)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => {
+              if (dragImageIndex === null || dragImageIndex === index) return;
+              const next = [...content.portfolio.images];
+              const [moved] = next.splice(dragImageIndex, 1);
+              next.splice(index, 0, moved);
+              setContent({ ...content, portfolio: { ...content.portfolio, images: next } });
+              setDragImageIndex(null);
+            }}
+            className="p-3"
+            style={{ border: '1px solid var(--rule-color)' }}
+          >
+            <img src={image.src} alt={image.title} className="w-full h-44 object-cover mb-3" />
+            <input
+              value={image.title}
+              onChange={(e) => {
+                const next = content.portfolio.images.map((item) =>
+                  item.id === image.id ? { ...item, title: e.target.value } : item
+                );
+                setContent({ ...content, portfolio: { ...content.portfolio, images: next } });
+              }}
+              className="w-full px-3 py-2 mb-2 font-mono-body"
+              style={inputStyle}
+            />
+            <input
+              value={image.year}
+              onChange={(e) => {
+                const next = content.portfolio.images.map((item) =>
+                  item.id === image.id ? { ...item, year: e.target.value } : item
+                );
+                setContent({ ...content, portfolio: { ...content.portfolio, images: next } });
+              }}
+              className="w-full px-3 py-2 mb-2 font-mono-body"
+              style={inputStyle}
+            />
+            <button type="button" onClick={() => onDelete(image.id)} className="font-mono-body" style={dangerButtonStyle}>
+              Eliminar
+            </button>
+          </div>
+        ))}
+      </div>
+      <SaveButton saving={saving} onClick={onSave} />
+    </section>
+  );
+}
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-3 gap-3 mb-10">
-        {[
-          { label: 'Page Views', value: summary.totalPageviews },
-          { label: 'Section Visits', value: summary.totalSectionVisits },
-          { label: 'CTA Clicks', value: summary.totalCtaClicks },
-        ].map((stat) => (
-          <div key={stat.label} className="p-4 text-center" style={{ border: '1px solid var(--rule-color)' }}>
-            <p className="font-serif-display" style={{ fontSize: 'clamp(1.4rem, 3vw, 2.2rem)', fontWeight: 900, fontStyle: 'italic', color: 'var(--faded-gold)', lineHeight: 1 }}>
-              {stat.value}
-            </p>
-            <p className="font-mono-body mt-2" style={{ fontSize: '0.55rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(240,234,214,0.4)' }}>
-              {stat.label}
-            </p>
+function AdminHero(props: {
+  content: SiteContent;
+  setContent: (next: SiteContent) => void;
+  saving: boolean;
+  onSave: () => void;
+}) {
+  const { content, setContent, saving, onSave } = props;
+  return (
+    <section>
+      <SectionTitle title="Hero" />
+      <InputField
+        label="Title"
+        value={content.hero.title}
+        onChange={(value) => setContent({ ...content, hero: { ...content.hero, title: value } })}
+      />
+      <InputField
+        label="Tagline"
+        value={content.hero.tagline}
+        onChange={(value) => setContent({ ...content, hero: { ...content.hero, tagline: value } })}
+      />
+      <InputField
+        label="Scroll text"
+        value={content.hero.scrollText}
+        onChange={(value) => setContent({ ...content, hero: { ...content.hero, scrollText: value } })}
+      />
+      <SaveButton saving={saving} onClick={onSave} />
+    </section>
+  );
+}
+
+function AdminAbout(props: {
+  content: SiteContent;
+  setContent: (next: SiteContent) => void;
+  saving: boolean;
+  onSave: () => void;
+}) {
+  const { content, setContent, saving, onSave } = props;
+  return (
+    <section>
+      <SectionTitle title="About" />
+      <InputField label="Heading" value={content.about.heading} onChange={(value) => setContent({ ...content, about: { ...content.about, heading: value } })} />
+      <TextareaField label="Bio" value={content.about.bio} onChange={(value) => setContent({ ...content, about: { ...content.about, bio: value } })} />
+      <InputField label="Quote" value={content.about.quote} onChange={(value) => setContent({ ...content, about: { ...content.about, quote: value } })} />
+      <InputField label="Location" value={content.about.location} onChange={(value) => setContent({ ...content, about: { ...content.about, location: value } })} />
+      <InputField label="Details" value={content.about.details} onChange={(value) => setContent({ ...content, about: { ...content.about, details: value } })} />
+      <InputField label="Established" value={content.about.established} onChange={(value) => setContent({ ...content, about: { ...content.about, established: value } })} />
+      <SaveButton saving={saving} onClick={onSave} />
+    </section>
+  );
+}
+
+function AdminSpecialties(props: {
+  content: SiteContent;
+  setContent: (next: SiteContent) => void;
+  saving: boolean;
+  dragSpecialtyIndex: number | null;
+  setDragSpecialtyIndex: (index: number | null) => void;
+  onSave: () => void;
+}) {
+  const { content, setContent, saving, dragSpecialtyIndex, setDragSpecialtyIndex, onSave } = props;
+  return (
+    <section>
+      <SectionTitle title="Especialidades" />
+      <div className="space-y-2">
+        {content.specialties.items.map((item, index) => (
+          <div
+            key={`${item}-${index}`}
+            draggable
+            onDragStart={() => setDragSpecialtyIndex(index)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => {
+              if (dragSpecialtyIndex === null || dragSpecialtyIndex === index) return;
+              const next = [...content.specialties.items];
+              const [moved] = next.splice(dragSpecialtyIndex, 1);
+              next.splice(index, 0, moved);
+              setContent({ ...content, specialties: { ...content.specialties, items: next } });
+              setDragSpecialtyIndex(null);
+            }}
+            className="flex gap-2"
+          >
+            <input
+              value={item}
+              onChange={(e) => {
+                const next = [...content.specialties.items];
+                next[index] = e.target.value;
+                setContent({ ...content, specialties: { ...content.specialties, items: next } });
+              }}
+              className="flex-1 px-3 py-2 font-mono-body"
+              style={inputStyle}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const next = content.specialties.items.filter((_, i) => i !== index);
+                setContent({ ...content, specialties: { ...content.specialties, items: next } });
+              }}
+              className="px-3 py-2 font-mono-body"
+              style={dangerButtonStyle}
+            >
+              Eliminar
+            </button>
           </div>
         ))}
       </div>
 
-      {/* Daily views bar chart — last 14 days */}
-      <div className="mb-10">
-        <p className="font-mono-body mb-4" style={{ fontSize: '0.58rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.55)' }}>
-          Page Views — Last 14 Days
-        </p>
-        <div className="flex items-end gap-1" style={{ height: '80px' }}>
-          {summary.dailyViews.map((day) => (
-            <div key={day.date} className="flex-1 flex flex-col items-center gap-1 group" title={`${formatDate(day.date)}: ${day.count}`}>
-              <div
-                style={{
-                  width: '100%',
-                  height: `${Math.max((day.count / maxDaily) * 64, day.count > 0 ? 4 : 1)}px`,
-                  backgroundColor: day.count > 0 ? 'var(--faded-gold)' : 'rgba(200,169,110,0.12)',
-                  transition: 'height 0.3s ease',
-                  alignSelf: 'flex-end',
-                }}
-              />
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-between mt-2">
-          <span className="font-mono-body" style={{ fontSize: '0.52rem', color: 'rgba(240,234,214,0.3)', letterSpacing: '0.1em' }}>
-            {formatDate(summary.dailyViews[0]?.date ?? '')}
-          </span>
-          <span className="font-mono-body" style={{ fontSize: '0.52rem', color: 'rgba(240,234,214,0.3)', letterSpacing: '0.1em' }}>
-            Today
-          </span>
-        </div>
-      </div>
+      <button
+        type="button"
+        onClick={() => setContent({ ...content, specialties: { ...content.specialties, items: [...content.specialties.items, 'Nueva especialidad'] } })}
+        className="mt-4 px-3 py-2 font-mono-body"
+        style={ghostButtonStyle}
+      >
+        Agregar especialidad
+      </button>
 
-      {/* Top sections + CTAs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        {/* Top sections */}
-        <div>
-          <p className="font-mono-body mb-4" style={{ fontSize: '0.58rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.55)' }}>
-            Top Sections
-          </p>
-          {summary.topSections.length === 0 ? (
-            <p className="font-mono-body" style={{ fontSize: '0.68rem', color: 'rgba(240,234,214,0.3)', fontStyle: 'italic' }}>No data yet</p>
-          ) : (
-            summary.topSections.map((s) => (
-              <div key={s.label} className="flex items-center justify-between mb-3">
-                <div className="flex-1 mr-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono-body" style={{ fontSize: '0.65rem', color: 'var(--parchment)', letterSpacing: '0.05em' }}>{s.label}</span>
-                    <span className="font-mono-body" style={{ fontSize: '0.62rem', color: 'var(--faded-gold)' }}>{s.count}</span>
-                  </div>
-                  <div style={{ height: '2px', background: 'rgba(200,169,110,0.12)', borderRadius: '1px' }}>
-                    <div style={{ height: '100%', width: `${(s.count / (summary.topSections[0]?.count || 1)) * 100}%`, background: 'var(--faded-gold)', borderRadius: '1px', transition: 'width 0.4s ease' }} />
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Top CTAs */}
-        <div>
-          <p className="font-mono-body mb-4" style={{ fontSize: '0.58rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.55)' }}>
-            CTA Clicks
-          </p>
-          {summary.topCtas.length === 0 ? (
-            <p className="font-mono-body" style={{ fontSize: '0.68rem', color: 'rgba(240,234,214,0.3)', fontStyle: 'italic' }}>No data yet</p>
-          ) : (
-            summary.topCtas.map((c) => (
-              <div key={c.label} className="flex items-center justify-between mb-3">
-                <div className="flex-1 mr-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono-body" style={{ fontSize: '0.65rem', color: 'var(--parchment)', letterSpacing: '0.05em' }}>{c.label}</span>
-                    <span className="font-mono-body" style={{ fontSize: '0.62rem', color: 'var(--faded-gold)' }}>{c.count}</span>
-                  </div>
-                  <div style={{ height: '2px', background: 'rgba(200,169,110,0.12)', borderRadius: '1px' }}>
-                    <div style={{ height: '100%', width: `${(c.count / (summary.topCtas[0]?.count || 1)) * 100}%`, background: 'rgba(200,80,80,0.7)', borderRadius: '1px', transition: 'width 0.4s ease' }} />
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Recent events */}
-      <div className="mb-10">
-        <p className="font-mono-body mb-4" style={{ fontSize: '0.58rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.55)' }}>
-          Recent Events
-        </p>
-        {summary.recentEvents.length === 0 ? (
-          <p className="font-mono-body" style={{ fontSize: '0.68rem', color: 'rgba(240,234,214,0.3)', fontStyle: 'italic' }}>
-            No events recorded yet. Visit the site to start tracking.
-          </p>
-        ) : (
-          <div style={{ border: '1px solid var(--rule-color)' }}>
-            {summary.recentEvents.slice(0, 10).map((ev, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between px-4 py-2"
-                style={{ borderBottom: i < 9 ? '1px solid rgba(200,169,110,0.08)' : 'none' }}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="font-mono-body"
-                    style={{
-                      fontSize: '0.52rem',
-                      letterSpacing: '0.2em',
-                      textTransform: 'uppercase',
-                      padding: '0.15rem 0.5rem',
-                      backgroundColor:
-                        ev.type === 'pageview' ? 'rgba(200,169,110,0.15)' :
-                        ev.type === 'cta_click' ? 'rgba(200,80,80,0.15)' :
-                        'rgba(240,234,214,0.08)',
-                      color:
-                        ev.type === 'pageview' ? 'var(--faded-gold)' :
-                        ev.type === 'cta_click' ? 'rgba(220,100,100,0.9)' :
-                        'rgba(240,234,214,0.5)',
-                    }}
-                  >
-                    {ev.type === 'pageview' ? 'view' : ev.type === 'cta_click' ? 'cta' : 'section'}
-                  </span>
-                  <span className="font-mono-body" style={{ fontSize: '0.68rem', color: 'var(--parchment)', letterSpacing: '0.04em' }}>{ev.label}</span>
-                </div>
-                <span className="font-mono-body" style={{ fontSize: '0.58rem', color: 'rgba(240,234,214,0.3)', letterSpacing: '0.05em' }}>
-                  {formatTime(ev.timestamp)}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Actions */}
-      <div className="pt-6 flex items-center gap-4" style={{ borderTop: '1px solid var(--rule-color)' }}>
-        <button
-          onClick={load}
-          className="font-mono-body"
-          style={{ fontSize: '0.62rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--ink-black)', backgroundColor: 'var(--faded-gold)', padding: '0.7rem 1.8rem', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s ease' }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--parchment)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--faded-gold)'; }}
-        >
-          Refresh
-        </button>
-        <button
-          onClick={handleClear}
-          className="font-mono-body"
-          style={{ fontSize: '0.62rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(200,80,80,0.7)', backgroundColor: 'transparent', padding: '0.7rem 1.8rem', border: '1px solid rgba(200,80,80,0.3)', cursor: 'pointer', transition: 'all 0.2s ease' }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(220,100,100,1)'; e.currentTarget.style.borderColor = 'rgba(220,100,100,0.6)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(200,80,80,0.7)'; e.currentTarget.style.borderColor = 'rgba(200,80,80,0.3)'; }}
-        >
-          Clear Data
-        </button>
-        {cleared && (
-          <span className="font-mono-body" style={{ fontSize: '0.6rem', letterSpacing: '0.2em', color: 'rgba(200,169,110,0.7)', textTransform: 'uppercase' }}>
-            ✓ Data cleared
-          </span>
-        )}
-      </div>
-    </div>
+      <SaveButton saving={saving} onClick={onSave} />
+    </section>
   );
 }
 
-/* ── Main Admin Panel ── */
-export default function AdminPage() {
-  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<Tab>('content');
-  const [content, setContent] = useState<ContentData>(defaultContent);
-  const [contentSaveState, setContentSaveState] = useState<SaveState>('idle');
-  const [gallerySaveState, setGallerySaveState] = useState<SaveState>('idle');
-  const [contactSaveState, setContactSaveState] = useState<SaveState>('idle');
-
-  useEffect(() => {
-    const isAuth = sessionStorage.getItem(SESSION_KEY) === 'true';
-    setAuthenticated(isAuth);
-  }, []);
-
-  const handleLogin = () => setAuthenticated(true);
-
-  const handleLogout = () => {
-    sessionStorage.removeItem(SESSION_KEY);
-    setAuthenticated(false);
-  };
-
-  const handleSave = async (
-    setter: React.Dispatch<React.SetStateAction<SaveState>>,
-    shouldFail = false
-  ) => {
-    setter('loading');
-    await new Promise((r) => setTimeout(r, 900));
-    if (shouldFail) {
-      setter('error');
-      setTimeout(() => setter('idle'), 3000);
-    } else {
-      setter('success');
-      setTimeout(() => setter('idle'), 2500);
-    }
-  };
-
-  const update = (key: keyof ContentData, value: string) => {
-    setContent((prev) => ({ ...prev, [key]: value }));
-  };
-
-  if (authenticated === null) {
-    return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--ink-black)' }} />;
-  }
-
-  if (!authenticated) {
-    return <AdminLogin onLogin={handleLogin} />;
-  }
-
-  const tabs: { key: Tab; label: string }[] = [
-    { key: 'content', label: '01 — Content' },
-    { key: 'gallery', label: '02 — Gallery' },
-    { key: 'contact', label: '03 — Contact' },
-    { key: 'analytics', label: '04 — Analytics' },
-  ];
+function AdminContact(props: {
+  content: SiteContent;
+  setContent: (next: SiteContent) => void;
+  saving: boolean;
+  onSave: () => void;
+}) {
+  const { content, setContent, saving, onSave } = props;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--ink-black)', color: 'var(--parchment)' }}>
-      {/* Admin Header */}
-      <header className="flex items-center justify-between px-6 md:px-10 py-5" style={{ borderBottom: '1px solid var(--rule-color)' }}>
-        <div className="flex items-center gap-4">
-          <span className="font-serif-display" style={{ fontSize: '1.1rem', fontWeight: 900, fontStyle: 'italic', color: 'var(--faded-gold)', letterSpacing: '0.1em' }}>
-            SERBERO INK
-          </span>
-          <span className="font-mono-body" style={{ fontSize: '0.58rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.45)' }}>
-            / Admin Panel
-          </span>
-        </div>
-        <div className="flex items-center gap-6">
-          <Link href="/homepage" className="font-mono-body" style={{ fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(240,234,214,0.45)', textDecoration: 'none', transition: 'color 0.2s ease' }}>
-            ← Back to Site
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="font-mono-body"
-            style={{ fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(200,80,80,0.7)', background: 'none', border: '1px solid rgba(200,80,80,0.3)', padding: '0.4rem 1rem', cursor: 'pointer', transition: 'all 0.2s ease' }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(220,100,100,1)'; e.currentTarget.style.borderColor = 'rgba(220,100,100,0.6)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(200,80,80,0.7)'; e.currentTarget.style.borderColor = 'rgba(200,80,80,0.3)'; }}
-          >
-            Logout
-          </button>
-        </div>
-      </header>
-
-      <div className="flex flex-col md:flex-row min-h-[calc(100vh-73px)]">
-        {/* Sidebar */}
-        <aside className="md:w-52 flex-shrink-0 py-8 px-4 md:px-6" style={{ borderRight: '1px solid var(--rule-color)' }}>
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className="font-mono-body w-full text-left py-3 px-3 mb-1"
-              style={{
-                fontSize: '0.62rem',
-                letterSpacing: '0.28em',
-                textTransform: 'uppercase',
-                color: tab === t.key ? 'var(--faded-gold)' : 'rgba(240,234,214,0.4)',
-                background: tab === t.key ? 'rgba(200,169,110,0.07)' : 'none',
-                border: 'none',
-                cursor: 'pointer',
-                borderLeft: tab === t.key ? '1px solid var(--faded-gold)' : '1px solid transparent',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
-        </aside>
-
-        {/* Main content */}
-        <main className="flex-1 py-8 px-6 md:px-10 max-w-3xl">
-
-          {/* ── CONTENT TAB ── */}
-          {tab === 'content' && (
-            <div>
-              <SectionLabel>Page Content</SectionLabel>
-              <FieldGroup label="Hero Label">
-                <AdminInput value={content.heroLabel} onChange={(v) => update('heroLabel', v)} />
-              </FieldGroup>
-              <FieldGroup label="Hero Tagline">
-                <AdminInput value={content.heroTagline} onChange={(v) => update('heroTagline', v)} />
-              </FieldGroup>
-              <FieldGroup label="About Heading">
-                <AdminInput value={content.aboutHeading} onChange={(v) => update('aboutHeading', v)} />
-              </FieldGroup>
-              <FieldGroup label="About Bio (paragraph 1)">
-                <AdminTextarea value={content.aboutBio1} onChange={(v) => update('aboutBio1', v)} rows={4} />
-              </FieldGroup>
-              <FieldGroup label="About Bio (paragraph 2)">
-                <AdminTextarea value={content.aboutBio2} onChange={(v) => update('aboutBio2', v)} rows={3} />
-              </FieldGroup>
-              <FieldGroup label="Pull Quote">
-                <AdminInput value={content.aboutQuote} onChange={(v) => update('aboutQuote', v)} />
-              </FieldGroup>
-              <FieldGroup label="Studio Location">
-                <AdminInput value={content.aboutLocation} onChange={(v) => update('aboutLocation', v)} />
-              </FieldGroup>
-              <SaveButton saveState={contentSaveState} onSave={() => handleSave(setContentSaveState)} />
-            </div>
-          )}
-
-          {/* ── GALLERY TAB ── */}
-          {tab === 'gallery' && (
-            <div>
-              <SectionLabel>Gallery Images</SectionLabel>
-              <p className="font-mono-body mb-8" style={{ fontSize: '0.72rem', lineHeight: 1.8, color: 'rgba(240,234,214,0.5)' }}>
-                Upload images for each gallery slot. Recommended: high-res JPG/PNG, portrait or landscape depending on slot.
-              </p>
-              <div className="grid grid-cols-1 gap-4">
-                {galleryPlaceholders.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 p-4" style={{ border: '1px solid var(--rule-color)' }}>
-                    <div style={{ width: '64px', height: '64px', flexShrink: 0, background: 'linear-gradient(135deg, #1a0f0a 0%, #2d1a10 100%)', border: '1px solid rgba(200,169,110,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ fontSize: '0.55rem', color: 'rgba(200,169,110,0.4)', letterSpacing: '0.1em' }}>{item.id}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-mono-body mb-2" style={{ fontSize: '0.62rem', letterSpacing: '0.2em', color: 'var(--faded-gold)', textTransform: 'uppercase' }}>Slot {item.id}</p>
-                      <p className="font-mono-body mb-3" style={{ fontSize: '0.68rem', color: 'rgba(240,234,214,0.5)' }}>{item.label}</p>
-                      <label className="font-mono-body" style={{ fontSize: '0.6rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ink-black)', backgroundColor: 'var(--parchment)', padding: '0.4rem 1rem', cursor: 'pointer', display: 'inline-block' }}>
-                        Upload Image
-                        <input type="file" accept="image/*" className="sr-only" onChange={() => {}} />
-                      </label>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <SaveButton saveState={gallerySaveState} onSave={() => handleSave(setGallerySaveState)} />
-            </div>
-          )}
-
-          {/* ── CONTACT TAB ── */}
-          {tab === 'contact' && (
-            <div>
-              <SectionLabel>Contact & Booking</SectionLabel>
-              <FieldGroup label="Email Address">
-                <AdminInput value={content.bookingEmail} onChange={(v) => update('bookingEmail', v)} type="email" />
-              </FieldGroup>
-              <FieldGroup label="Instagram Handle">
-                <AdminInput value={content.bookingInstagram} onChange={(v) => update('bookingInstagram', v)} />
-              </FieldGroup>
-              <FieldGroup label="Location Text">
-                <AdminInput value={content.bookingLocation} onChange={(v) => update('bookingLocation', v)} />
-              </FieldGroup>
-              <FieldGroup label="WhatsApp Number (digits only, with country code)">
-                <AdminInput value={content.whatsappNumber} onChange={(v) => update('whatsappNumber', v)} placeholder="e.g. 34612345678" />
-              </FieldGroup>
-              <SaveButton saveState={contactSaveState} onSave={() => handleSave(setContactSaveState)} />
-            </div>
-          )}
-
-          {/* ── ANALYTICS TAB ── */}
-          {tab === 'analytics' && <AnalyticsDashboard />}
-        </main>
-      </div>
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
-    </div>
+    <section>
+      <SectionTitle title="Contacto" />
+      <InputField label="Email" value={content.contact.email} onChange={(value) => setContent({ ...content, contact: { ...content.contact, email: value } })} />
+      <InputField
+        label="Instagram handle (sin @)"
+        value={content.contact.instagram.replace('@', '')}
+        onChange={(value) => {
+          const clean = value.replace(/^@+/, '');
+          setContent({
+            ...content,
+            contact: {
+              ...content.contact,
+              instagram: `@${clean}`,
+              instagramUrl: `https://instagram.com/${clean}`,
+            },
+          });
+        }}
+      />
+      <InputField label="Instagram URL" value={content.contact.instagramUrl} onChange={(value) => setContent({ ...content, contact: { ...content.contact, instagramUrl: value } })} />
+      <InputField
+        label="WhatsApp (solo digitos)"
+        value={content.contact.whatsapp}
+        onChange={(value) => setContent({ ...content, contact: { ...content.contact, whatsapp: value.replace(/\D+/g, '') } })}
+      />
+      <TextareaField label="Texto WhatsApp" value={content.contact.whatsappText} onChange={(value) => setContent({ ...content, contact: { ...content.contact, whatsappText: value } })} />
+      <InputField label="Texto CTA" value={content.contact.ctaText} onChange={(value) => setContent({ ...content, contact: { ...content.contact, ctaText: value } })} />
+      <InputField label="Quote" value={content.contact.quote} onChange={(value) => setContent({ ...content, contact: { ...content.contact, quote: value } })} />
+      <InputField label="Location" value={content.contact.location} onChange={(value) => setContent({ ...content, contact: { ...content.contact, location: value } })} />
+      <SaveButton saving={saving} onClick={onSave} />
+    </section>
   );
 }
 
-/* ── Sub-components ── */
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function AdminFooter(props: {
+  content: SiteContent;
+  setContent: (next: SiteContent) => void;
+  saving: boolean;
+  onSave: () => void;
+}) {
+  const { content, setContent, saving, onSave } = props;
   return (
-    <p className="font-mono-body mb-8" style={{ fontSize: '0.6rem', letterSpacing: '0.45em', textTransform: 'uppercase', color: 'var(--faded-gold)', opacity: 0.7, borderBottom: '1px solid var(--rule-color)', paddingBottom: '1rem' }}>
-      {children}
+    <section>
+      <SectionTitle title="Footer" />
+      <InputField label="Brand" value={content.footer.brand} onChange={(value) => setContent({ ...content, footer: { ...content.footer, brand: value } })} />
+      <InputField label="Established" value={content.footer.established} onChange={(value) => setContent({ ...content, footer: { ...content.footer, established: value } })} />
+      <InputField label="Rights" value={content.footer.rights} onChange={(value) => setContent({ ...content, footer: { ...content.footer, rights: value } })} />
+      <InputField label="Tagline" value={content.footer.tagline} onChange={(value) => setContent({ ...content, footer: { ...content.footer, tagline: value } })} />
+      <SaveButton saving={saving} onClick={onSave} />
+    </section>
+  );
+}
+
+function SectionTitle({ title }: { title: string }) {
+  return (
+    <p className="font-mono-body mb-6" style={{ fontSize: '0.66rem', textTransform: 'uppercase', letterSpacing: '0.32em', color: 'var(--faded-gold)' }}>
+      {title}
     </p>
   );
 }
 
-function FieldGroup({ label, children }: { label: string; children: React.ReactNode }) {
+function InputField(props: { label: string; value: string; onChange: (value: string) => void }) {
   return (
-    <div className="mb-6">
-      <label className="font-mono-body block mb-2" style={{ fontSize: '0.6rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.65)' }}>
-        {label}
+    <div className="mb-4">
+      <label className="block mb-2 font-mono-body" style={{ fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.7)' }}>
+        {props.label}
       </label>
-      {children}
+      <input value={props.value} onChange={(e) => props.onChange(e.target.value)} className="w-full px-3 py-2 font-mono-body" style={inputStyle} />
     </div>
   );
 }
 
-function AdminInput({ value, onChange, type = 'text', placeholder }: { value: string; onChange: (v: string) => void; type?: string; placeholder?: string; }) {
+function TextareaField(props: { label: string; value: string; onChange: (value: string) => void }) {
   return (
-    <input
-      type={type}
-      value={value}
-      placeholder={placeholder}
-      onChange={(e) => onChange(e.target.value)}
-      className="font-mono-body w-full px-4 py-3"
-      style={{ fontSize: '0.78rem', background: 'rgba(240,234,214,0.04)', border: '1px solid rgba(200,169,110,0.25)', color: 'var(--parchment)', outline: 'none', letterSpacing: '0.04em', transition: 'border-color 0.2s ease' }}
-      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(200,169,110,0.6)'; }}
-      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(200,169,110,0.25)'; }}
-    />
-  );
-}
-
-function AdminTextarea({ value, onChange, rows = 3 }: { value: string; onChange: (v: string) => void; rows?: number; }) {
-  return (
-    <textarea
-      value={value}
-      rows={rows}
-      onChange={(e) => onChange(e.target.value)}
-      className="font-mono-body w-full px-4 py-3 resize-y"
-      style={{ fontSize: '0.78rem', background: 'rgba(240,234,214,0.04)', border: '1px solid rgba(200,169,110,0.25)', color: 'var(--parchment)', outline: 'none', letterSpacing: '0.04em', lineHeight: 1.8, transition: 'border-color 0.2s ease' }}
-      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(200,169,110,0.6)'; }}
-      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(200,169,110,0.25)'; }}
-    />
-  );
-}
-
-function SaveButton({ onSave, saveState }: { onSave: () => void; saveState: SaveState }) {
-  const isLoading = saveState === 'loading';
-  const isSuccess = saveState === 'success';
-  const isError = saveState === 'error';
-
-  return (
-    <div className="mt-10 pt-6" style={{ borderTop: '1px solid var(--rule-color)' }}>
-      <div className="flex items-center gap-4">
-        <button
-          onClick={onSave}
-          disabled={isLoading}
-          className="font-mono-body flex items-center gap-2"
-          style={{
-            fontSize: '0.65rem',
-            letterSpacing: '0.28em',
-            textTransform: 'uppercase',
-            color: 'var(--ink-black)',
-            backgroundColor: isError ? 'rgba(180,60,60,0.85)' : 'var(--faded-gold)',
-            padding: '0.85rem 2.5rem',
-            border: 'none',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            transition: 'background-color 0.2s ease',
-            opacity: isLoading ? 0.8 : 1,
-          }}
-          onMouseEnter={(e) => { if (!isLoading && !isError) e.currentTarget.style.backgroundColor = 'var(--parchment)'; }}
-          onMouseLeave={(e) => { if (!isLoading && !isError) e.currentTarget.style.backgroundColor = 'var(--faded-gold)'; }}
-        >
-          {isLoading && (
-            <span style={{ display: 'inline-block', width: '10px', height: '10px', border: '1.5px solid var(--ink-black)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-          )}
-          {isLoading ? 'Saving…' : isError ? '✗ Error — Retry' : 'Save Changes'}
-        </button>
-
-        {isSuccess && (
-          <span
-            className="font-mono-body"
-            style={{ fontSize: '0.6rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(120,200,120,0.85)' }}
-          >
-            ✓ Saved successfully
-          </span>
-        )}
-        {isError && (
-          <span
-            className="font-mono-body"
-            style={{ fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(200,80,80,0.85)' }}
-          >
-            Something went wrong
-          </span>
-        )}
-      </div>
+    <div className="mb-4">
+      <label className="block mb-2 font-mono-body" style={{ fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.7)' }}>
+        {props.label}
+      </label>
+      <textarea value={props.value} onChange={(e) => props.onChange(e.target.value)} rows={5} className="w-full px-3 py-2 font-mono-body" style={inputStyle} />
     </div>
   );
+}
+
+function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} disabled={saving} className="mt-4 px-4 py-2 font-mono-body" style={primaryButtonStyle}>
+      {saving ? 'Guardando...' : 'Guardar cambios'}
+    </button>
+  );
+}
+
+const inputStyle: React.CSSProperties = {
+  backgroundColor: 'rgba(240,234,214,0.05)',
+  border: '1px solid rgba(200,169,110,0.25)',
+  color: 'var(--parchment)',
+  fontSize: '0.75rem',
+};
+
+const primaryButtonStyle: React.CSSProperties = {
+  fontSize: '0.62rem',
+  textTransform: 'uppercase',
+  letterSpacing: '0.2em',
+  color: 'var(--ink-black)',
+  backgroundColor: 'var(--faded-gold)',
+  border: 'none',
+};
+
+const ghostButtonStyle: React.CSSProperties = {
+  fontSize: '0.62rem',
+  textTransform: 'uppercase',
+  letterSpacing: '0.2em',
+  color: 'var(--faded-gold)',
+  backgroundColor: 'transparent',
+  border: '1px solid rgba(200,169,110,0.35)',
+};
+
+const dangerButtonStyle: React.CSSProperties = {
+  fontSize: '0.58rem',
+  textTransform: 'uppercase',
+  letterSpacing: '0.16em',
+  color: 'rgba(220,120,120,0.95)',
+  backgroundColor: 'transparent',
+  border: '1px solid rgba(220,120,120,0.4)',
+};
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const value = typeof reader.result === 'string' ? reader.result : '';
+      resolve(value);
+    };
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
+    reader.readAsDataURL(file);
+  });
 }
