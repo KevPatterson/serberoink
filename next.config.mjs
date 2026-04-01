@@ -11,7 +11,13 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    remotePatterns: imageHosts,
+    remotePatterns: [
+      ...imageHosts,
+      {
+        protocol: 'https',
+        hostname: 'raw.githubusercontent.com',
+      },
+    ],
     minimumCacheTTL: 60,
   },
   async redirects() {
