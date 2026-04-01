@@ -9,7 +9,6 @@ import SiteFooter from './components/SiteFooter';
 import ScrollRevealInit from './components/ScrollRevealInit';
 import TattooPreloader from './components/TattooPreloader';
 import SiteNav from './components/SiteNav';
-import CustomCursor from './components/CustomCursor';
 import { LanguageProvider } from './components/LanguageContext';
 
 export default function Homepage() {
@@ -17,7 +16,6 @@ export default function Homepage() {
     <LanguageProvider>
       <TattooPreloader />
       <ScrollRevealInit />
-      <CustomCursor />
       <SiteNav />
       <main className="bg-ink-black text-parchment overflow-x-hidden">
         <HeroSection />
