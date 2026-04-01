@@ -65,13 +65,17 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,900&family=DM+Mono:wght@400&display=swap"
           media="print"
-          // @ts-expect-error onload is valid for progressive font loading
-          onLoad="this.media='all'"
+          id="google-fonts-stylesheet"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var l=document.getElementById('google-fonts-stylesheet');if(l)l.onload=function(){l.media='all'};})();`,
+          }}
         />
         <SchemaInjector />
-      
-      <script type="module" async src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fserberoink4165back.builtwithrocket.new&_be=https%3A%2F%2Fappanalytics.rocket.new&_v=0.1.17" />
-      <script type="module" defer src="https://static.rocket.new/rocket-shot.js?v=0.0.2" /></head>
+
+        <script type="module" async src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fserberoink4165back.builtwithrocket.new&_be=https%3A%2F%2Fappanalytics.rocket.new&_v=0.1.17" />
+        <script type="module" defer src="https://static.rocket.new/rocket-shot.js?v=0.0.2" /></head>
       <body>{children}</body>
     </html>
   );
