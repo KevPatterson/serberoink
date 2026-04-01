@@ -1,26 +1,147 @@
 'use client';
 
 import { useLang } from './LanguageContext';
+import { useEffect, useRef, useState } from 'react';
+
+const GALLERY_STORAGE_KEY = 'serbero_gallery_images';
+
+interface GalleryImage {
+  id: number;
+  src: string | null;
+}
+
+function useGalleryImages(): GalleryImage[] {
+  const [images, setImages] = useState<GalleryImage[]>([
+    { id: 1, src: null }, { id: 2, src: null }, { id: 3, src: null },
+    { id: 4, src: null }, { id: 5, src: null }, { id: 6, src: null },
+    { id: 7, src: null },
+  ]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(GALLERY_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as Record<string, string>;
+        setImages((prev) =>
+          prev.map((img) => ({ ...img, src: parsed[img.id] ?? null }))
+        );
+      }
+    } catch {
+      // no-op
+    }
+  }, []);
+
+  return images;
+}
+
+function useItemReveal(count: number) {
+  const refs = useRef<(HTMLDivElement | null)[]>([]);
+  const [visible, setVisible] = useState<boolean[]>(Array(count).fill(false));
+
+  useEffect(() => {
+    const observers: IntersectionObserver[] = [];
+    refs.current.forEach((el, i) => {
+      if (!el) return;
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setTimeout(() => {
+              setVisible((prev) => {
+                const next = [...prev];
+                next[i] = true;
+                return next;
+              });
+            }, i * 80); // stagger 80ms per item
+            obs.disconnect();
+          }
+        },
+        { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+      );
+      obs.observe(el);
+      observers.push(obs);
+    });
+    return () => observers.forEach((o) => o.disconnect());
+  }, []);
+
+  return { refs, visible };
+}
+
+interface GalleryItemProps {
+  colClass: string;
+  aspect: string;
+  bgClass: string;
+  label: string;
+  imageSrc: string | null;
+  index: number;
+  isVisible: boolean;
+  refCallback: (el: HTMLDivElement | null) => void;
+}
+
+function GalleryItem({ colClass, aspect, bgClass, label, imageSrc, index, isVisible, refCallback }: GalleryItemProps) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  return (
+    <div
+      ref={refCallback}
+      className={`gallery-img ${colClass}`}
+      style={{
+        aspectRatio: aspect,
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(24px)',
+        transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${index * 0.06}s, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${index * 0.06}s`,
+      }}
+      role="img"
+      aria-label={label}
+    >
+      {imageSrc ? (
+        <>
+          {!imgLoaded && <div className={`gallery-skeleton w-full h-full ${bgClass}`} />}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageSrc}
+            alt={label}
+            loading="lazy"
+            decoding="async"
+            className="gallery-img-inner"
+            style={{
+              opacity: imgLoaded ? 1 : 0,
+              transition: 'opacity 0.5s ease',
+              position: imgLoaded ? 'relative' : 'absolute',
+              inset: 0,
+            }}
+            onLoad={() => setImgLoaded(true)}
+          />
+        </>
+      ) : (
+        <div className={`w-full h-full ${bgClass}`} />
+      )}
+      <GalleryLabel label={label} />
+    </div>
+  );
+}
 
 export default function GallerySection() {
   const { t } = useLang();
+  const images = useGalleryImages();
 
   const galleryItems = [
-    { id: 1, colSpan: 1, aspect: '3/4', bg: 'gp-1', label: t.galleryItem1 },
-    { id: 2, colSpan: 2, aspect: '4/3', bg: 'gp-2', label: t.galleryItem2 },
-    { id: 3, colSpan: 2, aspect: '4/3', bg: 'gp-3', label: t.galleryItem3 },
-    { id: 4, colSpan: 1, aspect: '3/4', bg: 'gp-4', label: t.galleryItem4 },
-    { id: 5, colSpan: 1, aspect: '3/4', bg: 'gp-5', label: t.galleryItem5 },
-    { id: 6, colSpan: 1, aspect: '3/4', bg: 'gp-6', label: t.galleryItem6 },
-    { id: 7, colSpan: 1, aspect: '3/4', bg: 'gp-7', label: t.galleryItem7 },
+    { id: 1, colClass: 'col-span-1',            aspect: '3/4',  bg: 'gp-1', label: t.galleryItem1 },
+    { id: 2, colClass: 'col-span-1 md:col-span-2', aspect: '4/3',  bg: 'gp-2', label: t.galleryItem2 },
+    { id: 3, colClass: 'col-span-2 md:col-span-2', aspect: '16/9', bg: 'gp-3', label: t.galleryItem3 },
+    { id: 4, colClass: 'col-span-2 md:col-span-1', aspect: '3/4',  bg: 'gp-4', label: t.galleryItem4 },
+    { id: 5, colClass: 'col-span-1',            aspect: '3/4',  bg: 'gp-5', label: t.galleryItem5 },
+    { id: 6, colClass: 'col-span-1',            aspect: '3/4',  bg: 'gp-6', label: t.galleryItem6 },
+    { id: 7, colClass: 'col-span-2 md:col-span-1', aspect: '3/4',  bg: 'gp-7', label: t.galleryItem7 },
   ];
 
+  const { refs, visible } = useItemReveal(galleryItems.length);
   const descLines = t.galleryDesc.split('\n');
 
   return (
     <section
       className="reveal-section py-16 md:py-28 px-6 md:px-16 lg:px-24"
       aria-labelledby="gallery-heading"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '0 800px' } as React.CSSProperties}
     >
       <div className="max-w-6xl mx-auto">
 
@@ -71,75 +192,22 @@ export default function GallerySection() {
 
         {/* Asymmetric gallery grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
-
-          {/* Row 1 */}
-          <div
-            className="gallery-img col-span-1"
-            style={{ aspectRatio: '3/4' }}
-            role="img"
-            aria-label={galleryItems[0].label}
-          >
-            <div className={`w-full h-full ${galleryItems[0].bg}`} />
-            <GalleryLabel label={galleryItems[0].label} />
-          </div>
-          <div
-            className="gallery-img col-span-1 md:col-span-2"
-            style={{ aspectRatio: '4/3' }}
-            role="img"
-            aria-label={galleryItems[1].label}
-          >
-            <div className={`w-full h-full ${galleryItems[1].bg}`} />
-            <GalleryLabel label={galleryItems[1].label} />
-          </div>
-
-          {/* Row 2 */}
-          <div
-            className="gallery-img col-span-2 md:col-span-2"
-            style={{ aspectRatio: '16/9' }}
-            role="img"
-            aria-label={galleryItems[2].label}
-          >
-            <div className={`w-full h-full ${galleryItems[2].bg}`} />
-            <GalleryLabel label={galleryItems[2].label} />
-          </div>
-          <div
-            className="gallery-img col-span-2 md:col-span-1"
-            style={{ aspectRatio: '3/4' }}
-            role="img"
-            aria-label={galleryItems[3].label}
-          >
-            <div className={`w-full h-full ${galleryItems[3].bg}`} />
-            <GalleryLabel label={galleryItems[3].label} />
-          </div>
-
-          {/* Row 3 */}
-          <div
-            className="gallery-img col-span-1"
-            style={{ aspectRatio: '3/4' }}
-            role="img"
-            aria-label={galleryItems[4].label}
-          >
-            <div className={`w-full h-full ${galleryItems[4].bg}`} />
-            <GalleryLabel label={galleryItems[4].label} />
-          </div>
-          <div
-            className="gallery-img col-span-1"
-            style={{ aspectRatio: '3/4' }}
-            role="img"
-            aria-label={galleryItems[5].label}
-          >
-            <div className={`w-full h-full ${galleryItems[5].bg}`} />
-            <GalleryLabel label={galleryItems[5].label} />
-          </div>
-          <div
-            className="gallery-img col-span-2 md:col-span-1"
-            style={{ aspectRatio: '3/4' }}
-            role="img"
-            aria-label={galleryItems[6].label}
-          >
-            <div className={`w-full h-full ${galleryItems[6].bg}`} />
-            <GalleryLabel label={galleryItems[6].label} />
-          </div>
+          {galleryItems.map((item, index) => {
+            const imgData = images.find((img) => img.id === item.id);
+            return (
+              <GalleryItem
+                key={item.id}
+                colClass={item.colClass}
+                aspect={item.aspect}
+                bgClass={item.bg}
+                label={item.label}
+                imageSrc={imgData?.src ?? null}
+                index={index}
+                isVisible={visible[index]}
+                refCallback={(el) => { refs.current[index] = el; }}
+              />
+            );
+          })}
         </div>
 
         {/* Bottom note */}
