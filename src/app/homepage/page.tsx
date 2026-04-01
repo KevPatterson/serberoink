@@ -7,10 +7,15 @@ import SiteFooter from './components/SiteFooter';
 import ScrollRevealInit from './components/ScrollRevealInit';
 import TattooPreloader from './components/TattooPreloader';
 import SiteNav from './components/SiteNav';
-import { getContent } from '@/lib/content';
+import { defaultSiteContent, getContent } from '@/lib/content';
 
 export default async function Homepage() {
-  const content = await getContent();
+  let content = defaultSiteContent;
+  try {
+    content = await getContent();
+  } catch {
+    content = defaultSiteContent;
+  }
 
   return (
     <>
