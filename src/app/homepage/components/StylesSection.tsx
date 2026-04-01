@@ -1,6 +1,79 @@
 'use client';
 
 import { useLang } from './LanguageContext';
+import { useRef } from 'react';
+
+interface StyleCardProps {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  index: number;
+  borderRight: boolean;
+  borderBottom: boolean;
+}
+
+function StyleCard({ id, label, icon, borderRight, borderBottom }: StyleCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width / 2);
+    const dy = (e.clientY - cy) / (rect.height / 2);
+    card.style.transform = `perspective(600px) rotateX(${-dy * 4}deg) rotateY(${dx * 4}deg) translateZ(4px)`;
+  };
+
+  const handleMouseLeave = () => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+    card.style.transition = 'transform 0.5s cubic-bezier(0.16,1,0.3,1), background 0.3s ease';
+  };
+
+  const handleMouseEnter = () => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.transition = 'transform 0.1s ease, background 0.3s ease';
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      key={id}
+      className="style-card"
+      style={{
+        borderRight: borderRight ? '1px solid var(--rule-color)' : 'none',
+        borderBottom: borderBottom ? '1px solid var(--rule-color)' : 'none',
+        willChange: 'transform',
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onMouseEnter={handleMouseEnter}
+    >
+      <div
+        className="flex justify-center mb-4 md:mb-5 style-card-icon"
+        style={{ color: 'var(--faded-gold)' }}
+      >
+        {icon}
+      </div>
+      <p
+        className="font-mono-body"
+        style={{
+          fontSize: '0.58rem',
+          letterSpacing: '0.25em',
+          textTransform: 'uppercase',
+          color: 'var(--parchment)',
+          opacity: 0.8,
+        }}
+      >
+        {label}
+      </p>
+    </div>
+  );
+}
 
 export default function StylesSection() {
   const { t } = useLang();
@@ -137,33 +210,15 @@ export default function StylesSection() {
           style={{ borderTop: '1px solid var(--rule-color)' }}
         >
           {specialties?.map((item, i) => (
-            <div
+            <StyleCard
               key={item?.id}
-              className="style-card"
-              style={{
-                borderRight: (i + 1) % 3 !== 0 && i < 5 ? '1px solid var(--rule-color)' : 'none',
-                borderBottom: i < 3 ? '1px solid var(--rule-color)' : 'none',
-              }}
-            >
-              <div
-                className="flex justify-center mb-4 md:mb-5"
-                style={{ color: 'var(--faded-gold)' }}
-              >
-                {item?.icon}
-              </div>
-              <p
-                className="font-mono-body"
-                style={{
-                  fontSize: '0.58rem',
-                  letterSpacing: '0.25em',
-                  textTransform: 'uppercase',
-                  color: 'var(--parchment)',
-                  opacity: 0.8,
-                }}
-              >
-                {item?.label}
-              </p>
-            </div>
+              id={item?.id}
+              label={item?.label ?? ''}
+              icon={item?.icon}
+              index={i}
+              borderRight={(i + 1) % 3 !== 0 && i < 5}
+              borderBottom={i < 3}
+            />
           ))}
         </div>
       </div>
