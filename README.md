@@ -68,3 +68,35 @@ Este repo incluye:
 
 - `.gitignore` actualizado para entorno local
 - `.vercelignore` para reducir archivos enviados en despliegues
+
+## CMS sin base de datos (GitHub-backed)
+
+El panel `/admin` guarda los cambios directamente en el repositorio usando GitHub REST API.
+
+### Variables requeridas (`.env.local` y Vercel)
+
+```bash
+GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+GITHUB_OWNER=nombre_del_owner
+GITHUB_REPO=nombre_del_repo
+GITHUB_BRANCH=main
+ADMIN_PASSWORD=una_contrasena_segura
+```
+
+Notas:
+
+- `GITHUB_TOKEN` debe tener permisos `contents:write`.
+- El token nunca se expone al cliente: solo se usa en API routes.
+- El contenido se guarda en `public/content/content.json`.
+
+### Flujo de lectura/escritura
+
+- Lectura: la homepage obtiene contenido en runtime desde `raw.githubusercontent.com` (`cache: no-store`).
+- Escritura: `/admin` llama a `/api/cms/update` y `/api/cms/upload-image`, y esas rutas actualizan archivos en el repo.
+
+### Endpoints CMS
+
+- `POST /api/cms/auth` autentica admin y setea cookie httpOnly.
+- `GET /api/cms/content` devuelve el estado actual de `content.json`.
+- `POST /api/cms/update` actualiza JSON o archivos en una ruta del repo.
+- `POST /api/cms/upload-image` sube imágenes a `public/content/images/` y devuelve URL raw.
