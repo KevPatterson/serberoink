@@ -1,0 +1,66 @@
+{
+  "hero": {
+    "title": "SERBEROINK.",
+    "tagline": "permanent art. no regrets.",
+    "scrollText": "Scroll to explore"
+  },
+  "about": {
+    "sectionNumber": "001",
+    "sectionLabel": "About",
+    "heading": "The Hand Behind the Needle.",
+    "bio": "Born from a city that doesn't sleep and a tradition that doesn't forget, Serbero has spent over a decade turning skin into story. Trained in the classical flash tradition, then unlearned and rebuilt with obsessive attention to line weight and negative space.",
+    "quote": "Every line is intentional.",
+    "location": "New York, NY",
+    "details": "By appointment only",
+    "established": "Est. 2024"
+  },
+  "specialties": {
+    "sectionNumber": "002",
+    "sectionLabel": "The Craft.",
+    "items": [
+      "Serpent Work",
+      "Blade & Dagger",
+      "Botanical & Flora",
+      "Geometry & Compass",
+      "Moth & Dark Fauna",
+      "Memento Mori"
+    ]
+  },
+  "portfolio": {
+    "sectionNumber": "003",
+    "sectionLabel": "THE WORK.",
+    "subtitle": "Selected pieces. All custom. All permanent.",
+    "images": [
+      {
+        "id": "img_001",
+        "src": "https://raw.githubusercontent.com/OWNER/REPO/main/public/content/images/img_001.jpg",
+        "title": "Serpent Study",
+        "year": "2025",
+        "category": "serpent"
+      }
+    ]
+  },
+  "contact": {
+    "sectionNumber": "004",
+    "sectionLabel": "BOOK A SESSION.",
+    "heading": "BOOK A SESSION.",
+    "email": "studio@serberoink.com",
+    "instagram": "@serbero_ink",
+    "instagramUrl": "https://instagram.com/serbero_ink",
+    "location": "New York, NY - by appointment",
+    "whatsapp": "1234567890",
+    "whatsappText": "Hi! I'd like to book a tattoo session with Serbero Ink.",
+    "ctaText": "Get in Touch",
+    "quote": "DMs open. Serious inquiries only."
+  },
+  "footer": {
+    "brand": "Serbero Ink",
+    "established": "Est. 2024",
+    "rights": "All Rights Reserved",
+    "tagline": "Ink fades. Art doesn't."
+  },
+  "_meta": {
+    "lastUpdated": "2026-04-01T00:00:00Z",
+    "version": 1
+  }
+}
