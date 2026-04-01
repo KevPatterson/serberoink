@@ -1,9 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useSiteContent } from '@/lib/site-content';
 
 export function SchemaInjector() {
+  const siteContent = useSiteContent();
+
   useEffect(() => {
+    const instagramHandle = siteContent.bookingInstagram.replace(/^@/, '');
+
     // Organization Schema
     const organizationSchema = {
       '@context': 'https://schema.org',
@@ -12,11 +17,11 @@ export function SchemaInjector() {
       url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/assets/images/app_logo.png`,
       description: 'Serbero Ink offers permanent custom tattoo art in a dark, vintage style. Book a session with a serious artist who makes every line intentional.',
-      sameAs: ['https://instagram.com/serbero_ink'],
+      sameAs: [`https://instagram.com/${instagramHandle}`],
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'Customer Service',
-        email: 'studio@serberoink.com',
+        email: siteContent.bookingEmail,
       },
     };
 
@@ -47,9 +52,9 @@ export function SchemaInjector() {
         addressRegion: 'NY',
         addressCountry: 'US',
       },
-      telephone: '+1-234-567-8900',
+      telephone: `+${siteContent.whatsappNumber.replace(/\D+/g, '')}`,
       url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-      sameAs: ['https://instagram.com/serbero_ink'],
+      sameAs: [`https://instagram.com/${instagramHandle}`],
       priceRange: '$$',
       serviceType: 'Tattoo Studio',
     };
@@ -84,7 +89,7 @@ export function SchemaInjector() {
       if (webPageScriptEl) webPageScriptEl?.remove();
       if (localBusinessScriptEl) localBusinessScriptEl?.remove();
     };
-  }, []);
+  }, [siteContent.bookingEmail, siteContent.bookingInstagram, siteContent.whatsappNumber]);
 
   return null;
 }

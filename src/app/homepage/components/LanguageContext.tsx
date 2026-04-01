@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { useSiteContent } from '@/lib/site-content';
 
 type Lang = 'en' | 'es';
 
@@ -150,15 +151,54 @@ interface LanguageContextType {
 }
 
 const LanguageContext = createContext<LanguageContextType>({
-  lang: 'en',
-  t: en,
+  lang: 'es',
+  t: es,
   toggleLang: () => {},
 });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>('en');
-  const toggleLang = () => setLang((l) => (l === 'en' ? 'es' : 'en'));
-  const t = lang === 'en' ? en : es;
+  const siteContent = useSiteContent();
+  const [lang, setLang] = useState<Lang>(() => {
+    if (typeof window === 'undefined') return 'es';
+    const stored = window.localStorage.getItem('serberoink-lang');
+    return stored === 'en' || stored === 'es' ? stored : 'es';
+  });
+
+  const toggleLang = () => {
+    setLang((current) => {
+      const next = current === 'en' ? 'es' : 'en';
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('serberoink-lang', next);
+      }
+      return next;
+    });
+  };
+
+  const enContent = useMemo<Translations>(() => ({
+    ...en,
+    heroLabel: siteContent.heroLabel,
+    heroTagline: siteContent.heroTagline,
+    aboutHeading: siteContent.aboutHeading,
+    aboutBio1: siteContent.aboutBio1,
+    aboutBio2: siteContent.aboutBio2,
+    aboutQuote: siteContent.aboutQuote,
+    aboutLocation: siteContent.aboutLocation,
+    bookingLocationVal: siteContent.bookingLocation,
+  }), [siteContent]);
+
+  const esContent = useMemo<Translations>(() => ({
+    ...es,
+    heroLabel: siteContent.heroLabel,
+    heroTagline: siteContent.heroTagline,
+    aboutHeading: siteContent.aboutHeading,
+    aboutBio1: siteContent.aboutBio1,
+    aboutBio2: siteContent.aboutBio2,
+    aboutQuote: siteContent.aboutQuote,
+    aboutLocation: siteContent.aboutLocation,
+    bookingLocationVal: siteContent.bookingLocation,
+  }), [siteContent]);
+
+  const t = lang === 'en' ? enContent : esContent;
   return (
     <LanguageContext.Provider value={{ lang, t, toggleLang }}>
       {children}
