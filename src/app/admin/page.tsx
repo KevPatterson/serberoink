@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { Toaster, toast } from 'sonner';
 import type { PortfolioImage, SiteContent } from '@/lib/content';
 
 type SectionKey = 'portfolio' | 'hero' | 'about' | 'specialties' | 'contact' | 'footer';
-type ToastType = 'success' | 'error';
 
 const CONTENT_PATH = 'public/content/content.json';
 
@@ -35,7 +35,6 @@ export default function AdminDashboardPage() {
   const [section, setSection] = useState<SectionKey>('portfolio');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ type: ToastType; message: string } | null>(null);
 
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -62,10 +61,7 @@ export default function AdminDashboardPage() {
         const data = (await res.json()) as SiteContent;
         setContent(data);
       } catch (error) {
-        setToast({
-          type: 'error',
-          message: error instanceof Error ? error.message : 'Error inesperado',
-        });
+        toast.error(error instanceof Error ? error.message : 'Error inesperado');
       } finally {
         setLoading(false);
       }
@@ -79,9 +75,12 @@ export default function AdminDashboardPage() {
     void load();
   }, [adminToken, router]);
 
-  const showToast = (type: ToastType, message: string) => {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 2800);
+  const showToast = (type: 'success' | 'error', message: string) => {
+    if (type === 'success') {
+      toast.success(message);
+      return;
+    }
+    toast.error(message);
   };
 
   const persistContent = async (nextContent: SiteContent, message: string) => {
@@ -251,12 +250,6 @@ export default function AdminDashboardPage() {
       </aside>
 
       <main className="flex-1 p-6 md:p-8 max-w-5xl">
-        {toast && (
-          <div className="mb-6 px-4 py-3 font-mono-body" style={{ fontSize: '0.62rem', letterSpacing: '0.08em', border: `1px solid ${toast.type === 'success' ? 'rgba(120,200,120,0.45)' : 'rgba(220,100,100,0.45)'}`, color: toast.type === 'success' ? 'rgba(120,220,120,0.95)' : 'rgba(220,100,100,0.95)' }}>
-            {toast.message}
-          </div>
-        )}
-
         {section === 'portfolio' && (
           <AdminPortfolio
             content={content}
@@ -266,11 +259,24 @@ export default function AdminDashboardPage() {
             setContent={setContent}
             onSave={() => persistContent(content, 'cms: update portfolio')}
             onDelete={(id) => {
-              if (!window.confirm('Eliminar esta imagen? No se puede deshacer')) return;
-              const nextImages = content.portfolio.images.filter((img) => img.id !== id);
-              setContent({
-                ...content,
-                portfolio: { ...content.portfolio, images: nextImages },
+              toast('Eliminar esta imagen? No se puede deshacer.', {
+                action: {
+                  label: 'Eliminar',
+                  onClick: () => {
+                    const nextImages = content.portfolio.images.filter((img) => img.id !== id);
+                    setContent({
+                      ...content,
+                      portfolio: { ...content.portfolio, images: nextImages },
+                    });
+                    toast.success('Imagen eliminada del borrador');
+                  },
+                },
+                cancel: {
+                  label: 'Cancelar',
+                  onClick: () => {
+                    toast.message('Cancelado');
+                  },
+                },
               });
             }}
             onOpenUpload={() => setShowUploadModal(true)}
@@ -354,6 +360,17 @@ export default function AdminDashboardPage() {
           />
         )}
       </main>
+      <Toaster
+        position="top-right"
+        richColors
+        toastOptions={{
+          style: {
+            background: '#111111',
+            color: '#F0EAD6',
+            border: '1px solid rgba(200,169,110,0.35)',
+          },
+        }}
+      />
 
       {showUploadModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.72)' }}>
