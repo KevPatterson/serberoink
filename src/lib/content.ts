@@ -61,28 +61,36 @@ export interface SiteContent {
 function getRawBaseUrl(): string | null {
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
-  const branch = process.env.GITHUB_BRANCH;
+  const branch = process.env.GITHUB_BRANCH || 'main';
 
-  if (!owner || !repo || !branch) {
+  if (!owner || !repo) {
     return null;
   }
 
   return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}`;
 }
 
+async function readLocalContent(): Promise<SiteContent> {
+  const fs = await import('node:fs/promises');
+  const path = await import('node:path');
+  const filePath = path.join(process.cwd(), 'public', 'content', 'content.json');
+  const raw = await fs.readFile(filePath, 'utf8');
+  return JSON.parse(raw) as SiteContent;
+}
+
 export async function getContent(): Promise<SiteContent> {
   const rawBase = getRawBaseUrl();
-  const contentUrl = rawBase
-    ? `${rawBase}/public/content/content.json`
-    : 'http://localhost:4028/content/content.json';
 
-  const res = await fetch(contentUrl, {
-    cache: 'no-store',
-  });
+  if (rawBase) {
+    const contentUrl = `${rawBase}/public/content/content.json`;
+    const res = await fetch(contentUrl, {
+      cache: 'no-store',
+    });
 
-  if (!res.ok) {
-    throw new Error('Failed to fetch content');
+    if (res.ok) {
+      return (await res.json()) as SiteContent;
+    }
   }
 
-  return (await res.json()) as SiteContent;
+  return readLocalContent();
 }
