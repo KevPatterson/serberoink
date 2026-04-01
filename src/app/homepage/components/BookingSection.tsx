@@ -2,6 +2,7 @@
 
 import { useLang } from './LanguageContext';
 import { trackCtaClick } from '@/lib/analytics';
+import { useRef } from 'react';
 
 const WHATSAPP_NUMBER = '1234567890'; // Replace with actual WhatsApp number
 
@@ -9,6 +10,26 @@ export default function BookingSection() {
   const { t } = useLang();
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hi! I\'d like to book a tattoo session with Serbero Ink.')}`;
   const headingLines = t?.bookingHeading?.split('\n');
+  const btnRef = useRef<HTMLAnchorElement>(null);
+
+  const handleBtnMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const btn = btnRef.current;
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) * 0.28;
+    const dy = (e.clientY - cy) * 0.28;
+    btn.style.transform = `translate(${dx}px, ${dy}px)`;
+    btn.style.transition = 'transform 0.15s ease';
+  };
+
+  const handleBtnMouseLeave = () => {
+    const btn = btnRef.current;
+    if (!btn) return;
+    btn.style.transform = 'translate(0, 0)';
+    btn.style.transition = 'transform 0.5s cubic-bezier(0.16,1,0.3,1), background-color 0.3s ease, color 0.3s ease, letter-spacing 0.3s ease';
+  };
 
   return (
     <section
@@ -83,15 +104,18 @@ export default function BookingSection() {
           </p>
         </div>
 
-        {/* CTA Button — WhatsApp redirect */}
-        <div className="flex justify-center mb-8">
+        {/* CTA Button — magnetic + WhatsApp redirect */}
+        <div className="flex justify-center mb-8" style={{ padding: '16px 0' }}>
           <a
+            ref={btnRef}
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="cta-btn"
             aria-label="Book a session via WhatsApp"
             onClick={() => trackCtaClick('WhatsApp Booking')}
+            onMouseMove={handleBtnMouseMove}
+            onMouseLeave={handleBtnMouseLeave}
           >
             {t?.bookingCTA}
           </a>

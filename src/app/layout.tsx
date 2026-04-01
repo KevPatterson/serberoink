@@ -52,12 +52,27 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Core Web Vitals: preconnect to font origins */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Preload critical font subset for LCP */}
+        <link
+          rel="preload"
+          as="style"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,900&family=DM+Mono:wght@400&display=swap"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,900&family=DM+Mono:wght@400&display=swap"
+          media="print"
+          // @ts-expect-error onload is valid for progressive font loading
+          onLoad="this.media='all'"
+        />
         <SchemaInjector />
-
-        <script type="module" async src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fserberoink4165back.builtwithrocket.new&_be=https%3A%2F%2Fappanalytics.rocket.new&_v=0.1.17" />
-        <script type="module" defer src="https://static.rocket.new/rocket-shot.js?v=0.0.2" /></head>
-      <body>{children}
-</body>
+      
+      <script type="module" async src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fserberoink4165back.builtwithrocket.new&_be=https%3A%2F%2Fappanalytics.rocket.new&_v=0.1.17" />
+      <script type="module" defer src="https://static.rocket.new/rocket-shot.js?v=0.0.2" /></head>
+      <body>{children}</body>
     </html>
   );
 }
