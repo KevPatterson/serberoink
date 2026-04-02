@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { Toaster, toast } from 'sonner';
-import type { PortfolioImage, SiteContent } from '@/lib/content';
+import type { ContentI18nSection, PortfolioImage, SiteContent } from '@/lib/content';
+import { applyAutomaticI18n } from '@/lib/content-translation-core';
 
 type SectionKey = 'portfolio' | 'hero' | 'about' | 'specialties' | 'contact' | 'footer';
 
@@ -47,6 +48,11 @@ export default function AdminDashboardPage() {
 
   const [dragImageIndex, setDragImageIndex] = useState<number | null>(null);
   const [dragSpecialtyIndex, setDragSpecialtyIndex] = useState<number | null>(null);
+
+  const previewContent = useMemo(() => {
+    if (!content) return null;
+    return applyAutomaticI18n(content);
+  }, [content]);
 
   const adminToken = useMemo(() => {
     if (typeof window === 'undefined') return '';
@@ -360,6 +366,8 @@ export default function AdminDashboardPage() {
             }}
           />
         )}
+
+        {previewContent && <BilingualPreview section={section} content={previewContent} />}
       </main>
       <Toaster
         position="top-right"
@@ -716,6 +724,58 @@ function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void 
       {saving ? 'Guardando...' : 'Guardar cambios'}
     </button>
   );
+}
+
+function BilingualPreview({ section, content }: { section: SectionKey; content: SiteContent }) {
+  const esData = getPreviewSection(content.i18n?.es, section);
+  const enData = getPreviewSection(content.i18n?.en, section);
+
+  return (
+    <section className="mt-10">
+      <SectionTitle title="Vista previa traducciones" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <PreviewCard language="ES" data={esData} />
+        <PreviewCard language="EN" data={enData} />
+      </div>
+    </section>
+  );
+}
+
+function PreviewCard({ language, data }: { language: 'ES' | 'EN'; data: unknown }) {
+  return (
+    <div className="p-4" style={{ border: '1px solid rgba(200,169,110,0.25)', backgroundColor: 'rgba(240,234,214,0.02)' }}>
+      <p className="font-mono-body mb-3" style={{ fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--faded-gold)' }}>
+        {language}
+      </p>
+      <pre
+        className="font-mono-body overflow-auto"
+        style={{ fontSize: '0.64rem', lineHeight: 1.6, color: 'rgba(240,234,214,0.9)', maxHeight: '20rem', whiteSpace: 'pre-wrap' }}
+      >
+        {JSON.stringify(data ?? {}, null, 2)}
+      </pre>
+    </div>
+  );
+}
+
+function getPreviewSection(i18n: ContentI18nSection | undefined, section: SectionKey): unknown {
+  if (!i18n) return null;
+
+  switch (section) {
+    case 'hero':
+      return i18n.hero;
+    case 'about':
+      return i18n.about;
+    case 'specialties':
+      return i18n.specialties;
+    case 'portfolio':
+      return i18n.portfolio;
+    case 'contact':
+      return i18n.contact;
+    case 'footer':
+      return i18n.footer;
+    default:
+      return null;
+  }
 }
 
 const inputStyle: React.CSSProperties = {
