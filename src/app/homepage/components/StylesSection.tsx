@@ -191,7 +191,7 @@ export default function StylesSection({ specialties }: StylesSectionProps) {
             opacity: 0.7,
           }}
         >
-          {specialties.sectionNumber} - Specialties
+          {specialties.sectionNumber} - {specialties.sectionLabel}
         </p>
 
         <h2
