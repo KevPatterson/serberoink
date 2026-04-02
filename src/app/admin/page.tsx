@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -190,12 +191,26 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen md:flex" style={{ backgroundColor: 'var(--ink-black)', color: 'var(--parchment)' }}>
+    <div
+      className="min-h-screen md:flex"
+      style={{ backgroundColor: 'var(--ink-black)', color: 'var(--parchment)' }}
+    >
       <aside className="md:w-64 p-6" style={{ borderRight: '1px solid var(--rule-color)' }}>
-        <p className="font-serif-display" style={{ fontSize: '1.3rem', fontStyle: 'italic', color: 'var(--faded-gold)' }}>
+        <p
+          className="font-serif-display"
+          style={{ fontSize: '1.3rem', fontStyle: 'italic', color: 'var(--faded-gold)' }}
+        >
           SERBERO INK
         </p>
-        <p className="font-mono-body mb-6" style={{ fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.65)' }}>
+        <p
+          className="font-mono-body mb-6"
+          style={{
+            fontSize: '0.58rem',
+            letterSpacing: '0.28em',
+            textTransform: 'uppercase',
+            color: 'rgba(200,169,110,0.65)',
+          }}
+        >
           Admin CMS
         </p>
 
@@ -211,7 +226,8 @@ export default function AdminDashboardPage() {
                 textTransform: 'uppercase',
                 letterSpacing: '0.18em',
                 color: section === item.key ? 'var(--faded-gold)' : 'rgba(240,234,214,0.5)',
-                borderLeft: section === item.key ? '1px solid var(--faded-gold)' : '1px solid transparent',
+                borderLeft:
+                  section === item.key ? '1px solid var(--faded-gold)' : '1px solid transparent',
                 backgroundColor: section === item.key ? 'rgba(200,169,110,0.08)' : 'transparent',
               }}
             >
@@ -221,14 +237,31 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <Link href="/homepage" className="font-mono-body" style={{ fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(240,234,214,0.55)', textDecoration: 'none' }}>
+          <Link
+            href="/homepage"
+            className="font-mono-body"
+            style={{
+              fontSize: '0.58rem',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: 'rgba(240,234,214,0.55)',
+              textDecoration: 'none',
+            }}
+          >
             Volver al sitio
           </Link>
           <button
             type="button"
             onClick={handleLogout}
             className="font-mono-body text-left"
-            style={{ fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(220,120,120,0.95)', background: 'none', border: 'none' }}
+            style={{
+              fontSize: '0.58rem',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: 'rgba(220,120,120,0.95)',
+              background: 'none',
+              border: 'none',
+            }}
           >
             Cerrar sesion
           </button>
@@ -275,7 +308,11 @@ export default function AdminDashboardPage() {
             setContent={setContent}
             saving={saving}
             onSave={() => {
-              if (!content.hero.title.trim() || !content.hero.tagline.trim() || !content.hero.scrollText.trim()) {
+              if (
+                !content.hero.title.trim() ||
+                !content.hero.tagline.trim() ||
+                !content.hero.scrollText.trim()
+              ) {
                 showToast('error', 'Todos los campos de Hero son requeridos');
                 return;
               }
@@ -361,9 +398,23 @@ export default function AdminDashboardPage() {
       />
 
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.72)' }}>
-          <div className="w-full max-w-lg p-6" style={{ backgroundColor: '#101010', border: '1px solid var(--rule-color)' }}>
-            <p className="font-mono-body mb-5" style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: 'var(--faded-gold)' }}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: 'rgba(0,0,0,0.72)' }}
+        >
+          <div
+            className="w-full max-w-lg p-6"
+            style={{ backgroundColor: '#101010', border: '1px solid var(--rule-color)' }}
+          >
+            <p
+              className="font-mono-body mb-5"
+              style={{
+                fontSize: '0.68rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.2em',
+                color: 'var(--faded-gold)',
+              }}
+            >
               Subir imagen
             </p>
 
@@ -385,28 +436,71 @@ export default function AdminDashboardPage() {
             />
 
             {uploadPreview && (
-              <img src={uploadPreview} alt="Preview" className="w-full h-44 object-cover mb-4" />
+              <Image
+                src={uploadPreview}
+                alt="Preview"
+                width={1200}
+                height={700}
+                unoptimized
+                className="w-full h-44 object-cover mb-4"
+              />
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-              <input value={newImageTitle} onChange={(e) => setNewImageTitle(e.target.value)} placeholder="Titulo" className="px-3 py-2 font-mono-body" style={inputStyle} />
-              <input value={newImageYear} onChange={(e) => setNewImageYear(e.target.value)} placeholder="Anio" className="px-3 py-2 font-mono-body" style={inputStyle} />
-              <input value={newImageCategory} onChange={(e) => setNewImageCategory(e.target.value)} placeholder="Categoria" className="px-3 py-2 font-mono-body" style={inputStyle} />
+              <input
+                value={newImageTitle}
+                onChange={(e) => setNewImageTitle(e.target.value)}
+                placeholder="Titulo"
+                className="px-3 py-2 font-mono-body"
+                style={inputStyle}
+              />
+              <input
+                value={newImageYear}
+                onChange={(e) => setNewImageYear(e.target.value)}
+                placeholder="Anio"
+                className="px-3 py-2 font-mono-body"
+                style={inputStyle}
+              />
+              <input
+                value={newImageCategory}
+                onChange={(e) => setNewImageCategory(e.target.value)}
+                placeholder="Categoria"
+                className="px-3 py-2 font-mono-body"
+                style={inputStyle}
+              />
             </div>
 
             {uploading && (
               <div className="mb-4">
                 <div style={{ height: '6px', backgroundColor: 'rgba(200,169,110,0.2)' }}>
-                  <div style={{ width: `${uploadProgress}%`, height: '100%', backgroundColor: 'var(--faded-gold)', transition: 'width 0.2s ease' }} />
+                  <div
+                    style={{
+                      width: `${uploadProgress}%`,
+                      height: '100%',
+                      backgroundColor: 'var(--faded-gold)',
+                      transition: 'width 0.2s ease',
+                    }}
+                  />
                 </div>
               </div>
             )}
 
             <div className="flex justify-end gap-3">
-              <button type="button" onClick={() => setShowUploadModal(false)} className="px-3 py-2 font-mono-body" style={ghostButtonStyle}>
+              <button
+                type="button"
+                onClick={() => setShowUploadModal(false)}
+                className="px-3 py-2 font-mono-body"
+                style={ghostButtonStyle}
+              >
                 Cancelar
               </button>
-              <button type="button" onClick={() => void uploadPortfolioImage()} disabled={uploading} className="px-3 py-2 font-mono-body" style={primaryButtonStyle}>
+              <button
+                type="button"
+                onClick={() => void uploadPortfolioImage()}
+                disabled={uploading}
+                className="px-3 py-2 font-mono-body"
+                style={primaryButtonStyle}
+              >
                 {uploading ? 'Subiendo...' : 'Subir'}
               </button>
             </div>
@@ -427,12 +521,26 @@ function AdminPortfolio(props: {
   onDelete: (id: string) => void;
   onOpenUpload: () => void;
 }) {
-  const { content, saving, dragImageIndex, setDragImageIndex, setContent, onSave, onDelete, onOpenUpload } = props;
+  const {
+    content,
+    saving,
+    dragImageIndex,
+    setDragImageIndex,
+    setContent,
+    onSave,
+    onDelete,
+    onOpenUpload,
+  } = props;
 
   return (
     <section>
       <SectionTitle title="Portfolio" />
-      <button type="button" onClick={onOpenUpload} className="mb-5 px-4 py-2 font-mono-body" style={primaryButtonStyle}>
+      <button
+        type="button"
+        onClick={onOpenUpload}
+        className="mb-5 px-4 py-2 font-mono-body"
+        style={primaryButtonStyle}
+      >
         Subir imagen
       </button>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -453,7 +561,14 @@ function AdminPortfolio(props: {
             className="p-3"
             style={{ border: '1px solid var(--rule-color)' }}
           >
-            <img src={image.src} alt={image.title} className="w-full h-44 object-cover mb-3" />
+            <Image
+              src={image.src}
+              alt={image.title}
+              width={1200}
+              height={700}
+              unoptimized
+              className="w-full h-44 object-cover mb-3"
+            />
             <input
               value={image.title}
               onChange={(e) => {
@@ -476,7 +591,12 @@ function AdminPortfolio(props: {
               className="w-full px-3 py-2 mb-2 font-mono-body"
               style={inputStyle}
             />
-            <button type="button" onClick={() => onDelete(image.id)} className="font-mono-body" style={dangerButtonStyle}>
+            <button
+              type="button"
+              onClick={() => onDelete(image.id)}
+              className="font-mono-body"
+              style={dangerButtonStyle}
+            >
               Eliminar
             </button>
           </div>
@@ -510,7 +630,9 @@ function AdminHero(props: {
       <InputField
         label="Scroll text"
         value={content.hero.scrollText}
-        onChange={(value) => setContent({ ...content, hero: { ...content.hero, scrollText: value } })}
+        onChange={(value) =>
+          setContent({ ...content, hero: { ...content.hero, scrollText: value } })
+        }
       />
       <SaveButton saving={saving} onClick={onSave} />
     </section>
@@ -527,12 +649,44 @@ function AdminAbout(props: {
   return (
     <section>
       <SectionTitle title="About" />
-      <InputField label="Heading" value={content.about.heading} onChange={(value) => setContent({ ...content, about: { ...content.about, heading: value } })} />
-      <TextareaField label="Bio" value={content.about.bio} onChange={(value) => setContent({ ...content, about: { ...content.about, bio: value } })} />
-      <InputField label="Quote" value={content.about.quote} onChange={(value) => setContent({ ...content, about: { ...content.about, quote: value } })} />
-      <InputField label="Location" value={content.about.location} onChange={(value) => setContent({ ...content, about: { ...content.about, location: value } })} />
-      <InputField label="Details" value={content.about.details} onChange={(value) => setContent({ ...content, about: { ...content.about, details: value } })} />
-      <InputField label="Established" value={content.about.established} onChange={(value) => setContent({ ...content, about: { ...content.about, established: value } })} />
+      <InputField
+        label="Heading"
+        value={content.about.heading}
+        onChange={(value) =>
+          setContent({ ...content, about: { ...content.about, heading: value } })
+        }
+      />
+      <TextareaField
+        label="Bio"
+        value={content.about.bio}
+        onChange={(value) => setContent({ ...content, about: { ...content.about, bio: value } })}
+      />
+      <InputField
+        label="Quote"
+        value={content.about.quote}
+        onChange={(value) => setContent({ ...content, about: { ...content.about, quote: value } })}
+      />
+      <InputField
+        label="Location"
+        value={content.about.location}
+        onChange={(value) =>
+          setContent({ ...content, about: { ...content.about, location: value } })
+        }
+      />
+      <InputField
+        label="Details"
+        value={content.about.details}
+        onChange={(value) =>
+          setContent({ ...content, about: { ...content.about, details: value } })
+        }
+      />
+      <InputField
+        label="Established"
+        value={content.about.established}
+        onChange={(value) =>
+          setContent({ ...content, about: { ...content.about, established: value } })
+        }
+      />
       <SaveButton saving={saving} onClick={onSave} />
     </section>
   );
@@ -594,7 +748,15 @@ function AdminSpecialties(props: {
 
       <button
         type="button"
-        onClick={() => setContent({ ...content, specialties: { ...content.specialties, items: [...content.specialties.items, 'Nueva especialidad'] } })}
+        onClick={() =>
+          setContent({
+            ...content,
+            specialties: {
+              ...content.specialties,
+              items: [...content.specialties.items, 'Nueva especialidad'],
+            },
+          })
+        }
         className="mt-4 px-3 py-2 font-mono-body"
         style={ghostButtonStyle}
       >
@@ -617,7 +779,13 @@ function AdminContact(props: {
   return (
     <section>
       <SectionTitle title="Contacto" />
-      <InputField label="Email" value={content.contact.email} onChange={(value) => setContent({ ...content, contact: { ...content.contact, email: value } })} />
+      <InputField
+        label="Email"
+        value={content.contact.email}
+        onChange={(value) =>
+          setContent({ ...content, contact: { ...content.contact, email: value } })
+        }
+      />
       <InputField
         label="Instagram handle (sin @)"
         value={content.contact.instagram.replace('@', '')}
@@ -633,16 +801,51 @@ function AdminContact(props: {
           });
         }}
       />
-      <InputField label="Instagram URL" value={content.contact.instagramUrl} onChange={(value) => setContent({ ...content, contact: { ...content.contact, instagramUrl: value } })} />
+      <InputField
+        label="Instagram URL"
+        value={content.contact.instagramUrl}
+        onChange={(value) =>
+          setContent({ ...content, contact: { ...content.contact, instagramUrl: value } })
+        }
+      />
       <InputField
         label="WhatsApp (solo digitos)"
         value={content.contact.whatsapp}
-        onChange={(value) => setContent({ ...content, contact: { ...content.contact, whatsapp: value.replace(/\D+/g, '') } })}
+        onChange={(value) =>
+          setContent({
+            ...content,
+            contact: { ...content.contact, whatsapp: value.replace(/\D+/g, '') },
+          })
+        }
       />
-      <TextareaField label="Texto WhatsApp" value={content.contact.whatsappText} onChange={(value) => setContent({ ...content, contact: { ...content.contact, whatsappText: value } })} />
-      <InputField label="Texto CTA" value={content.contact.ctaText} onChange={(value) => setContent({ ...content, contact: { ...content.contact, ctaText: value } })} />
-      <InputField label="Quote" value={content.contact.quote} onChange={(value) => setContent({ ...content, contact: { ...content.contact, quote: value } })} />
-      <InputField label="Location" value={content.contact.location} onChange={(value) => setContent({ ...content, contact: { ...content.contact, location: value } })} />
+      <TextareaField
+        label="Texto WhatsApp"
+        value={content.contact.whatsappText}
+        onChange={(value) =>
+          setContent({ ...content, contact: { ...content.contact, whatsappText: value } })
+        }
+      />
+      <InputField
+        label="Texto CTA"
+        value={content.contact.ctaText}
+        onChange={(value) =>
+          setContent({ ...content, contact: { ...content.contact, ctaText: value } })
+        }
+      />
+      <InputField
+        label="Quote"
+        value={content.contact.quote}
+        onChange={(value) =>
+          setContent({ ...content, contact: { ...content.contact, quote: value } })
+        }
+      />
+      <InputField
+        label="Location"
+        value={content.contact.location}
+        onChange={(value) =>
+          setContent({ ...content, contact: { ...content.contact, location: value } })
+        }
+      />
       <SaveButton saving={saving} onClick={onSave} />
     </section>
   );
@@ -658,10 +861,34 @@ function AdminFooter(props: {
   return (
     <section>
       <SectionTitle title="Footer" />
-      <InputField label="Brand" value={content.footer.brand} onChange={(value) => setContent({ ...content, footer: { ...content.footer, brand: value } })} />
-      <InputField label="Established" value={content.footer.established} onChange={(value) => setContent({ ...content, footer: { ...content.footer, established: value } })} />
-      <InputField label="Rights" value={content.footer.rights} onChange={(value) => setContent({ ...content, footer: { ...content.footer, rights: value } })} />
-      <InputField label="Tagline" value={content.footer.tagline} onChange={(value) => setContent({ ...content, footer: { ...content.footer, tagline: value } })} />
+      <InputField
+        label="Brand"
+        value={content.footer.brand}
+        onChange={(value) =>
+          setContent({ ...content, footer: { ...content.footer, brand: value } })
+        }
+      />
+      <InputField
+        label="Established"
+        value={content.footer.established}
+        onChange={(value) =>
+          setContent({ ...content, footer: { ...content.footer, established: value } })
+        }
+      />
+      <InputField
+        label="Rights"
+        value={content.footer.rights}
+        onChange={(value) =>
+          setContent({ ...content, footer: { ...content.footer, rights: value } })
+        }
+      />
+      <InputField
+        label="Tagline"
+        value={content.footer.tagline}
+        onChange={(value) =>
+          setContent({ ...content, footer: { ...content.footer, tagline: value } })
+        }
+      />
       <SaveButton saving={saving} onClick={onSave} />
     </section>
   );
@@ -669,7 +896,15 @@ function AdminFooter(props: {
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <p className="font-mono-body mb-6" style={{ fontSize: '0.66rem', textTransform: 'uppercase', letterSpacing: '0.32em', color: 'var(--faded-gold)' }}>
+    <p
+      className="font-mono-body mb-6"
+      style={{
+        fontSize: '0.66rem',
+        textTransform: 'uppercase',
+        letterSpacing: '0.32em',
+        color: 'var(--faded-gold)',
+      }}
+    >
       {title}
     </p>
   );
@@ -678,10 +913,23 @@ function SectionTitle({ title }: { title: string }) {
 function InputField(props: { label: string; value: string; onChange: (value: string) => void }) {
   return (
     <div className="mb-4">
-      <label className="block mb-2 font-mono-body" style={{ fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.7)' }}>
+      <label
+        className="block mb-2 font-mono-body"
+        style={{
+          fontSize: '0.58rem',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: 'rgba(200,169,110,0.7)',
+        }}
+      >
         {props.label}
       </label>
-      <input value={props.value} onChange={(e) => props.onChange(e.target.value)} className="w-full px-3 py-2 font-mono-body" style={inputStyle} />
+      <input
+        value={props.value}
+        onChange={(e) => props.onChange(e.target.value)}
+        className="w-full px-3 py-2 font-mono-body"
+        style={inputStyle}
+      />
     </div>
   );
 }
@@ -689,17 +937,37 @@ function InputField(props: { label: string; value: string; onChange: (value: str
 function TextareaField(props: { label: string; value: string; onChange: (value: string) => void }) {
   return (
     <div className="mb-4">
-      <label className="block mb-2 font-mono-body" style={{ fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(200,169,110,0.7)' }}>
+      <label
+        className="block mb-2 font-mono-body"
+        style={{
+          fontSize: '0.58rem',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: 'rgba(200,169,110,0.7)',
+        }}
+      >
         {props.label}
       </label>
-      <textarea value={props.value} onChange={(e) => props.onChange(e.target.value)} rows={5} className="w-full px-3 py-2 font-mono-body" style={inputStyle} />
+      <textarea
+        value={props.value}
+        onChange={(e) => props.onChange(e.target.value)}
+        rows={5}
+        className="w-full px-3 py-2 font-mono-body"
+        style={inputStyle}
+      />
     </div>
   );
 }
 
 function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} disabled={saving} className="mt-4 px-4 py-2 font-mono-body" style={primaryButtonStyle}>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={saving}
+      className="mt-4 px-4 py-2 font-mono-body"
+      style={primaryButtonStyle}
+    >
       {saving ? 'Guardando...' : 'Guardar cambios'}
     </button>
   );
@@ -722,13 +990,33 @@ function BilingualPreview({ section, content }: { section: SectionKey; content: 
 
 function PreviewCard({ language, data }: { language: 'ES' | 'EN'; data: unknown }) {
   return (
-    <div className="p-4" style={{ border: '1px solid rgba(200,169,110,0.25)', backgroundColor: 'rgba(240,234,214,0.02)' }}>
-      <p className="font-mono-body mb-3" style={{ fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--faded-gold)' }}>
+    <div
+      className="p-4"
+      style={{
+        border: '1px solid rgba(200,169,110,0.25)',
+        backgroundColor: 'rgba(240,234,214,0.02)',
+      }}
+    >
+      <p
+        className="font-mono-body mb-3"
+        style={{
+          fontSize: '0.58rem',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: 'var(--faded-gold)',
+        }}
+      >
         {language}
       </p>
       <pre
         className="font-mono-body overflow-auto"
-        style={{ fontSize: '0.64rem', lineHeight: 1.6, color: 'rgba(240,234,214,0.9)', maxHeight: '20rem', whiteSpace: 'pre-wrap' }}
+        style={{
+          fontSize: '0.64rem',
+          lineHeight: 1.6,
+          color: 'rgba(240,234,214,0.9)',
+          maxHeight: '20rem',
+          whiteSpace: 'pre-wrap',
+        }}
       >
         {JSON.stringify(data ?? {}, null, 2)}
       </pre>

@@ -1,14 +1,10 @@
 import { NextResponse } from 'next/server';
-import {
-  ADMIN_COOKIE_NAME,
-  createAdminCookieValue,
-  getAdminPassword,
-} from '@/lib/cms-auth';
+import { ADMIN_COOKIE_NAME, createAdminCookieValue, getAdminPassword } from '@/lib/cms-auth';
 import { checkRateLimit } from '@/lib/cms-rate-limit';
 
 export async function POST(req: Request) {
   const ip = req.headers.get('x-forwarded-for') || 'unknown';
-  if (!checkRateLimit(`auth:${ip}`, 10, 60_000)) {
+  if (!(await checkRateLimit(`auth:${ip}`, 10, 60_000))) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
 
