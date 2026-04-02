@@ -8,7 +8,7 @@
     "sectionNumber": "001",
     "sectionLabel": "About",
     "heading": "The Hand Behind the Needle.",
-    "bio": "Born from a city that doesn't sleep and a tradition that doesn't forget, Serbero has spent over a decade turning skin into story. Trained in the classical flash tradition, then unlearned and rebuilt with obsessive attention to line weight and negative space.",
+    "bio": "Born from a city that does not sleep and a tradition that does not forget.",
     "quote": "Every line is intentional.",
     "location": "New York, NY",
     "details": "By appointment only",
@@ -32,13 +32,11 @@
     "subtitle": "Selected pieces. All custom. All permanent.",
     "images": [
       {
-        "id": "img_001",
-        "src": "https://raw.githubusercontent.com/OWNER/REPO/main/public/content/images/img_001.jpg",
-        "title": "Serpent Study",
-        "titleEs": "Estudio de Serpiente",
-        "titleEn": "Serpent Study",
-        "year": "2025",
-        "category": "serpent"
+        "id": "img_1775147742701",
+        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/1000211029.jpg",
+        "title": "Sello Bleach",
+        "year": "2023",
+        "category": "general"
       }
     ]
   },
@@ -50,7 +48,7 @@
     "instagram": "@serbero_ink",
     "instagramUrl": "https://instagram.com/serbero_ink",
     "location": "New York, NY - by appointment",
-    "whatsapp": "55128205",
+    "whatsapp": "1234567890",
     "whatsappText": "Hi! I'd like to book a tattoo session with Serbero Ink.",
     "ctaText": "Get in Touch",
     "quote": "DMs open. Serious inquiries only."
@@ -61,19 +59,24 @@
     "rights": "All Rights Reserved",
     "tagline": "Ink fades. Art doesn't."
   },
+  "_meta": {
+    "lastUpdated": "2026-04-02T16:35:49.312Z",
+    "version": 3
+  },
   "i18n": {
     "es": {
       "hero": {
-        "tagline": "arte permanente. sin arrepentimientos.",
+        "tagline": "permanent art. no regrets.",
         "scrollText": "Desplazate para explorar"
       },
       "about": {
         "sectionLabel": "Sobre mi",
-        "heading": "La Mano\nDetras de la Aguja.",
-        "bio": "Nacido de una ciudad que no duerme y una tradicion que no olvida, Serbero lleva mas de una decada convirtiendo la piel en historia. Formado en la tradicion clasica del flash, luego desaprendido y reconstruido con atencion obsesiva al grosor de linea y el espacio negativo.",
+        "heading": "La Mano Detras de la Aguja.",
+        "bio": "Born from a city that does not sleep and a tradition that does not forget.",
         "quote": "Cada linea es intencional.",
         "location": "Nueva York, NY",
-        "details": "Solo con cita previa"
+        "details": "Solo con cita previa",
+        "established": "Est. 2024"
       },
       "specialties": {
         "sectionLabel": "El Arte.",
@@ -91,14 +94,14 @@
         "subtitle": "Piezas seleccionadas. Todas personalizadas. Todas permanentes.",
         "images": [
           {
-            "id": "img_001",
-            "title": "Estudio de Serpiente"
+            "id": "img_1775147742701",
+            "title": "Sello Bleach"
           }
         ]
       },
       "contact": {
         "sectionLabel": "RESERVA TU SESION.",
-        "heading": "RESERVA TU\nSESION.",
+        "heading": "RESERVA TU SESION.",
         "location": "Nueva York, NY - con cita previa",
         "whatsappText": "Hola, me gustaria reservar una sesion de tatuaje con Serbero Ink.",
         "ctaText": "Contactame",
@@ -117,10 +120,11 @@
       "about": {
         "sectionLabel": "About",
         "heading": "The Hand Behind the Needle.",
-        "bio": "Born from a city that doesn't sleep and a tradition that doesn't forget, Serbero has spent over a decade turning skin into story. Trained in the classical flash tradition, then unlearned and rebuilt with obsessive attention to line weight and negative space.",
+        "bio": "Born from a city that does not sleep and a tradition that does not forget.",
         "quote": "Every line is intentional.",
         "location": "New York, NY",
-        "details": "By appointment only"
+        "details": "By appointment only",
+        "established": "Est. 2024"
       },
       "specialties": {
         "sectionLabel": "The Craft.",
@@ -138,8 +142,8 @@
         "subtitle": "Selected pieces. All custom. All permanent.",
         "images": [
           {
-            "id": "img_001",
-            "title": "Serpent Study"
+            "id": "img_1775147742701",
+            "title": "Sello Bleach"
           }
         ]
       },
@@ -156,9 +160,5 @@
         "tagline": "Ink fades. Art doesn't."
       }
     }
-  },
-  "_meta": {
-    "lastUpdated": "2026-04-01T21:18:01.120Z",
-    "version": 2
   }
 }
