@@ -4,6 +4,10 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { ContentI18nSection, SiteContent } from '@/lib/content';
 
 type Lang = 'en' | 'es';
+const LANGUAGE_COOKIE_KEY = 'serbero_lang';
+const LEGACY_LANGUAGE_COOKIE_KEY = 'serberoink-lang';
+const LANGUAGE_STORAGE_KEY = 'serbero_lang';
+const LEGACY_LANGUAGE_STORAGE_KEY = 'serberoink-lang';
 
 interface Translations {
   // Nav
@@ -164,43 +168,52 @@ const LanguageContext = createContext<LanguageContextType>({
 
 export function LanguageProvider({
   children,
-  initialLang = 'es',
+  initialLanguage,
 }: {
   children: ReactNode;
-  initialLang?: Lang;
+  initialLanguage: Lang;
 }) {
-  const [lang, setLang] = useState<Lang>(initialLang);
+  const [lang, setLang] = useState<Lang>(initialLanguage);
+
+  const changeLanguage = (nextLang: Lang) => {
+    setLang(nextLang);
+
+    try {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLang);
+      window.localStorage.setItem(LEGACY_LANGUAGE_STORAGE_KEY, nextLang);
+    } catch {
+      // Ignore write failures in restricted browser modes.
+    }
+
+    document.cookie = `${LANGUAGE_COOKIE_KEY}=${nextLang}; path=/; max-age=31536000; samesite=lax`;
+    document.cookie = `${LEGACY_LANGUAGE_COOKIE_KEY}=${nextLang}; path=/; max-age=31536000; samesite=lax`;
+    document.documentElement.lang = nextLang;
+  };
 
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem('serberoink-lang');
+      const stored =
+        window.localStorage.getItem(LANGUAGE_STORAGE_KEY) ??
+        window.localStorage.getItem(LEGACY_LANGUAGE_STORAGE_KEY);
       const normalized = stored?.trim().toLowerCase();
-      if (normalized === 'en' || normalized === 'es') {
+      if ((normalized === 'en' || normalized === 'es') && normalized !== initialLanguage) {
         setLang(normalized);
       }
     } catch {
       // Storage can fail in private or restricted browser modes.
     }
-  }, []);
+  }, [initialLanguage]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      window.localStorage.setItem('serberoink-lang', lang);
-    } catch {
-      // Ignore write failures; cookie persistence still keeps language stable.
-    }
-
-    document.cookie = `serberoink-lang=${lang}; path=/; max-age=31536000; samesite=lax`;
     document.documentElement.lang = lang;
   }, [lang]);
 
   const setLanguage = (nextLang: Lang) => {
-    setLang(nextLang);
+    changeLanguage(nextLang);
   };
 
   const toggleLang = () => {
-    setLang((current) => (current === 'en' ? 'es' : 'en'));
+    changeLanguage(lang === 'en' ? 'es' : 'en');
   };
 
   const t = lang === 'en' ? en : es;

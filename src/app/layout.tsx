@@ -1,25 +1,23 @@
 import React from 'react';
 import type { Metadata, Viewport } from 'next';
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import '../styles/tailwind.css';
 import { SchemaInjector } from '@/components/SchemaInjector';
 
 type Lang = 'en' | 'es';
-
-function resolveLangFromAcceptLanguage(acceptLanguage: string | null): Lang {
-  if (!acceptLanguage) return 'es';
-  return acceptLanguage.toLowerCase().includes('es') ? 'es' : 'en';
-}
+const LANGUAGE_COOKIE_KEY = 'serbero_lang';
+const LEGACY_LANGUAGE_COOKIE_KEY = 'serberoink-lang';
 
 async function resolveHtmlLang(): Promise<Lang> {
   const cookieStore = await cookies();
-  const cookieLang = cookieStore.get('serberoink-lang')?.value?.trim().toLowerCase();
+  const cookieLang =
+    cookieStore.get(LANGUAGE_COOKIE_KEY)?.value?.trim().toLowerCase() ??
+    cookieStore.get(LEGACY_LANGUAGE_COOKIE_KEY)?.value?.trim().toLowerCase();
   if (cookieLang === 'en' || cookieLang === 'es') {
     return cookieLang;
   }
 
-  const requestHeaders = await headers();
-  return resolveLangFromAcceptLanguage(requestHeaders.get('accept-language'));
+  return 'es';
 }
 
 export const viewport: Viewport = {
