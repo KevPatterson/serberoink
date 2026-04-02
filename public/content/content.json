@@ -40,7 +40,7 @@
     "instagram": "@serbero_ink",
     "instagramUrl": "https://instagram.com/serbero_ink",
     "location": "New York, NY - by appointment",
-    "whatsapp": "1234567890",
+    "whatsapp": "5355128205",
     "whatsappText": "Hi! I'd like to book a tattoo session with Serbero Ink.",
     "ctaText": "Get in Touch",
     "quote": "DMs open. Serious inquiries only."
@@ -58,27 +58,27 @@
   "i18n": {
     "es": {
       "hero": {
-        "tagline": "permanent art. no regrets.",
+        "tagline": "arte permanente sin arrepentimientos.",
         "scrollText": "Haz scroll para explorar"
       },
       "about": {
         "sectionLabel": "Sobre mi",
         "heading": "La Mano Detras de la Aguja.",
-        "bio": "Born from a city that does not sleep and a tradition that does not forget.",
+        "bio": "Nacido en Cuba, formado en la calle y perfeccionado en cada sesión. Serbero lleva más de una década convirtiendo ideas en arte permanente — desde el realismo más oscuro hasta el anime más detallado, pasando por blackwork que cubre y define. El estudio trabaja por cita. Sin apuro. Cada pieza nace de una conversación, de lo que quieres cargar en la piel para siempre.",
         "quote": "Cada linea es intencional.",
-        "location": "Nueva York, NY",
+        "location": "La Habana, Cuba",
         "details": "Solo con cita previa",
-        "established": "Est. 2024"
+        "established": "Est. 2021"
       },
       "specialties": {
         "sectionLabel": "El Arte.",
         "items": [
-          "Trabajo de Serpientes",
-          "Cuchillas y Dagas",
-          "Botanica y Flora",
-          "Geometria y Compas",
-          "Polillas y Fauna Oscura",
-          "Memento Mori"
+          "Black & Grey Realism",
+          "Anime & Ilustración",
+          "Blackwork & Ornamental",
+          "Neo Traditional",
+          "Dark & Fantasy",
+          "Dotwork & Puntillismo"
         ]
       },
       "portfolio": {
@@ -89,9 +89,9 @@
       "contact": {
         "sectionLabel": "RESERVA TU SESION.",
         "heading": "RESERVA TU SESION.",
-        "location": "Nueva York, NY - con cita previa",
+        "location": "La Habana, Cuba - con cita previa",
         "whatsappText": "Hola, me gustaria reservar una sesion de tatuaje con Serbero Ink.",
-        "ctaText": "Contactame",
+        "ctaText": "Contáctame",
         "quote": "DMs abiertos. Solo consultas serias."
       },
       "footer": {
@@ -102,26 +102,26 @@
     "en": {
       "hero": {
         "tagline": "permanent art. no regrets.",
-        "scrollText": "Haz scroll para explorar"
+        "scrollText": "Scroll to explore"
       },
       "about": {
         "sectionLabel": "About",
         "heading": "The Hand Behind the Needle.",
-        "bio": "Born from a city that does not sleep and a tradition that does not forget.",
+        "bio": "Born in Cuba, trained in the streets and perfected in every session. Serbero has been transforming ideas into permanent art for over a decade — from the darkest realism to the most detailed anime, including blackwork that covers and defines. The studio works by appointment. No rush. Each piece is born from a conversation, from what you want to carry on your skin forever.",
         "quote": "Every line is intentional.",
-        "location": "New York, NY",
+        "location": "Havana, Cuba",
         "details": "By appointment only",
         "established": "Est. 2024"
       },
       "specialties": {
         "sectionLabel": "The Craft.",
         "items": [
-          "Serpent Work",
-          "Blade & Dagger",
-          "Botanical & Flora",
-          "Geometry & Compass",
-          "Moth & Dark Fauna",
-          "Memento Mori"
+          "Black & Grey Realism",
+          "Anime & Ilustration",
+          "Blackwork & Ornamental",
+          "Neo Traditional",
+          "Dark & Fantasy",
+          "Dotwork & Pointillism"
         ]
       },
       "portfolio": {
@@ -132,7 +132,7 @@
       "contact": {
         "sectionLabel": "BOOK A SESSION.",
         "heading": "BOOK A SESSION.",
-        "location": "New York, NY - by appointment",
+        "location": "La Habana, Cuba - by appointment",
         "whatsappText": "Hi! I'd like to book a tattoo session with Serbero Ink.",
         "ctaText": "Get in Touch",
         "quote": "DMs open. Serious inquiries only."
