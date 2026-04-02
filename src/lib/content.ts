@@ -80,7 +80,7 @@ export interface SiteContent {
 
 export const defaultSiteContent: SiteContent = {
   hero: {
-    title: 'SERBEROINK.',
+    title: 'SERBERO INK.',
     tagline: 'permanent art. no regrets.',
     scrollText: 'Scroll to explore',
   },
