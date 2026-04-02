@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useUIStrings } from '@/hooks/useUIStrings';
 
 interface HeroSectionProps {
   hero: {
@@ -11,6 +12,7 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ hero }: HeroSectionProps) {
+  const ui = useUIStrings();
   const line1Ref = useRef<HTMLSpanElement>(null);
   const line2Ref = useRef<HTMLSpanElement>(null);
   const taglineRef = useRef<HTMLParagraphElement>(null);
@@ -167,7 +169,7 @@ export default function HeroSection({ hero }: HeroSectionProps) {
                     textTransform: 'uppercase',
                   }}
                 >
-                  {hero.scrollText}
+                  {hero.scrollText || ui.scrollExplore}
                 </span>
               </div>
             </div>
@@ -213,7 +215,7 @@ export default function HeroSection({ hero }: HeroSectionProps) {
                     textTransform: 'uppercase',
                   }}
                 >
-                  The Artist
+                  {ui.theArtist}
                 </span>
               </div>
               {/* Faint grid lines on portrait */}

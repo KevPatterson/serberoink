@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { useLang } from './LanguageContext';
+import { useUIStrings } from '@/hooks/useUIStrings';
 
 export default function SiteNav() {
-  const { lang, t, setLanguage } = useLang();
+  const { lang, setLanguage } = useLang();
+  const ui = useUIStrings();
 
   return (
     <nav
@@ -35,7 +37,7 @@ export default function SiteNav() {
         <button
           type="button"
           onClick={() => setLanguage('es')}
-          aria-label="Cambiar a espanol"
+          aria-label="Cambiar a Espanol"
           className="font-mono-body"
           style={{
             fontSize: '0.6rem',
@@ -110,7 +112,7 @@ export default function SiteNav() {
             (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(200,169,110,0.55)';
           }}
         >
-          {t.adminPanel}
+          {ui.adminLink}
         </Link>
       </div>
     </nav>

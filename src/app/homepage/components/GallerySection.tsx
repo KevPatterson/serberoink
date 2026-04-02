@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import type { PortfolioImage } from '@/lib/content';
+import { useUIStrings } from '@/hooks/useUIStrings';
 
 interface GallerySectionProps {
   portfolio: {
@@ -57,6 +58,7 @@ function resolveAspect(index: number): string {
 }
 
 export default function GallerySection({ portfolio }: GallerySectionProps) {
+  const ui = useUIStrings();
   const { refs, visible } = useItemReveal(portfolio.images.length);
 
   return (
@@ -78,7 +80,7 @@ export default function GallerySection({ portfolio }: GallerySectionProps) {
                 opacity: 0.7,
               }}
             >
-              {portfolio.sectionNumber} - Portfolio
+              {portfolio.sectionNumber} - {ui.sectionPortfolioLabel}
             </p>
             <h2
               id="gallery-heading"

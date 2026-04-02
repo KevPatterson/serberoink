@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { trackCtaClick } from '@/lib/analytics';
-import { useLang } from './LanguageContext';
+import { useUIStrings } from '@/hooks/useUIStrings';
 
 interface BookingSectionProps {
   contact: {
@@ -26,7 +26,7 @@ function createWhatsappUrl(number: string, message: string): string {
 }
 
 export default function BookingSection({ contact }: BookingSectionProps) {
-  const { lang, t } = useLang();
+  const ui = useUIStrings();
   const whatsappUrl = createWhatsappUrl(contact.whatsapp, contact.whatsappText);
   const headingLines = contact.heading.split('\n');
   const btnRef = useRef<HTMLAnchorElement>(null);
@@ -68,7 +68,7 @@ export default function BookingSection({ contact }: BookingSectionProps) {
             opacity: 0.7,
           }}
         >
-          {lang === 'en' ? contact.sectionNumber + ' - Contact' : t.bookingLabel}
+          {contact.sectionNumber} - {ui.sectionBookLabel}
         </p>
 
         <h2
@@ -96,7 +96,7 @@ export default function BookingSection({ contact }: BookingSectionProps) {
         >
           <p>
             <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
-              {lang === 'en' ? 'Email ' : 'Correo '}
+              {ui.contactEmail}{' '}
             </span>
             <a href={`mailto:${contact.email}`} style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}>
               {contact.email}
@@ -104,7 +104,7 @@ export default function BookingSection({ contact }: BookingSectionProps) {
           </p>
           <p>
             <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
-              Instagram{' '}
+              {ui.contactInstagram}{' '}
             </span>
             <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}>
               {contact.instagram}
@@ -112,7 +112,7 @@ export default function BookingSection({ contact }: BookingSectionProps) {
           </p>
           <p>
             <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
-              {lang === 'en' ? 'Location ' : 'Ubicacion '}
+              {ui.contactLocation}{' '}
             </span>
             <span>{contact.location}</span>
           </p>

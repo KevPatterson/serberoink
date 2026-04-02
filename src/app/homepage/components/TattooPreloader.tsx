@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useUIStrings } from '@/hooks/useUIStrings';
 
 export default function TattooPreloader() {
+  const ui = useUIStrings();
   const [visible, setVisible] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
@@ -72,7 +74,7 @@ export default function TattooPreloader() {
         </div>
 
         {/* Tagline */}
-        <p className="preloader-tagline">Cargando el arte…</p>
+        <p className="preloader-tagline">{ui.loading}</p>
       </div>
     </div>
   );
