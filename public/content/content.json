@@ -2,7 +2,7 @@
   "hero": {
     "title": "SERBEROINK.",
     "tagline": "permanent art. no regrets.",
-    "scrollText": "Scroll to explore"
+    "scrollText": "Haz scroll para explorar"
   },
   "about": {
     "sectionNumber": "001",
@@ -30,15 +30,7 @@
     "sectionNumber": "003",
     "sectionLabel": "THE WORK.",
     "subtitle": "Selected pieces. All custom. All permanent.",
-    "images": [
-      {
-        "id": "img_1775147742701",
-        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/1000211029.jpg",
-        "title": "Sello Bleach",
-        "year": "2023",
-        "category": "general"
-      }
-    ]
+    "images": []
   },
   "contact": {
     "sectionNumber": "004",
@@ -60,14 +52,14 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-02T16:35:49.312Z",
-    "version": 3
+    "lastUpdated": "2026-04-02T18:32:39.556Z",
+    "version": 2
   },
   "i18n": {
     "es": {
       "hero": {
         "tagline": "permanent art. no regrets.",
-        "scrollText": "Desplazate para explorar"
+        "scrollText": "Haz scroll para explorar"
       },
       "about": {
         "sectionLabel": "Sobre mi",
@@ -92,12 +84,7 @@
       "portfolio": {
         "sectionLabel": "EL TRABAJO.",
         "subtitle": "Piezas seleccionadas. Todas personalizadas. Todas permanentes.",
-        "images": [
-          {
-            "id": "img_1775147742701",
-            "title": "Sello Bleach"
-          }
-        ]
+        "images": []
       },
       "contact": {
         "sectionLabel": "RESERVA TU SESION.",
@@ -115,7 +102,7 @@
     "en": {
       "hero": {
         "tagline": "permanent art. no regrets.",
-        "scrollText": "Scroll to explore"
+        "scrollText": "Haz scroll para explorar"
       },
       "about": {
         "sectionLabel": "About",
@@ -140,12 +127,7 @@
       "portfolio": {
         "sectionLabel": "THE WORK.",
         "subtitle": "Selected pieces. All custom. All permanent.",
-        "images": [
-          {
-            "id": "img_1775147742701",
-            "title": "Sello Bleach"
-          }
-        ]
+        "images": []
       },
       "contact": {
         "sectionLabel": "BOOK A SESSION.",
