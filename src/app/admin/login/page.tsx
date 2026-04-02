@@ -26,7 +26,6 @@ export default function AdminLoginPage() {
         return;
       }
 
-      sessionStorage.setItem('admin_token', password);
       router.push('/admin');
       router.refresh();
     } catch {

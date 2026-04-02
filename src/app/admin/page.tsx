@@ -54,15 +54,14 @@ export default function AdminDashboardPage() {
     return applyAutomaticI18n(content);
   }, [content]);
 
-  const adminToken = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    return sessionStorage.getItem('admin_token') || '';
-  }, []);
-
   useEffect(() => {
     const load = async () => {
       try {
         const res = await fetch('/api/cms/content', { cache: 'no-store' });
+        if (res.status === 401) {
+          router.replace('/admin/login');
+          return;
+        }
         if (!res.ok) throw new Error('No se pudo cargar content.json');
         const data = (await res.json()) as SiteContent;
         setContent(data);
@@ -73,13 +72,8 @@ export default function AdminDashboardPage() {
       }
     };
 
-    if (!adminToken) {
-      router.replace('/admin/login');
-      return;
-    }
-
     void load();
-  }, [adminToken, router]);
+  }, [router]);
 
   const showToast = (type: 'success' | 'error', message: string) => {
     if (type === 'success') {
@@ -90,12 +84,6 @@ export default function AdminDashboardPage() {
   };
 
   const persistContent = async (nextContent: SiteContent, message: string) => {
-    if (!adminToken) {
-      showToast('error', 'Sesion expirada. Inicia sesion otra vez.');
-      router.push('/admin/login');
-      return;
-    }
-
     setSaving(true);
     try {
       const withMeta = updateMeta(nextContent);
@@ -103,7 +91,6 @@ export default function AdminDashboardPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-token': adminToken,
         },
         body: JSON.stringify({
           path: CONTENT_PATH,
@@ -129,19 +116,12 @@ export default function AdminDashboardPage() {
 
   const handleLogout = async () => {
     await fetch('/api/cms/logout', { method: 'POST' });
-    sessionStorage.removeItem('admin_token');
     router.push('/admin/login');
   };
 
   const uploadPortfolioImage = async () => {
     if (!content || !uploadFile || !newImageTitle.trim() || !newImageYear.trim()) {
       showToast('error', 'Completa archivo, titulo y anio');
-      return;
-    }
-
-    if (!adminToken) {
-      showToast('error', 'Sesion expirada');
-      router.push('/admin/login');
       return;
     }
 
@@ -156,7 +136,6 @@ export default function AdminDashboardPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-token': adminToken,
         },
         body: JSON.stringify({
           filename: uploadFile.name,

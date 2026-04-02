@@ -12,7 +12,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
 
-  const body = (await req.json()) as { password?: string };
+  let body: { password?: string };
+  try {
+    body = (await req.json()) as { password?: string };
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
+  }
   const password = body.password || '';
 
   if (password !== getAdminPassword()) {

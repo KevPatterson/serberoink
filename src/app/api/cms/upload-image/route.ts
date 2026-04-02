@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { isValidAdminToken } from '@/lib/cms-auth';
+import type { NextRequest } from 'next/server';
+import { ADMIN_COOKIE_NAME, isValidAdminCookie } from '@/lib/cms-auth';
 import { checkRateLimit } from '@/lib/cms-rate-limit';
 import {
   buildRawGithubUrl,
@@ -15,9 +16,11 @@ interface UploadBody {
   message?: string;
 }
 
-export async function POST(req: Request) {
-  const adminToken = req.headers.get('x-admin-token');
-  if (!isValidAdminToken(adminToken)) {
+const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+export async function POST(req: NextRequest) {
+  const adminCookie = req.cookies.get(ADMIN_COOKIE_NAME)?.value ?? null;
+  if (!isValidAdminCookie(adminCookie)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -26,9 +29,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
 
-  const body = (await req.json()) as UploadBody;
+  let body: UploadBody;
+  try {
+    body = (await req.json()) as UploadBody;
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
+  }
+
   if (!body.filename || !body.base64 || !body.mimeType) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  }
+
+  if (!ALLOWED_MIME_TYPES.has(body.mimeType)) {
+    return NextResponse.json({ error: 'Unsupported image type' }, { status: 400 });
+  }
+
+  if (body.base64.length > 8_000_000) {
+    return NextResponse.json({ error: 'Image payload too large' }, { status: 413 });
   }
 
   const safeName = sanitizeFilename(body.filename);

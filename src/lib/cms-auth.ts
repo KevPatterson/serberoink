@@ -20,7 +20,19 @@ export function getExpectedAdminCookieValue(): string {
   return createAdminCookieValue(getAdminPassword());
 }
 
-export function isValidAdminToken(token: string | null): boolean {
-  if (!token) return false;
-  return token === getAdminPassword();
+function secureEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+export function isValidAdminCookie(cookieValue: string | null): boolean {
+  if (!cookieValue) return false;
+  return secureEqual(cookieValue, getExpectedAdminCookieValue());
 }
