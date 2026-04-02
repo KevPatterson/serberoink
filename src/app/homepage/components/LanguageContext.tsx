@@ -64,8 +64,10 @@ const en: Translations = {
   heroArtist: 'The Artist',
   aboutLabel: '001 — About',
   aboutHeading: 'The Hand\nBehind the Needle.',
-  aboutBio1: 'orn from a city that doesn\'t sleep and a tradition that doesn\'t forget, Serbero has spent over a decade turning skin into story. Trained in the classical flash tradition, then unlearned — rebuilt from scratch with obsessive attention to line weight and negative space.',
-  aboutBio2: 'The studio operates by appointment only. No walk-ins. No rush. Each piece is drawn from conversation, from the weight of what you carry, from what you want to carry for the rest of your life.',
+  aboutBio1:
+    "Born from a city that doesn't sleep and a tradition that doesn't forget, Serbero has spent over a decade turning skin into story. Trained in the classical flash tradition, then unlearned — rebuilt from scratch with obsessive attention to line weight and negative space.",
+  aboutBio2:
+    'The studio operates by appointment only. No walk-ins. No rush. Each piece is drawn from conversation, from the weight of what you carry, from what you want to carry for the rest of your life.',
   aboutQuote: '"Every line is intentional."',
   aboutLocation: 'Based in — New York, NY',
   aboutAppointment: 'By appointment only',
@@ -97,7 +99,7 @@ const en: Translations = {
   bookingCTA: 'Get in Touch',
   bookingNote: '"DMs open. Serious inquiries only."',
   footerCopy: '© Serbero Ink — Est. 2024 — All Rights Reserved',
-  footerTagline: 'Ink fades. Art doesn\'t.',
+  footerTagline: "Ink fades. Art doesn't.",
 };
 
 const es: Translations = {
@@ -108,8 +110,10 @@ const es: Translations = {
   heroArtist: 'El Artista',
   aboutLabel: '001 — Sobre mí',
   aboutHeading: 'La Mano\nDetrás de la Aguja.',
-  aboutBio1: 'acido de una ciudad que no duerme y una tradición que no olvida, Serbero lleva más de una década convirtiendo la piel en historia. Formado en la tradición clásica del flash, luego desaprendido — reconstruido desde cero con atención obsesiva al grosor de línea y el espacio negativo.',
-  aboutBio2: 'El estudio opera solo con cita previa. Sin visitas sin cita. Sin prisas. Cada pieza nace de una conversación, del peso de lo que cargas, de lo que quieres cargar el resto de tu vida.',
+  aboutBio1:
+    'Nacido de una ciudad que no duerme y una tradición que no olvida, Serbero lleva más de una década convirtiendo la piel en historia. Formado en la tradición clásica del flash, luego desaprendido — reconstruido desde cero con atención obsesiva al grosor de línea y el espacio negativo.',
+  aboutBio2:
+    'El estudio opera solo con cita previa. Sin visitas sin cita. Sin prisas. Cada pieza nace de una conversación, del peso de lo que cargas, de lo que quieres cargar el resto de tu vida.',
   aboutQuote: '"Cada línea es intencional."',
   aboutLocation: 'Ubicado en — Nueva York, NY',
   aboutAppointment: 'Solo con cita previa',
@@ -147,12 +151,14 @@ const es: Translations = {
 interface LanguageContextType {
   lang: Lang;
   t: Translations;
+  setLanguage: (lang: Lang) => void;
   toggleLang: () => void;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
   lang: 'es',
   t: es,
+  setLanguage: () => {},
   toggleLang: () => {},
 });
 
@@ -161,24 +167,29 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = window.localStorage.getItem('serberoink-lang');
-    if (stored === 'en' || stored === 'es') {
-      setLang(stored);
+    const normalized = stored?.trim().toLowerCase();
+    if (normalized === 'en' || normalized === 'es') {
+      setLang(normalized);
     }
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('serberoink-lang', lang);
+    document.documentElement.lang = lang;
+  }, [lang]);
+
+  const setLanguage = (nextLang: Lang) => {
+    setLang(nextLang);
+  };
+
   const toggleLang = () => {
-    setLang((current) => {
-      const next = current === 'en' ? 'es' : 'en';
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem('serberoink-lang', next);
-      }
-      return next;
-    });
+    setLang((current) => (current === 'en' ? 'es' : 'en'));
   };
 
   const t = lang === 'en' ? en : es;
   return (
-    <LanguageContext.Provider value={{ lang, t, toggleLang }}>
+    <LanguageContext.Provider value={{ lang, t, setLanguage, toggleLang }}>
       {children}
     </LanguageContext.Provider>
   );
@@ -198,9 +209,7 @@ export function localizeContent(content: SiteContent, lang: Lang): SiteContent {
       ...image,
       ...translatedImage,
       title:
-        translatedImage?.title ||
-        (lang === 'es' ? image.titleEs : image.titleEn) ||
-        image.title,
+        translatedImage?.title || (lang === 'es' ? image.titleEs : image.titleEn) || image.title,
     };
   });
 
@@ -212,7 +221,9 @@ export function localizeContent(content: SiteContent, lang: Lang): SiteContent {
       ...content.specialties,
       ...(dictionary.specialties ?? {}),
       items: Array.isArray(dictionary.specialties?.items)
-        ? dictionary.specialties.items.filter((item): item is string => typeof item === 'string' && item.length > 0)
+        ? dictionary.specialties.items.filter(
+            (item): item is string => typeof item === 'string' && item.length > 0
+          )
         : content.specialties.items,
     },
     portfolio: {

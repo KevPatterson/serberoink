@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useLang } from './LanguageContext';
 
 export default function SiteNav() {
-  const { lang, t, toggleLang } = useLang();
+  const { lang, t, setLanguage } = useLang();
 
   return (
     <nav
@@ -33,16 +33,18 @@ export default function SiteNav() {
       {/* Right controls */}
       <div className="flex items-center gap-3 md:gap-5">
         <button
-          onClick={toggleLang}
-          aria-label={lang === 'en' ? 'Switch to Spanish' : 'Cambiar a ingles'}
+          type="button"
+          onClick={() => setLanguage('es')}
+          aria-label="Cambiar a espanol"
           className="font-mono-body"
           style={{
             fontSize: '0.6rem',
             letterSpacing: '0.3em',
             textTransform: 'uppercase',
-            color: 'var(--faded-gold)',
+            color: lang === 'es' ? 'var(--parchment)' : 'var(--faded-gold)',
             background: 'none',
-            border: '1px solid rgba(200,169,110,0.35)',
+            border:
+              lang === 'es' ? '1px solid var(--faded-gold)' : '1px solid rgba(200,169,110,0.35)',
             padding: '0.35rem 0.7rem',
             cursor: 'pointer',
             transition: 'border-color 0.3s ease, color 0.3s ease',
@@ -56,7 +58,37 @@ export default function SiteNav() {
             e.currentTarget.style.color = 'var(--faded-gold)';
           }}
         >
-          {lang === 'en' ? 'ES' : 'EN'}
+          ES
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setLanguage('en')}
+          aria-label="Switch to English"
+          className="font-mono-body"
+          style={{
+            fontSize: '0.6rem',
+            letterSpacing: '0.3em',
+            textTransform: 'uppercase',
+            color: lang === 'en' ? 'var(--parchment)' : 'var(--faded-gold)',
+            background: 'none',
+            border:
+              lang === 'en' ? '1px solid var(--faded-gold)' : '1px solid rgba(200,169,110,0.35)',
+            padding: '0.35rem 0.7rem',
+            cursor: 'pointer',
+            transition: 'border-color 0.3s ease, color 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'var(--faded-gold)';
+            e.currentTarget.style.color = 'var(--parchment)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor =
+              lang === 'en' ? 'var(--faded-gold)' : 'rgba(200,169,110,0.35)';
+            e.currentTarget.style.color = lang === 'en' ? 'var(--parchment)' : 'var(--faded-gold)';
+          }}
+        >
+          EN
         </button>
 
         {/* Admin link */}
