@@ -2,8 +2,24 @@ export interface PortfolioImage {
   id: string;
   src: string;
   title: string;
+  titleEs?: string;
+  titleEn?: string;
   year: string;
   category: string;
+}
+
+export interface ContentI18nSection {
+  hero?: Partial<SiteContent['hero']>;
+  about?: Partial<SiteContent['about']>;
+  specialties?: Partial<SiteContent['specialties']>;
+  portfolio?: {
+    sectionNumber?: string;
+    sectionLabel?: string;
+    subtitle?: string;
+    images?: Array<Partial<PortfolioImage> & { id: string }>;
+  };
+  contact?: Partial<SiteContent['contact']>;
+  footer?: Partial<SiteContent['footer']>;
 }
 
 export interface SiteContent {
@@ -55,6 +71,10 @@ export interface SiteContent {
   _meta: {
     lastUpdated: string;
     version: number;
+  };
+  i18n?: {
+    es?: ContentI18nSection;
+    en?: ContentI18nSection;
   };
 }
 
@@ -115,6 +135,10 @@ export const defaultSiteContent: SiteContent = {
     lastUpdated: '2026-01-01T00:00:00.000Z',
     version: 1,
   },
+  i18n: {
+    es: {},
+    en: {},
+  },
 };
 
 function normalizeContent(input: unknown): SiteContent {
@@ -150,6 +174,10 @@ function normalizeContent(input: unknown): SiteContent {
     contact: { ...defaultSiteContent.contact, ...(data.contact ?? {}) },
     footer: { ...defaultSiteContent.footer, ...(data.footer ?? {}) },
     _meta: { ...defaultSiteContent._meta, ...(data._meta ?? {}) },
+    i18n: {
+      es: data.i18n?.es ?? defaultSiteContent.i18n?.es,
+      en: data.i18n?.en ?? defaultSiteContent.i18n?.en,
+    },
   };
 }
 
@@ -181,7 +209,7 @@ export async function getContent(): Promise<SiteContent> {
   const rawBase = getRawBaseUrl();
 
   if (rawBase) {
-    const contentUrl = `${rawBase}/public/content/content.json`;
+    const contentUrl = `${rawBase}/public/content/content.json?v=${Date.now()}`;
     try {
       const res = await fetch(contentUrl, {
         cache: 'no-store',

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { isValidAdminToken } from '@/lib/cms-auth';
 import { checkRateLimit } from '@/lib/cms-rate-limit';
 import { getRepoFileSha, putRepoBase64File, putRepoFile } from '@/lib/cms-github';
+import { applyAutomaticI18n } from '@/lib/content-translation';
+import type { SiteContent } from '@/lib/content';
 
 interface UpdateBody {
   path: string;
@@ -40,8 +42,17 @@ export async function POST(req: Request) {
         sha: sha || undefined,
       });
     } else {
+      const contentPayload =
+        typeof body.content === 'string'
+          ? body.content
+          : path === 'public/content/content.json'
+            ? applyAutomaticI18n(body.content as SiteContent)
+            : body.content;
+
       const nextContent =
-        typeof body.content === 'string' ? body.content : JSON.stringify(body.content, null, 2);
+        typeof contentPayload === 'string'
+          ? contentPayload
+          : JSON.stringify(contentPayload, null, 2);
 
       await putRepoFile({
         path,
@@ -49,6 +60,8 @@ export async function POST(req: Request) {
         message,
         sha: sha || undefined,
       });
+
+      return NextResponse.json({ success: true, content: contentPayload });
     }
 
     return NextResponse.json({ success: true });

@@ -111,7 +111,8 @@ export default function AdminDashboardPage() {
         throw new Error(payload.error || 'No se pudo guardar');
       }
 
-      setContent(withMeta);
+      const payload = (await res.json().catch(() => ({}))) as { content?: SiteContent };
+      setContent(payload.content ?? withMeta);
       showToast('success', 'Cambios guardados');
     } catch (error) {
       showToast('error', error instanceof Error ? error.message : 'Error al guardar');

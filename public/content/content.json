@@ -35,6 +35,8 @@
         "id": "img_001",
         "src": "https://raw.githubusercontent.com/OWNER/REPO/main/public/content/images/img_001.jpg",
         "title": "Serpent Study",
+        "titleEs": "Estudio de Serpiente",
+        "titleEn": "Serpent Study",
         "year": "2025",
         "category": "serpent"
       }
@@ -58,6 +60,102 @@
     "established": "Est. 2024",
     "rights": "All Rights Reserved",
     "tagline": "Ink fades. Art doesn't."
+  },
+  "i18n": {
+    "es": {
+      "hero": {
+        "tagline": "arte permanente. sin arrepentimientos.",
+        "scrollText": "Desplazate para explorar"
+      },
+      "about": {
+        "sectionLabel": "Sobre mi",
+        "heading": "La Mano\nDetras de la Aguja.",
+        "bio": "Nacido de una ciudad que no duerme y una tradicion que no olvida, Serbero lleva mas de una decada convirtiendo la piel en historia. Formado en la tradicion clasica del flash, luego desaprendido y reconstruido con atencion obsesiva al grosor de linea y el espacio negativo.",
+        "quote": "Cada linea es intencional.",
+        "location": "Nueva York, NY",
+        "details": "Solo con cita previa"
+      },
+      "specialties": {
+        "sectionLabel": "El Arte.",
+        "items": [
+          "Trabajo de Serpientes",
+          "Cuchillas y Dagas",
+          "Botanica y Flora",
+          "Geometria y Compas",
+          "Polillas y Fauna Oscura",
+          "Memento Mori"
+        ]
+      },
+      "portfolio": {
+        "sectionLabel": "EL TRABAJO.",
+        "subtitle": "Piezas seleccionadas. Todas personalizadas. Todas permanentes.",
+        "images": [
+          {
+            "id": "img_001",
+            "title": "Estudio de Serpiente"
+          }
+        ]
+      },
+      "contact": {
+        "sectionLabel": "RESERVA TU SESION.",
+        "heading": "RESERVA TU\nSESION.",
+        "location": "Nueva York, NY - con cita previa",
+        "whatsappText": "Hola, me gustaria reservar una sesion de tatuaje con Serbero Ink.",
+        "ctaText": "Contactame",
+        "quote": "DMs abiertos. Solo consultas serias."
+      },
+      "footer": {
+        "rights": "Todos los Derechos Reservados",
+        "tagline": "La tinta se desvanece. El arte no."
+      }
+    },
+    "en": {
+      "hero": {
+        "tagline": "permanent art. no regrets.",
+        "scrollText": "Scroll to explore"
+      },
+      "about": {
+        "sectionLabel": "About",
+        "heading": "The Hand Behind the Needle.",
+        "bio": "Born from a city that doesn't sleep and a tradition that doesn't forget, Serbero has spent over a decade turning skin into story. Trained in the classical flash tradition, then unlearned and rebuilt with obsessive attention to line weight and negative space.",
+        "quote": "Every line is intentional.",
+        "location": "New York, NY",
+        "details": "By appointment only"
+      },
+      "specialties": {
+        "sectionLabel": "The Craft.",
+        "items": [
+          "Serpent Work",
+          "Blade & Dagger",
+          "Botanical & Flora",
+          "Geometry & Compass",
+          "Moth & Dark Fauna",
+          "Memento Mori"
+        ]
+      },
+      "portfolio": {
+        "sectionLabel": "THE WORK.",
+        "subtitle": "Selected pieces. All custom. All permanent.",
+        "images": [
+          {
+            "id": "img_001",
+            "title": "Serpent Study"
+          }
+        ]
+      },
+      "contact": {
+        "sectionLabel": "BOOK A SESSION.",
+        "heading": "BOOK A SESSION.",
+        "location": "New York, NY - by appointment",
+        "whatsappText": "Hi! I'd like to book a tattoo session with Serbero Ink.",
+        "ctaText": "Get in Touch",
+        "quote": "DMs open. Serious inquiries only."
+      },
+      "footer": {
+        "rights": "All Rights Reserved",
+        "tagline": "Ink fades. Art doesn't."
+      }
+    }
   },
   "_meta": {
     "lastUpdated": "2026-04-01T21:18:01.120Z",

@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { SiteContent } from '@/lib/content';
+import type { ContentI18nSection, SiteContent } from '@/lib/content';
 
 type Lang = 'en' | 'es';
 
@@ -189,73 +189,38 @@ export function useLang() {
 }
 
 export function localizeContent(content: SiteContent, lang: Lang): SiteContent {
-  if (lang === 'en') {
-    return content;
-  }
+  const dictionary: ContentI18nSection | undefined = content.i18n?.[lang];
+  if (!dictionary) return content;
 
-  const portfolioTitleMap: Record<string, string> = {
-    img_001: 'Estudio de Serpiente',
-    img_002: 'Detalle de Manga Botanica',
-    img_003: 'Pieza Geometrica de Pecho',
-    img_004: 'Polilla y Daga',
-    img_005: 'Flash de Rosa',
-    img_006: 'Estudio de Calavera',
-    img_007: 'Compas y Estrellas',
-  };
+  const localizedImages = content.portfolio.images.map((image) => {
+    const translatedImage = dictionary.portfolio?.images?.find((item) => item.id === image.id);
+    return {
+      ...image,
+      ...translatedImage,
+      title:
+        translatedImage?.title ||
+        (lang === 'es' ? image.titleEs : image.titleEn) ||
+        image.title,
+    };
+  });
 
   return {
     ...content,
-    hero: {
-      ...content.hero,
-      tagline: 'arte permanente. sin arrepentimientos.',
-      scrollText: 'Desplazate para explorar',
-    },
-    about: {
-      ...content.about,
-      sectionLabel: 'Sobre mi',
-      heading: 'La Mano\nDetras de la Aguja.',
-      bio: 'Nacido de una ciudad que no duerme y una tradicion que no olvida, Serbero lleva mas de una decada convirtiendo la piel en historia. Formado en la tradicion clasica del flash, luego desaprendido y reconstruido con atencion obsesiva al grosor de linea y el espacio negativo.',
-      quote: 'Cada linea es intencional.',
-      location: 'Nueva York, NY',
-      details: 'Solo con cita previa',
-    },
+    hero: { ...content.hero, ...(dictionary.hero ?? {}) },
+    about: { ...content.about, ...(dictionary.about ?? {}) },
     specialties: {
       ...content.specialties,
-      sectionLabel: 'El Arte.',
-      items: [
-        'Trabajo de Serpientes',
-        'Cuchillas y Dagas',
-        'Botanica y Flora',
-        'Geometria y Compas',
-        'Polillas y Fauna Oscura',
-        'Memento Mori',
-      ],
+      ...(dictionary.specialties ?? {}),
+      items: Array.isArray(dictionary.specialties?.items)
+        ? dictionary.specialties.items.filter((item): item is string => typeof item === 'string' && item.length > 0)
+        : content.specialties.items,
     },
     portfolio: {
       ...content.portfolio,
-      sectionLabel: 'EL TRABAJO.',
-      subtitle: 'Piezas seleccionadas. Todas personalizadas. Todas permanentes.',
-      images: content.portfolio.images.map((image) => ({
-        ...image,
-        title: portfolioTitleMap[image.id] || image.title,
-      })),
+      ...(dictionary.portfolio ?? {}),
+      images: localizedImages,
     },
-    contact: {
-      ...content.contact,
-      sectionLabel: 'RESERVA TU SESION.',
-      heading: 'RESERVA TU\nSESION.',
-      location:
-        content.contact.location === 'New York, NY - by appointment'
-          ? 'Nueva York, NY - con cita previa'
-          : content.contact.location,
-      whatsappText: 'Hola, me gustaria reservar una sesion de tatuaje con Serbero Ink.',
-      ctaText: 'Contactame',
-      quote: 'DMs abiertos. Solo consultas serias.',
-    },
-    footer: {
-      ...content.footer,
-      rights: 'Todos los Derechos Reservados',
-      tagline: 'La tinta se desvanece. El arte no.',
-    },
+    contact: { ...content.contact, ...(dictionary.contact ?? {}) },
+    footer: { ...content.footer, ...(dictionary.footer ?? {}) },
   };
 }
