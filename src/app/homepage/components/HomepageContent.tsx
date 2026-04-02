@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import type { SiteContent } from '@/lib/content';
 import { localizeContent, useLang } from './LanguageContext';
+import { useContentPolling } from '@/hooks/useContentPolling';
 import HeroSection from './HeroSection';
 import AboutSection from './AboutSection';
 import StylesSection from './StylesSection';
@@ -14,11 +15,16 @@ import TattooPreloader from './TattooPreloader';
 import SiteNav from './SiteNav';
 
 interface HomepageContentProps {
-  content: SiteContent;
+  initialContent: SiteContent;
+  initialVersion: number;
 }
 
-export default function HomepageContent({ content }: HomepageContentProps) {
+export default function HomepageContent({
+  initialContent,
+  initialVersion,
+}: HomepageContentProps) {
   const { lang } = useLang();
+  const content = useContentPolling(initialContent, initialVersion);
 
   const localizedContent = useMemo(
     () => localizeContent(content, lang),

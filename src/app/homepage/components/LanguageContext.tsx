@@ -162,20 +162,36 @@ const LanguageContext = createContext<LanguageContextType>({
   toggleLang: () => {},
 });
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>('es');
+export function LanguageProvider({
+  children,
+  initialLang = 'es',
+}: {
+  children: ReactNode;
+  initialLang?: Lang;
+}) {
+  const [lang, setLang] = useState<Lang>(initialLang);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem('serberoink-lang');
-    const normalized = stored?.trim().toLowerCase();
-    if (normalized === 'en' || normalized === 'es') {
-      setLang(normalized);
+    try {
+      const stored = window.localStorage.getItem('serberoink-lang');
+      const normalized = stored?.trim().toLowerCase();
+      if (normalized === 'en' || normalized === 'es') {
+        setLang(normalized);
+      }
+    } catch {
+      // Storage can fail in private or restricted browser modes.
     }
   }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    window.localStorage.setItem('serberoink-lang', lang);
+    try {
+      window.localStorage.setItem('serberoink-lang', lang);
+    } catch {
+      // Ignore write failures; cookie persistence still keeps language stable.
+    }
+
+    document.cookie = `serberoink-lang=${lang}; path=/; max-age=31536000; samesite=lax`;
     document.documentElement.lang = lang;
   }, [lang]);
 
