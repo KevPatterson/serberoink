@@ -27,6 +27,8 @@ export interface SiteContent {
     title: string;
     tagline: string;
     scrollText: string;
+    artistImageSrc: string;
+    artistImageAlt: string;
   };
   about: {
     sectionNumber: string;
@@ -37,6 +39,8 @@ export interface SiteContent {
     location: string;
     details: string;
     established: string;
+    imageSrc: string;
+    imageAlt: string;
   };
   specialties: {
     sectionNumber: string;
@@ -83,6 +87,8 @@ export const defaultSiteContent: SiteContent = {
     title: 'SERBERO INK.',
     tagline: 'permanent art. no regrets.',
     scrollText: 'Scroll to explore',
+    artistImageSrc: '',
+    artistImageAlt: 'Tattoo artist portrait',
   },
   about: {
     sectionNumber: '001',
@@ -93,6 +99,8 @@ export const defaultSiteContent: SiteContent = {
     location: 'New York, NY',
     details: 'By appointment only',
     established: 'Est. 2024',
+    imageSrc: '',
+    imageAlt: 'Tattoo artist at work',
   },
   specialties: {
     sectionNumber: '002',

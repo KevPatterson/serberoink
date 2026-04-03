@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useUIStrings } from '@/hooks/useUIStrings';
 import { useLang } from './LanguageContext';
 
@@ -13,12 +14,15 @@ interface AboutSectionProps {
     location: string;
     details: string;
     established: string;
+    imageSrc: string;
+    imageAlt: string;
   };
 }
 
 export default function AboutSection({ about }: AboutSectionProps) {
   const ui = useUIStrings();
   const { lang } = useLang();
+  const hasAboutImage = about.imageSrc.trim().length > 0;
   const headingLines = about.heading.split('\n');
   const normalizedSectionLabel = about.sectionLabel.trim().toLowerCase();
   const sectionLabel =
@@ -114,11 +118,22 @@ export default function AboutSection({ about }: AboutSectionProps) {
           >
             {/* Square image placeholder */}
             <div
-              className="about-img-placeholder img-grain w-full"
+              className="about-img-placeholder img-grain w-full relative"
               role="img"
-              aria-label="Artist at work — placeholder image"
+              aria-label={hasAboutImage ? about.imageAlt || 'Artist at work' : 'Artist at work placeholder image'}
               style={{ borderRadius: 0 }}
-            />
+            >
+              {hasAboutImage && (
+                <Image
+                  src={about.imageSrc}
+                  alt={about.imageAlt || 'Artist at work'}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 320px"
+                  className="object-cover"
+                  unoptimized
+                />
+              )}
+            </div>
 
             {/* Metadata below image */}
             <div

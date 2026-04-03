@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useRef } from 'react';
 import { useUIStrings } from '@/hooks/useUIStrings';
 
@@ -8,11 +9,14 @@ interface HeroSectionProps {
     title: string;
     tagline: string;
     scrollText: string;
+    artistImageSrc: string;
+    artistImageAlt: string;
   };
 }
 
 export default function HeroSection({ hero }: HeroSectionProps) {
   const ui = useUIStrings();
+  const hasArtistImage = hero.artistImageSrc.trim().length > 0;
   const line1Ref = useRef<HTMLSpanElement>(null);
   const line2Ref = useRef<HTMLSpanElement>(null);
   const taglineRef = useRef<HTMLParagraphElement>(null);
@@ -191,8 +195,18 @@ export default function HeroSection({ hero }: HeroSectionProps) {
                 transition: 'opacity 1.4s ease, transform 1.4s cubic-bezier(0.16,1,0.3,1)',
               }}
               role="img"
-              aria-label="Tattoo artist portrait placeholder — client will replace with photo"
+              aria-label={hasArtistImage ? hero.artistImageAlt || 'Tattoo artist portrait' : 'Tattoo artist portrait placeholder'}
             >
+              {hasArtistImage && (
+                <Image
+                  src={hero.artistImageSrc}
+                  alt={hero.artistImageAlt || 'Tattoo artist portrait'}
+                  fill
+                  sizes="(max-width: 1024px) 60vw, 380px"
+                  className="object-cover"
+                  unoptimized
+                />
+              )}
               {/* Decorative inner content */}
               <div
                 className="absolute inset-0 flex flex-col items-center justify-end pb-8"

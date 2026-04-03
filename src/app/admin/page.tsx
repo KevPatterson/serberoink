@@ -57,6 +57,9 @@ export default function AdminDashboardPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  const [pendingHeroImageFile, setPendingHeroImageFile] = useState<File | null>(null);
+  const [pendingAboutImageFile, setPendingAboutImageFile] = useState<File | null>(null);
+  const [pendingPortfolioUploads, setPendingPortfolioUploads] = useState<Record<string, File>>({});
 
   const [dragImageIndex, setDragImageIndex] = useState<number | null>(null);
   const [dragSpecialtyIndex, setDragSpecialtyIndex] = useState<number | null>(null);
@@ -65,6 +68,7 @@ export default function AdminDashboardPage() {
     kind: 'success',
     message: '',
   });
+  const [lastSavedContent, setLastSavedContent] = useState<SiteContent | null>(null);
 
   const previewContent = content;
 
@@ -79,6 +83,7 @@ export default function AdminDashboardPage() {
         if (!res.ok) throw new Error('No se pudo cargar content.json');
         const data = (await res.json()) as SiteContent;
         setContent(data);
+        setLastSavedContent(data);
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Error inesperado');
       } finally {
@@ -109,6 +114,31 @@ export default function AdminDashboardPage() {
       return;
     }
     toast.error(message);
+  };
+
+  const uploadCmsImage = async (file: File, context: 'portfolio' | 'artist' | 'about') => {
+    const base64 = await fileToBase64(file);
+
+    const uploadRes = await fetch('/api/cms/upload-image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        filename: file.name,
+        base64,
+        mimeType: file.type,
+        message: `cms: upload ${context} image ${file.name}`,
+      }),
+    });
+
+    if (!uploadRes.ok) {
+      const payload = (await uploadRes.json().catch(() => ({}))) as { error?: string };
+      throw new Error(payload.error || 'No se pudo subir la imagen');
+    }
+
+    const uploadPayload = (await uploadRes.json()) as { url: string };
+    return uploadPayload.url;
   };
 
   const persistContent = async (nextContent: SiteContent, message: string) => {
@@ -152,7 +182,9 @@ export default function AdminDashboardPage() {
         content?: SiteContent;
         translationWarning?: string;
       };
-      setContent(payload.content ?? withMeta);
+      const savedContent = payload.content ?? withMeta;
+      setContent(savedContent);
+      setLastSavedContent(savedContent);
       if (payload.translationWarning) {
         setTranslationStatus({
           visible: true,
@@ -232,70 +264,38 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const uploadPortfolioImage = async () => {
+  const queuePortfolioImage = () => {
     if (!content || !uploadFile || !newImageTitle.trim() || !newImageYear.trim()) {
       showToast('error', 'Completa archivo, titulo y anio');
       return;
     }
 
-    setUploading(true);
-    setUploadProgress(15);
+    const nextId = `img_${Date.now()}`;
+    const nextImage: PortfolioImage = {
+      id: nextId,
+      src: uploadPreview,
+      title: newImageTitle.trim(),
+      year: newImageYear.trim(),
+      category: newImageCategory.trim() || 'general',
+    };
 
-    try {
-      const base64 = await fileToBase64(uploadFile);
-      setUploadProgress(45);
+    const nextContent: SiteContent = {
+      ...content,
+      portfolio: {
+        ...content.portfolio,
+        images: [...content.portfolio.images, nextImage],
+      },
+    };
 
-      const uploadRes = await fetch('/api/cms/upload-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filename: uploadFile.name,
-          base64,
-          mimeType: uploadFile.type,
-          message: `cms: upload ${uploadFile.name}`,
-        }),
-      });
-
-      if (!uploadRes.ok) {
-        const payload = (await uploadRes.json().catch(() => ({}))) as { error?: string };
-        throw new Error(payload.error || 'No se pudo subir la imagen');
-      }
-
-      const uploadPayload = (await uploadRes.json()) as { url: string; filename: string };
-      setUploadProgress(75);
-
-      const nextImage: PortfolioImage = {
-        id: `img_${Date.now()}`,
-        src: uploadPayload.url,
-        title: newImageTitle.trim(),
-        year: newImageYear.trim(),
-        category: newImageCategory.trim() || 'general',
-      };
-
-      const nextContent: SiteContent = {
-        ...content,
-        portfolio: {
-          ...content.portfolio,
-          images: [...content.portfolio.images, nextImage],
-        },
-      };
-
-      await persistContent(nextContent, `cms: append ${uploadPayload.filename} to content`);
-      setUploadProgress(100);
-      setShowUploadModal(false);
-      setUploadFile(null);
-      setUploadPreview('');
-      setNewImageTitle('');
-      setNewImageYear('');
-      setNewImageCategory('general');
-    } catch (error) {
-      showToast('error', error instanceof Error ? error.message : 'Error al subir');
-    } finally {
-      setUploading(false);
-      setTimeout(() => setUploadProgress(0), 400);
-    }
+    setContent(nextContent);
+    setPendingPortfolioUploads((prev) => ({ ...prev, [nextId]: uploadFile }));
+    setShowUploadModal(false);
+    setUploadFile(null);
+    setUploadPreview('');
+    setNewImageTitle('');
+    setNewImageYear('');
+    setNewImageCategory('general');
+    showToast('success', 'Imagen en cola. Se subira al guardar cambios.');
   };
 
   if (loading || !content) {
@@ -402,10 +402,45 @@ export default function AdminDashboardPage() {
           <AdminPortfolio
             content={content}
             saving={saving}
+            hasUnsavedChanges={
+              Object.keys(pendingPortfolioUploads).length > 0 ||
+              JSON.stringify(content.portfolio) !== JSON.stringify(lastSavedContent?.portfolio)
+            }
             dragImageIndex={dragImageIndex}
             setDragImageIndex={setDragImageIndex}
             setContent={setContent}
-            onSave={(currentContent) => persistContent(currentContent, 'cms: update portfolio')}
+            pendingImageIds={Object.keys(pendingPortfolioUploads)}
+            onSave={(currentContent) => {
+              void (async () => {
+                let nextContent = currentContent;
+
+                try {
+                  for (const image of currentContent.portfolio.images) {
+                    const pendingFile = pendingPortfolioUploads[image.id];
+                    if (!pendingFile) {
+                      continue;
+                    }
+
+                    const uploadedUrl = await uploadCmsImage(pendingFile, 'portfolio');
+                    nextContent = {
+                      ...nextContent,
+                      portfolio: {
+                        ...nextContent.portfolio,
+                        images: nextContent.portfolio.images.map((item) =>
+                          item.id === image.id ? { ...item, src: uploadedUrl } : item
+                        ),
+                      },
+                    };
+                  }
+                } catch (error) {
+                  showToast('error', error instanceof Error ? error.message : 'Error al subir imagenes pendientes');
+                  return;
+                }
+
+                await persistContent(nextContent, 'cms: update portfolio');
+                setPendingPortfolioUploads({});
+              })();
+            }}
             onDelete={(id) => {
               toast('Eliminar esta imagen? No se puede deshacer.', {
                 action: {
@@ -417,7 +452,12 @@ export default function AdminDashboardPage() {
                       portfolio: { ...content.portfolio, images: nextImages },
                     };
                     setContent(nextContent);
-                    void persistContent(nextContent, 'cms: delete image');
+                    setPendingPortfolioUploads((prev) => {
+                      const next = { ...prev };
+                      delete next[id];
+                      return next;
+                    });
+                    showToast('success', 'Imagen eliminada. Guarda cambios para aplicar.');
                   },
                 },
                 cancel: {
@@ -437,16 +477,41 @@ export default function AdminDashboardPage() {
             content={content}
             setContent={setContent}
             saving={saving}
+            hasUnsavedChanges={
+              !!pendingHeroImageFile ||
+              JSON.stringify(content.hero) !== JSON.stringify(lastSavedContent?.hero)
+            }
+            pendingImageFileName={pendingHeroImageFile?.name ?? null}
+            onSelectImageFile={setPendingHeroImageFile}
             onSave={() => {
+              void (async () => {
+                let nextContent = content;
+
+                if (pendingHeroImageFile) {
+                  try {
+                    const uploadedUrl = await uploadCmsImage(pendingHeroImageFile, 'artist');
+                    nextContent = {
+                      ...nextContent,
+                      hero: { ...nextContent.hero, artistImageSrc: uploadedUrl },
+                    };
+                    setContent(nextContent);
+                  } catch (error) {
+                    showToast('error', error instanceof Error ? error.message : 'Error al subir imagen');
+                    return;
+                  }
+                }
+
               if (
-                !content.hero.title.trim() ||
-                !content.hero.tagline.trim() ||
-                !content.hero.scrollText.trim()
+                  !nextContent.hero.title.trim() ||
+                  !nextContent.hero.tagline.trim() ||
+                  !nextContent.hero.scrollText.trim()
               ) {
                 showToast('error', 'Todos los campos de Hero son requeridos');
                 return;
               }
-              void persistContent(content, 'cms: update hero');
+                await persistContent(nextContent, 'cms: update hero');
+                setPendingHeroImageFile(null);
+              })();
             }}
           />
         )}
@@ -456,12 +521,37 @@ export default function AdminDashboardPage() {
             content={content}
             setContent={setContent}
             saving={saving}
+            hasUnsavedChanges={
+              !!pendingAboutImageFile ||
+              JSON.stringify(content.about) !== JSON.stringify(lastSavedContent?.about)
+            }
+            pendingImageFileName={pendingAboutImageFile?.name ?? null}
+            onSelectImageFile={setPendingAboutImageFile}
             onSave={() => {
-              if (!content.about.heading.trim() || !content.about.bio.trim()) {
-                showToast('error', 'Heading y Bio son requeridos');
-                return;
-              }
-              void persistContent(content, 'cms: update about');
+              void (async () => {
+                let nextContent = content;
+
+                if (pendingAboutImageFile) {
+                  try {
+                    const uploadedUrl = await uploadCmsImage(pendingAboutImageFile, 'about');
+                    nextContent = {
+                      ...nextContent,
+                      about: { ...nextContent.about, imageSrc: uploadedUrl },
+                    };
+                    setContent(nextContent);
+                  } catch (error) {
+                    showToast('error', error instanceof Error ? error.message : 'Error al subir imagen');
+                    return;
+                  }
+                }
+
+                if (!nextContent.about.heading.trim() || !nextContent.about.bio.trim()) {
+                  showToast('error', 'Heading y Bio son requeridos');
+                  return;
+                }
+                await persistContent(nextContent, 'cms: update about');
+                setPendingAboutImageFile(null);
+              })();
             }}
           />
         )}
@@ -471,6 +561,9 @@ export default function AdminDashboardPage() {
             content={content}
             setContent={setContent}
             saving={saving}
+            hasUnsavedChanges={
+              JSON.stringify(content.specialties) !== JSON.stringify(lastSavedContent?.specialties)
+            }
             dragSpecialtyIndex={dragSpecialtyIndex}
             setDragSpecialtyIndex={setDragSpecialtyIndex}
             onSave={() => {
@@ -488,6 +581,9 @@ export default function AdminDashboardPage() {
             content={content}
             setContent={setContent}
             saving={saving}
+            hasUnsavedChanges={
+              JSON.stringify(content.contact) !== JSON.stringify(lastSavedContent?.contact)
+            }
             onSave={() => {
               if (!content.contact.email.trim() || !content.contact.whatsapp.trim()) {
                 showToast('error', 'Email y WhatsApp son requeridos');
@@ -503,6 +599,9 @@ export default function AdminDashboardPage() {
             content={content}
             setContent={setContent}
             saving={saving}
+            hasUnsavedChanges={
+              JSON.stringify(content.footer) !== JSON.stringify(lastSavedContent?.footer)
+            }
             onSave={() => {
               if (!content.footer.brand.trim() || !content.footer.tagline.trim()) {
                 showToast('error', 'Brand y tagline son requeridos');
@@ -600,21 +699,6 @@ export default function AdminDashboardPage() {
               />
             </div>
 
-            {uploading && (
-              <div className="mb-4">
-                <div style={{ height: '6px', backgroundColor: 'rgba(200,169,110,0.2)' }}>
-                  <div
-                    style={{
-                      width: `${uploadProgress}%`,
-                      height: '100%',
-                      backgroundColor: 'var(--faded-gold)',
-                      transition: 'width 0.2s ease',
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
             <div className="flex justify-end gap-3">
               <button
                 type="button"
@@ -626,12 +710,11 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 type="button"
-                onClick={() => void uploadPortfolioImage()}
-                disabled={uploading}
+                onClick={queuePortfolioImage}
                 className="px-3 py-2 font-mono-body"
                 style={primaryButtonStyle}
               >
-                {uploading ? 'Subiendo...' : 'Subir'}
+                Agregar
               </button>
             </div>
           </div>
@@ -720,9 +803,11 @@ export default function AdminDashboardPage() {
 function AdminPortfolio(props: {
   content: SiteContent;
   saving: boolean;
+  hasUnsavedChanges: boolean;
   dragImageIndex: number | null;
   setDragImageIndex: (index: number | null) => void;
   setContent: (next: SiteContent) => void;
+  pendingImageIds: string[];
   onSave: (currentContent: SiteContent) => void;
   onDelete: (id: string) => void;
   onOpenUpload: () => void;
@@ -730,13 +815,17 @@ function AdminPortfolio(props: {
   const {
     content,
     saving,
+    hasUnsavedChanges,
     dragImageIndex,
     setDragImageIndex,
     setContent,
+    pendingImageIds,
     onSave,
     onDelete,
     onOpenUpload,
   } = props;
+
+  const pendingSet = new Set(pendingImageIds);
 
   return (
     <section>
@@ -749,6 +838,18 @@ function AdminPortfolio(props: {
       >
         Subir imagen
       </button>
+      {pendingImageIds.length > 0 && (
+        <p
+          className="mb-4 font-mono-body"
+          style={{
+            fontSize: '0.58rem',
+            letterSpacing: '0.08em',
+            color: 'rgba(240,234,214,0.8)',
+          }}
+        >
+          {pendingImageIds.length} imagen(es) pendiente(s) por subir. Se enviaran a GitHub al guardar.
+        </p>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {content.portfolio.images.map((image, index) => (
           <div
@@ -767,6 +868,19 @@ function AdminPortfolio(props: {
             className="p-3"
             style={{ border: '1px solid var(--rule-color)' }}
           >
+            {pendingSet.has(image.id) && (
+              <p
+                className="mb-2 font-mono-body"
+                style={{
+                  fontSize: '0.54rem',
+                  letterSpacing: '0.16em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(245,195,95,0.95)',
+                }}
+              >
+                Pendiente de subida
+              </p>
+            )}
             <Image
               src={image.src}
               alt={image.title}
@@ -809,7 +923,10 @@ function AdminPortfolio(props: {
           </div>
         ))}
       </div>
-      <SaveButton saving={saving} onClick={() => onSave(content)} />
+      {!hasUnsavedChanges && (
+        <SectionNoChangesMessage sectionName="Portfolio" />
+      )}
+      <SaveButton saving={saving} disabled={!hasUnsavedChanges} onClick={() => onSave(content)} />
     </section>
   );
 }
@@ -818,9 +935,20 @@ function AdminHero(props: {
   content: SiteContent;
   setContent: (next: SiteContent) => void;
   saving: boolean;
+  hasUnsavedChanges: boolean;
+  pendingImageFileName: string | null;
+  onSelectImageFile: (file: File | null) => void;
   onSave: () => void;
 }) {
-  const { content, setContent, saving, onSave } = props;
+  const {
+    content,
+    setContent,
+    saving,
+    hasUnsavedChanges,
+    pendingImageFileName,
+    onSelectImageFile,
+    onSave,
+  } = props;
   return (
     <section>
       <SectionTitle title="Hero" />
@@ -841,7 +969,23 @@ function AdminHero(props: {
           setContent({ ...content, hero: { ...content.hero, scrollText: value } })
         }
       />
-      <SaveButton saving={saving} onClick={onSave} />
+      <ImageUploadField
+        label="Imagen del artista"
+        value={content.hero.artistImageSrc}
+        altValue={content.hero.artistImageAlt}
+        onChangeValue={(value) =>
+          setContent({ ...content, hero: { ...content.hero, artistImageSrc: value } })
+        }
+        onChangeAlt={(value) =>
+          setContent({ ...content, hero: { ...content.hero, artistImageAlt: value } })
+        }
+        pendingFileName={pendingImageFileName}
+        onSelectFile={onSelectImageFile}
+      />
+      {!hasUnsavedChanges && (
+        <SectionNoChangesMessage sectionName="Hero" />
+      )}
+      <SaveButton saving={saving} disabled={!hasUnsavedChanges} onClick={onSave} />
     </section>
   );
 }
@@ -850,9 +994,20 @@ function AdminAbout(props: {
   content: SiteContent;
   setContent: (next: SiteContent) => void;
   saving: boolean;
+  hasUnsavedChanges: boolean;
+  pendingImageFileName: string | null;
+  onSelectImageFile: (file: File | null) => void;
   onSave: () => void;
 }) {
-  const { content, setContent, saving, onSave } = props;
+  const {
+    content,
+    setContent,
+    saving,
+    hasUnsavedChanges,
+    pendingImageFileName,
+    onSelectImageFile,
+    onSave,
+  } = props;
   return (
     <section>
       <SectionTitle title="About" />
@@ -894,7 +1049,23 @@ function AdminAbout(props: {
           setContent({ ...content, about: { ...content.about, established: value } })
         }
       />
-      <SaveButton saving={saving} onClick={onSave} />
+      <ImageUploadField
+        label="Imagen seccion Sobre mi"
+        value={content.about.imageSrc}
+        altValue={content.about.imageAlt}
+        onChangeValue={(value) =>
+          setContent({ ...content, about: { ...content.about, imageSrc: value } })
+        }
+        onChangeAlt={(value) =>
+          setContent({ ...content, about: { ...content.about, imageAlt: value } })
+        }
+        pendingFileName={pendingImageFileName}
+        onSelectFile={onSelectImageFile}
+      />
+      {!hasUnsavedChanges && (
+        <SectionNoChangesMessage sectionName="About" />
+      )}
+      <SaveButton saving={saving} disabled={!hasUnsavedChanges} onClick={onSave} />
     </section>
   );
 }
@@ -903,11 +1074,20 @@ function AdminSpecialties(props: {
   content: SiteContent;
   setContent: (next: SiteContent) => void;
   saving: boolean;
+  hasUnsavedChanges: boolean;
   dragSpecialtyIndex: number | null;
   setDragSpecialtyIndex: (index: number | null) => void;
   onSave: () => void;
 }) {
-  const { content, setContent, saving, dragSpecialtyIndex, setDragSpecialtyIndex, onSave } = props;
+  const {
+    content,
+    setContent,
+    saving,
+    hasUnsavedChanges,
+    dragSpecialtyIndex,
+    setDragSpecialtyIndex,
+    onSave,
+  } = props;
   return (
     <section>
       <SectionTitle title="Especialidades" />
@@ -970,7 +1150,10 @@ function AdminSpecialties(props: {
         Agregar especialidad
       </button>
 
-      <SaveButton saving={saving} onClick={onSave} />
+      {!hasUnsavedChanges && (
+        <SectionNoChangesMessage sectionName="Especialidades" />
+      )}
+      <SaveButton saving={saving} disabled={!hasUnsavedChanges} onClick={onSave} />
     </section>
   );
 }
@@ -979,9 +1162,10 @@ function AdminContact(props: {
   content: SiteContent;
   setContent: (next: SiteContent) => void;
   saving: boolean;
+  hasUnsavedChanges: boolean;
   onSave: () => void;
 }) {
-  const { content, setContent, saving, onSave } = props;
+  const { content, setContent, saving, hasUnsavedChanges, onSave } = props;
 
   return (
     <section>
@@ -1053,7 +1237,10 @@ function AdminContact(props: {
           setContent({ ...content, contact: { ...content.contact, location: value } })
         }
       />
-      <SaveButton saving={saving} onClick={onSave} />
+      {!hasUnsavedChanges && (
+        <SectionNoChangesMessage sectionName="Contacto" />
+      )}
+      <SaveButton saving={saving} disabled={!hasUnsavedChanges} onClick={onSave} />
     </section>
   );
 }
@@ -1062,9 +1249,10 @@ function AdminFooter(props: {
   content: SiteContent;
   setContent: (next: SiteContent) => void;
   saving: boolean;
+  hasUnsavedChanges: boolean;
   onSave: () => void;
 }) {
-  const { content, setContent, saving, onSave } = props;
+  const { content, setContent, saving, hasUnsavedChanges, onSave } = props;
   return (
     <section>
       <SectionTitle title="Footer" />
@@ -1096,8 +1284,26 @@ function AdminFooter(props: {
           setContent({ ...content, footer: { ...content.footer, tagline: value } })
         }
       />
-      <SaveButton saving={saving} onClick={onSave} />
+      {!hasUnsavedChanges && (
+        <SectionNoChangesMessage sectionName="Footer" />
+      )}
+      <SaveButton saving={saving} disabled={!hasUnsavedChanges} onClick={onSave} />
     </section>
+  );
+}
+
+function SectionNoChangesMessage({ sectionName }: { sectionName: string }) {
+  return (
+    <p
+      className="mt-4 font-mono-body"
+      style={{
+        fontSize: '0.56rem',
+        letterSpacing: '0.08em',
+        color: 'rgba(240,234,214,0.55)',
+      }}
+    >
+      Sin cambios pendientes en {sectionName}.
+    </p>
   );
 }
 
@@ -1166,14 +1372,137 @@ function TextareaField(props: { label: string; value: string; onChange: (value: 
   );
 }
 
-function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void }) {
+function ImageUploadField(props: {
+  label: string;
+  value: string;
+  altValue: string;
+  onChangeValue: (value: string) => void;
+  onChangeAlt: (value: string) => void;
+  pendingFileName: string | null;
+  onSelectFile: (file: File | null) => void;
+}) {
+  const [preview, setPreview] = useState('');
+
+  const previewSrc = preview || props.value;
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      props.onSelectFile(null);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => setPreview((reader.result as string) || '');
+    reader.readAsDataURL(file);
+
+    props.onSelectFile(file);
+    toast.message('Imagen lista. Se subira cuando guardes cambios.');
+  };
+
+  return (
+    <div className="mb-6 p-4" style={{ border: '1px solid rgba(200,169,110,0.25)' }}>
+      <label
+        className="block mb-2 font-mono-body"
+        style={{
+          fontSize: '0.58rem',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: 'rgba(200,169,110,0.7)',
+        }}
+      >
+        {props.label}
+      </label>
+
+      <input
+        value={props.value}
+        onChange={(event) => props.onChangeValue(event.target.value)}
+        placeholder="URL de imagen"
+        className="w-full px-3 py-2 mb-3 font-mono-body"
+        style={inputStyle}
+      />
+
+      <input
+        value={props.altValue}
+        onChange={(event) => props.onChangeAlt(event.target.value)}
+        placeholder="Texto alternativo (accesibilidad)"
+        className="w-full px-3 py-2 mb-3 font-mono-body"
+        style={inputStyle}
+      />
+
+      <input
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        onChange={(event) => {
+          handleFileChange(event);
+        }}
+        className="mb-3"
+      />
+
+      {props.pendingFileName && (
+        <p
+          className="mb-3 font-mono-body"
+          style={{
+            fontSize: '0.58rem',
+            letterSpacing: '0.08em',
+            color: 'rgba(240,234,214,0.75)',
+          }}
+        >
+          Archivo pendiente: {props.pendingFileName}
+        </p>
+      )}
+
+      {previewSrc && (
+        <Image
+          src={previewSrc}
+          alt={props.altValue || props.label}
+          width={1200}
+          height={700}
+          unoptimized
+          className="w-full h-48 object-cover"
+        />
+      )}
+
+      <p
+        className="mt-2 font-mono-body"
+        style={{
+          fontSize: '0.58rem',
+          letterSpacing: '0.08em',
+          color: 'rgba(240,234,214,0.62)',
+        }}
+      >
+        La imagen seleccionada no se sube a GitHub hasta que pulses "Guardar cambios".
+      </p>
+    </div>
+  );
+}
+
+function SaveButton({
+  saving,
+  disabled = false,
+  onClick,
+}: {
+  saving: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  const isDisabled = saving || disabled;
+
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={saving}
+      disabled={isDisabled}
       className="mt-4 px-4 py-2 font-mono-body"
-      style={primaryButtonStyle}
+      style={
+        isDisabled
+          ? {
+              ...primaryButtonStyle,
+              opacity: 0.45,
+              cursor: 'not-allowed',
+            }
+          : primaryButtonStyle
+      }
     >
       {saving ? 'Guardando...' : 'Guardar cambios'}
     </button>
