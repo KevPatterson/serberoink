@@ -16,6 +16,15 @@ interface UpdateBody {
 
 const CONTENT_PATH = 'public/content/content.json';
 
+async function withTranslationFallback(content: SiteContent): Promise<SiteContent> {
+  try {
+    return await translateSiteContent(content);
+  } catch (error) {
+    console.error('cms:update translation failed, saving original content', error);
+    return content;
+  }
+}
+
 function isAllowedUpdatePath(path: string): boolean {
   if (path === CONTENT_PATH) return true;
   return path.startsWith('public/content/images/');
@@ -64,7 +73,7 @@ export async function POST(req: NextRequest) {
         typeof body.content === 'string'
           ? body.content
           : path === CONTENT_PATH
-            ? await translateSiteContent(body.content as SiteContent)
+            ? await withTranslationFallback(body.content as SiteContent)
             : body.content;
 
       const nextContent =
