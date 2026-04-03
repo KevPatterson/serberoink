@@ -107,7 +107,6 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
   const { lang } = useLang();
   const { refs, visible } = useItemReveal(portfolio.images.length);
   const [activeSlide, setActiveSlide] = useState(0);
-  const [isCompactViewport, setIsCompactViewport] = useState(false);
   const [isShowcaseHovered, setIsShowcaseHovered] = useState(false);
   const [autoplayResumeAfter, setAutoplayResumeAfter] = useState(0);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -137,20 +136,6 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
   useEffect(() => {
     setActiveSlide((prev) => normalizeIndex(prev, totalImages));
   }, [totalImages]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
-    const update = () => setIsCompactViewport(mediaQuery.matches);
-
-    update();
-    mediaQuery.addEventListener('change', update);
-
-    return () => mediaQuery.removeEventListener('change', update);
-  }, []);
 
   useEffect(() => {
     if (!hasMultipleImages || activeIndex !== null || isShowcaseHovered) {
@@ -498,18 +483,10 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
               }
 
               const isActiveCard = delta === 0;
-              const spread = isCompactViewport
-                ? totalImages <= 3
-                  ? 21
-                  : 15
-                : totalImages <= 3
-                  ? 26
-                  : 20;
-              const xOffset = delta * spread;
-              const yOffset = absDelta * (isCompactViewport ? 10 : 16);
-              const tilt = delta * (isCompactViewport ? 3.6 : 6);
-              const scale = isActiveCard ? 1 : 0.92 - absDelta * (isCompactViewport ? 0.05 : 0.065);
-              const depth = isActiveCard ? 22 : Math.max(0, 16 - absDelta * 5);
+              const xOffset = delta * (totalImages <= 3 ? 26 : 20);
+              const yOffset = absDelta * 16;
+              const tilt = delta * 6;
+              const scale = isActiveCard ? 1 : 0.9 - absDelta * 0.07;
 
               return (
                 <button
@@ -519,9 +496,8 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
                   style={{
                     zIndex: 40 - absDelta,
                     opacity: 1 - absDelta * 0.26,
-                    transform: `translate3d(-50%, -50%, 0) translate3d(${xOffset}%, ${yOffset}px, ${depth}px) rotate(${tilt}deg) scale(${scale})`,
+                    transform: `translate(-50%, -50%) translateX(${xOffset}%) translateY(${yOffset}px) rotate(${tilt}deg) scale(${scale})`,
                     transitionDelay: `${Math.max(0, 2 - absDelta) * 35}ms`,
-                    willChange: 'transform, opacity',
                   }}
                   aria-label={`${ui.portfolioOpenImage}: ${image.title}, ${image.year}`}
                   onClick={() => {
