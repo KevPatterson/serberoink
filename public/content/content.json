@@ -18,12 +18,13 @@
     "sectionNumber": "002",
     "sectionLabel": "The Craft.",
     "items": [
-      "Serpent Work",
-      "Blade & Dagger",
-      "Botanical & Flora",
+      "Black & Grey Realism",
+      "Anime & Ilustración",
+      "Blackwork & Ornamental",
       "Geometry & Compass",
-      "Moth & Dark Fauna",
-      "Memento Mori"
+      "Neo Traditional",
+      "Dark & Fantasy",
+      "Dotwork & Puntillismo"
     ]
   },
   "portfolio": {
@@ -81,8 +82,8 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T05:23:47.612Z",
-    "version": 30
+    "lastUpdated": "2026-04-03T05:26:23.525Z",
+    "version": 31
   },
   "i18n": {
     "es": {
@@ -102,12 +103,13 @@
       "specialties": {
         "sectionLabel": "The Craft.",
         "items": [
-          "Serpent Work",
-          "Blade & Dagger",
-          "Botanical & Flora",
+          "Black & Grey Realism",
+          "Anime & Ilustración",
+          "Blackwork & Ornamental",
           "Geometry & Compass",
-          "Moth & Dark Fauna",
-          "Memento Mori"
+          "Neo Traditional",
+          "Dark & Fantasy",
+          "Dotwork & Puntillismo"
         ]
       },
       "portfolio": {
@@ -162,12 +164,13 @@
       "specialties": {
         "sectionLabel": "The Craft.",
         "items": [
-          "Serpent Work",
-          "Blade & Dagger",
-          "Botanical & Flora",
+          "Black & Grey Realism",
+          "Anime & Illustration",
+          "Blackwork & Ornamental",
           "Geometry & Compass",
-          "Moth & Dark Fauna",
-          "Memento Mori"
+          "Neo Traditional",
+          "Dark & Fantasy",
+          "Dotwork & Pointillism"
         ]
       },
       "portfolio": {
