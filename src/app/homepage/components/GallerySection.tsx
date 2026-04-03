@@ -13,6 +13,7 @@ interface GallerySectionProps {
     subtitle: string;
     images: PortfolioImage[];
   };
+  instagramUrl: string;
 }
 
 function useItemReveal(count: number) {
@@ -20,10 +21,16 @@ function useItemReveal(count: number) {
   const [visible, setVisible] = useState<boolean[]>(Array(count).fill(false));
 
   useEffect(() => {
+    refs.current = refs.current.slice(0, count);
     setVisible(Array(count).fill(false));
   }, [count]);
 
   useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') {
+      setVisible(Array(count).fill(true));
+      return;
+    }
+
     const observers: IntersectionObserver[] = [];
 
     refs.current.forEach((el, i) => {
@@ -37,7 +44,7 @@ function useItemReveal(count: number) {
                 next[i] = true;
                 return next;
               });
-            }, i * 80);
+            }, Math.min(i * 60, 900));
             obs.disconnect();
           }
         },
@@ -58,7 +65,7 @@ function resolveAspect(index: number): string {
   return map[index % map.length] || '3/4';
 }
 
-export default function GallerySection({ portfolio }: GallerySectionProps) {
+export default function GallerySection({ portfolio, instagramUrl }: GallerySectionProps) {
   const ui = useUIStrings();
   const { lang } = useLang();
   const { refs, visible } = useItemReveal(portfolio.images.length);
@@ -162,6 +169,18 @@ export default function GallerySection({ portfolio }: GallerySectionProps) {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="flex justify-center mt-10 md:mt-14">
+          <a
+            href={instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cta-btn"
+            aria-label={ui.portfolioInstagramButton}
+          >
+            {ui.portfolioInstagramButton}
+          </a>
         </div>
       </div>
     </section>

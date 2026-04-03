@@ -166,18 +166,36 @@ function normalizeContent(input: unknown): SiteContent {
     portfolio: {
       ...defaultSiteContent.portfolio,
       ...(data.portfolio ?? {}),
-      images: Array.isArray(data.portfolio?.images)
-        ? data.portfolio.images.filter(
-            (img): img is PortfolioImage =>
-              !!img &&
-              typeof img.id === 'string' &&
-              typeof img.src === 'string' &&
-              img.src.length > 0 &&
-              typeof img.title === 'string' &&
-              typeof img.year === 'string' &&
-              typeof img.category === 'string'
-          )
-        : defaultSiteContent.portfolio.images,
+      images: (() => {
+        const rawImages = Array.isArray((data.portfolio as { images?: unknown[] } | undefined)?.images)
+          ? ((data.portfolio as { images?: unknown[] }).images ?? [])
+          : [];
+
+        return rawImages
+          .filter((img): img is Record<string, unknown> => !!img && typeof img === 'object')
+          .map((img) => {
+            const id = typeof img.id === 'string' ? img.id.trim() : '';
+            const src = typeof img.src === 'string' ? img.src.trim() : '';
+            if (!id || !src) return null;
+
+            return {
+              id,
+              src,
+              title:
+                typeof img.title === 'string' && img.title.trim().length > 0
+                  ? img.title
+                  : 'Untitled',
+              titleEs: typeof img.titleEs === 'string' ? img.titleEs : undefined,
+              titleEn: typeof img.titleEn === 'string' ? img.titleEn : undefined,
+              year: typeof img.year === 'string' && img.year.trim().length > 0 ? img.year : 'N/A',
+              category:
+                typeof img.category === 'string' && img.category.trim().length > 0
+                  ? img.category
+                  : 'general',
+            };
+          })
+          .filter((img): img is PortfolioImage => img !== null);
+      })(),
     },
     contact: { ...defaultSiteContent.contact, ...(data.contact ?? {}) },
     footer: { ...defaultSiteContent.footer, ...(data.footer ?? {}) },

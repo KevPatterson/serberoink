@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Toaster, toast } from 'sonner';
 import type { ContentI18nSection, PortfolioImage, SiteContent } from '@/lib/content';
+import { hasPendingFiles, hasSectionChanged } from '@/lib/admin-change-utils';
 
 type SectionKey = 'portfolio' | 'hero' | 'about' | 'specialties' | 'contact' | 'footer';
 type TranslationStatusKind = 'saving' | 'success' | 'warning' | 'error';
@@ -71,6 +72,21 @@ export default function AdminDashboardPage() {
   const [lastSavedContent, setLastSavedContent] = useState<SiteContent | null>(null);
 
   const previewContent = content;
+  const hasPortfolioUnsavedChanges =
+    hasPendingFiles(pendingPortfolioUploads) ||
+    hasSectionChanged(content?.portfolio, lastSavedContent?.portfolio);
+  const hasHeroUnsavedChanges =
+    !!pendingHeroImageFile ||
+    hasSectionChanged(content?.hero, lastSavedContent?.hero);
+  const hasAboutUnsavedChanges =
+    !!pendingAboutImageFile ||
+    hasSectionChanged(content?.about, lastSavedContent?.about);
+  const hasSpecialtiesUnsavedChanges =
+    hasSectionChanged(content?.specialties, lastSavedContent?.specialties);
+  const hasContactUnsavedChanges =
+    hasSectionChanged(content?.contact, lastSavedContent?.contact);
+  const hasFooterUnsavedChanges =
+    hasSectionChanged(content?.footer, lastSavedContent?.footer);
 
   useEffect(() => {
     const load = async () => {
@@ -402,15 +418,17 @@ export default function AdminDashboardPage() {
           <AdminPortfolio
             content={content}
             saving={saving}
-            hasUnsavedChanges={
-              Object.keys(pendingPortfolioUploads).length > 0 ||
-              JSON.stringify(content.portfolio) !== JSON.stringify(lastSavedContent?.portfolio)
-            }
+            hasUnsavedChanges={hasPortfolioUnsavedChanges}
             dragImageIndex={dragImageIndex}
             setDragImageIndex={setDragImageIndex}
             setContent={setContent}
             pendingImageIds={Object.keys(pendingPortfolioUploads)}
             onSave={(currentContent) => {
+              if (!hasPortfolioUnsavedChanges) {
+                showToast('success', 'No hay cambios en Portfolio para guardar.');
+                return;
+              }
+
               void (async () => {
                 let nextContent = currentContent;
 
@@ -477,13 +495,15 @@ export default function AdminDashboardPage() {
             content={content}
             setContent={setContent}
             saving={saving}
-            hasUnsavedChanges={
-              !!pendingHeroImageFile ||
-              JSON.stringify(content.hero) !== JSON.stringify(lastSavedContent?.hero)
-            }
+            hasUnsavedChanges={hasHeroUnsavedChanges}
             pendingImageFileName={pendingHeroImageFile?.name ?? null}
             onSelectImageFile={setPendingHeroImageFile}
             onSave={() => {
+              if (!hasHeroUnsavedChanges) {
+                showToast('success', 'No hay cambios en Hero para guardar.');
+                return;
+              }
+
               void (async () => {
                 let nextContent = content;
 
@@ -501,14 +521,14 @@ export default function AdminDashboardPage() {
                   }
                 }
 
-              if (
+                if (
                   !nextContent.hero.title.trim() ||
                   !nextContent.hero.tagline.trim() ||
                   !nextContent.hero.scrollText.trim()
-              ) {
-                showToast('error', 'Todos los campos de Hero son requeridos');
-                return;
-              }
+                ) {
+                  showToast('error', 'Todos los campos de Hero son requeridos');
+                  return;
+                }
                 await persistContent(nextContent, 'cms: update hero');
                 setPendingHeroImageFile(null);
               })();
@@ -521,13 +541,15 @@ export default function AdminDashboardPage() {
             content={content}
             setContent={setContent}
             saving={saving}
-            hasUnsavedChanges={
-              !!pendingAboutImageFile ||
-              JSON.stringify(content.about) !== JSON.stringify(lastSavedContent?.about)
-            }
+            hasUnsavedChanges={hasAboutUnsavedChanges}
             pendingImageFileName={pendingAboutImageFile?.name ?? null}
             onSelectImageFile={setPendingAboutImageFile}
             onSave={() => {
+              if (!hasAboutUnsavedChanges) {
+                showToast('success', 'No hay cambios en About para guardar.');
+                return;
+              }
+
               void (async () => {
                 let nextContent = content;
 
@@ -561,12 +583,15 @@ export default function AdminDashboardPage() {
             content={content}
             setContent={setContent}
             saving={saving}
-            hasUnsavedChanges={
-              JSON.stringify(content.specialties) !== JSON.stringify(lastSavedContent?.specialties)
-            }
+            hasUnsavedChanges={hasSpecialtiesUnsavedChanges}
             dragSpecialtyIndex={dragSpecialtyIndex}
             setDragSpecialtyIndex={setDragSpecialtyIndex}
             onSave={() => {
+              if (!hasSpecialtiesUnsavedChanges) {
+                showToast('success', 'No hay cambios en Especialidades para guardar.');
+                return;
+              }
+
               if (content.specialties.items.some((item) => !item.trim())) {
                 showToast('error', 'No puede haber especialidades vacias');
                 return;
@@ -581,10 +606,13 @@ export default function AdminDashboardPage() {
             content={content}
             setContent={setContent}
             saving={saving}
-            hasUnsavedChanges={
-              JSON.stringify(content.contact) !== JSON.stringify(lastSavedContent?.contact)
-            }
+            hasUnsavedChanges={hasContactUnsavedChanges}
             onSave={() => {
+              if (!hasContactUnsavedChanges) {
+                showToast('success', 'No hay cambios en Contacto para guardar.');
+                return;
+              }
+
               if (!content.contact.email.trim() || !content.contact.whatsapp.trim()) {
                 showToast('error', 'Email y WhatsApp son requeridos');
                 return;
@@ -599,10 +627,13 @@ export default function AdminDashboardPage() {
             content={content}
             setContent={setContent}
             saving={saving}
-            hasUnsavedChanges={
-              JSON.stringify(content.footer) !== JSON.stringify(lastSavedContent?.footer)
-            }
+            hasUnsavedChanges={hasFooterUnsavedChanges}
             onSave={() => {
+              if (!hasFooterUnsavedChanges) {
+                showToast('success', 'No hay cambios en Footer para guardar.');
+                return;
+              }
+
               if (!content.footer.brand.trim() || !content.footer.tagline.trim()) {
                 showToast('error', 'Brand y tagline son requeridos');
                 return;

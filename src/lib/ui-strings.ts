@@ -12,6 +12,7 @@ export const UI_STRINGS = {
     contactInstagram: 'Instagram',
     contactLocation: 'Ubicación',
     bookButton: 'Contáctame',
+    portfolioInstagramButton: 'Ver otros trabajos en Instagram',
   },
   en: {
     theArtist: 'The Artist',
@@ -26,6 +27,7 @@ export const UI_STRINGS = {
     contactInstagram: 'Instagram',
     contactLocation: 'Location',
     bookButton: 'Get in Touch',
+    portfolioInstagramButton: 'See more work on Instagram',
   },
 } as const;
 

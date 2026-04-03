@@ -43,7 +43,10 @@ export default function HomepageContent({
         <hr className="section-rule mx-8 md:mx-16" />
         <StylesSection specialties={localizedContent.specialties} />
         <hr className="section-rule mx-8 md:mx-16" />
-        <GallerySection portfolio={localizedContent.portfolio} />
+        <GallerySection
+          portfolio={localizedContent.portfolio}
+          instagramUrl={localizedContent.contact.instagramUrl}
+        />
         <hr className="section-rule mx-8 md:mx-16" />
         <BookingSection contact={localizedContent.contact} />
         <SiteFooter footer={localizedContent.footer} />
