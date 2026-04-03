@@ -10,9 +10,9 @@
     "heading": "La Mano Detrás de la Tinta.",
     "bio": "Nacido en Cuba, formado en la calle y perfeccionado \nen cada sesión. Serbero lleva más de una década \nconvirtiendo ideas en arte permanente — desde el \nrealismo más oscuro hasta el anime más detallado, \npasando por blackwork que cubre y define.\n\nEl estudio trabaja por cita. Sin apuro. Cada pieza \nnace de una conversación, de lo que quieres cargar \nen la piel para siempre.",
     "quote": "Cada línea es intencional",
-    "location": "La Haban, Cuba",
+    "location": "La Habana, Cuba",
     "details": "Solo con cita",
-    "established": "Est. 2024"
+    "established": "Est. 2021"
   },
   "specialties": {
     "sectionNumber": "002",
@@ -81,8 +81,8 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T05:23:30.265Z",
-    "version": 29
+    "lastUpdated": "2026-04-03T05:23:47.612Z",
+    "version": 30
   },
   "i18n": {
     "es": {
@@ -95,9 +95,9 @@
         "heading": "La Mano Detrás de la Tinta.",
         "bio": "Nacido en Cuba, formado en la calle y perfeccionado \nen cada sesión. Serbero lleva más de una década \nconvirtiendo ideas en arte permanente — desde el \nrealismo más oscuro hasta el anime más detallado, \npasando por blackwork que cubre y define.\n\nEl estudio trabaja por cita. Sin apuro. Cada pieza \nnace de una conversación, de lo que quieres cargar \nen la piel para siempre.",
         "quote": "Cada línea es intencional",
-        "location": "La Haban, Cuba",
+        "location": "La Habana, Cuba",
         "details": "Solo con cita",
-        "established": "Est. 2024"
+        "established": "Est. 2021"
       },
       "specialties": {
         "sectionLabel": "The Craft.",
@@ -155,9 +155,9 @@
         "heading": "The Hand Behind the Ink.",
         "bio": "Born in Cuba, trained on the street and perfected \nin each session. Serbero has been around for more than a decade \nturning ideas into permanent art — from the \ndarkest realism to the most detailed anime, \nthrough blackwork that covers and defines.\n\nThe studio works by appointment. No rush. Each piece \nis born from a conversation, from what you want to upload \non the skin forever.",
         "quote": "Every line is intentional",
-        "location": "La Haban, Cuba",
+        "location": "Havana, Cuba",
         "details": "By appointment only",
-        "established": "Est. 2024"
+        "established": "Est. 2021"
       },
       "specialties": {
         "sectionLabel": "The Craft.",
