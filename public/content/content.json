@@ -44,6 +44,13 @@
         "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring",
         "year": "2025",
         "category": "blackwork"
+      },
+      {
+        "id": "img_1775182572205",
+        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/screenshot-2026-04-02-220947.png",
+        "title": "Máscara",
+        "year": "2025",
+        "category": "neo-tradicional"
       }
     ]
   },
@@ -67,8 +74,8 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T02:14:13.321Z",
-    "version": 11
+    "lastUpdated": "2026-04-03T02:16:12.205Z",
+    "version": 12
   },
   "i18n": {
     "es": {
@@ -107,6 +114,10 @@
           {
             "id": "img_1775182453321",
             "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring"
+          },
+          {
+            "id": "img_1775182572205",
+            "title": "Máscara"
           }
         ]
       },
@@ -159,6 +170,10 @@
           {
             "id": "img_1775182453321",
             "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring"
+          },
+          {
+            "id": "img_1775182572205",
+            "title": "Máscara"
           }
         ]
       },
