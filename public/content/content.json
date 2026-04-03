@@ -1,7 +1,7 @@
 {
   "hero": {
     "title": "SERBERO INK.",
-    "tagline": "permanent art. no regrets.",
+    "tagline": "arte permamente, sin arrepentimientos",
     "scrollText": "Haz scroll para explorar"
   },
   "about": {
@@ -81,8 +81,8 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T02:28:31.141Z",
-    "version": 18
+    "lastUpdated": "2026-04-03T03:09:10.704Z",
+    "version": 19
   },
   "i18n": {
     "es": {
