@@ -70,35 +70,71 @@ function stripJsonCodeFence(text: string): string {
   return text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```$/i, '').trim();
 }
 
-async function translateManyToEnglish(texts: string[]): Promise<string[]> {
-  if (texts.length === 0) return [];
+interface TextsToTranslate {
+  heroTagline: string;
+  heroScrollText: string;
+  aboutHeading: string;
+  aboutBio: string;
+  aboutQuote: string;
+  aboutLocation: string;
+  aboutDetails: string;
+  contactHeading: string;
+  contactLocation: string;
+  contactWhatsappText: string;
+  contactCtaText: string;
+  contactQuote: string;
+  footerTagline: string;
+  footerRights: string;
+  specialtyItems: string[];
+  portfolioTitles: string[];
+}
 
-  const prompt = [
-    'Translate each item from Spanish to English.',
-    'Return ONLY a valid JSON array of strings with the same length and same order.',
-    'Do not include explanations or markdown.',
-    'Keep proper nouns, brand names, and social media handles unchanged.',
-    `Input: ${JSON.stringify(texts)}`,
-  ].join('\n');
+function asTranslatedText(value: unknown, fallback: string): string {
+  if (typeof value !== 'string') return fallback;
+  const normalized = value.trim();
+  return normalized || fallback;
+}
+
+function asTranslatedStringArray(value: unknown, fallback: string[]): string[] {
+  if (!Array.isArray(value)) return fallback;
+  return fallback.map((item, index) => asTranslatedText(value[index], item));
+}
+
+async function translateStructuredContent(payload: TextsToTranslate): Promise<TextsToTranslate> {
+  const prompt = `Translate the following JSON object from Spanish to English.
+Return ONLY a valid JSON object with the exact same keys.
+Keep proper nouns, brand names, city names, and social media handles unchanged.
+Do not add explanations, markdown, or code blocks. Return raw JSON only.
+
+${JSON.stringify(payload, null, 2)}`;
 
   const raw = await callGemini(prompt, 2200);
   const parsed = JSON.parse(stripJsonCodeFence(raw)) as unknown;
 
-  if (!Array.isArray(parsed)) {
-    throw new Error('Gemini batch translation returned non-array response');
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('Gemini batch translation returned invalid JSON object');
   }
 
-  if (parsed.length !== texts.length) {
-    throw new Error('Gemini batch translation returned unexpected array length');
-  }
+  const translated = parsed as Partial<TextsToTranslate>;
 
-  return parsed.map((item, index) => {
-    if (typeof item === 'string') {
-      const normalized = item.trim();
-      return normalized || texts[index];
-    }
-    return texts[index];
-  });
+  return {
+    heroTagline: asTranslatedText(translated.heroTagline, payload.heroTagline),
+    heroScrollText: asTranslatedText(translated.heroScrollText, payload.heroScrollText),
+    aboutHeading: asTranslatedText(translated.aboutHeading, payload.aboutHeading),
+    aboutBio: asTranslatedText(translated.aboutBio, payload.aboutBio),
+    aboutQuote: asTranslatedText(translated.aboutQuote, payload.aboutQuote),
+    aboutLocation: asTranslatedText(translated.aboutLocation, payload.aboutLocation),
+    aboutDetails: asTranslatedText(translated.aboutDetails, payload.aboutDetails),
+    contactHeading: asTranslatedText(translated.contactHeading, payload.contactHeading),
+    contactLocation: asTranslatedText(translated.contactLocation, payload.contactLocation),
+    contactWhatsappText: asTranslatedText(translated.contactWhatsappText, payload.contactWhatsappText),
+    contactCtaText: asTranslatedText(translated.contactCtaText, payload.contactCtaText),
+    contactQuote: asTranslatedText(translated.contactQuote, payload.contactQuote),
+    footerTagline: asTranslatedText(translated.footerTagline, payload.footerTagline),
+    footerRights: asTranslatedText(translated.footerRights, payload.footerRights),
+    specialtyItems: asTranslatedStringArray(translated.specialtyItems, payload.specialtyItems),
+    portfolioTitles: asTranslatedStringArray(translated.portfolioTitles, payload.portfolioTitles),
+  };
 }
 
 function buildFallbackI18n(content: SiteContent): NonNullable<SiteContent['i18n']> {
@@ -193,87 +229,61 @@ Text to translate: ${text}`,
 }
 
 export async function translateSiteContent(content: SiteContent): Promise<SiteContent> {
-  const fixedFields = [
-    content.hero.tagline,
-    content.hero.scrollText,
-    content.about.heading,
-    content.about.bio,
-    content.about.quote,
-    content.about.location,
-    content.about.details,
-    content.contact.heading,
-    content.contact.location,
-    content.contact.whatsappText,
-    content.contact.ctaText,
-    content.contact.quote,
-    content.footer.tagline,
-    content.footer.rights,
-  ];
-
-  const allTexts = [
-    ...fixedFields,
-    ...content.specialties.items,
-    ...content.portfolio.images.map((img) => img.title),
-  ];
-
-  const translated = await translateManyToEnglish(allTexts);
-
-  const tagline = translated[0];
-  const scrollText = translated[1];
-  const aboutHeading = translated[2];
-  const aboutBio = translated[3];
-  const aboutQuote = translated[4];
-  const aboutLocation = translated[5];
-  const aboutDetails = translated[6];
-  const contactHeading = translated[7];
-  const contactLocation = translated[8];
-  const contactWhatsappText = translated[9];
-  const contactCtaText = translated[10];
-  const contactQuote = translated[11];
-  const footerTagline = translated[12];
-  const footerRights = translated[13];
-
-  const specialtiesStart = fixedFields.length;
-  const specialtiesEnd = specialtiesStart + content.specialties.items.length;
-  const specialtyItems = translated.slice(specialtiesStart, specialtiesEnd);
-  const portfolioTitleItems = translated.slice(specialtiesEnd);
+  const translated = await translateStructuredContent({
+    heroTagline: content.hero.tagline,
+    heroScrollText: content.hero.scrollText,
+    aboutHeading: content.about.heading,
+    aboutBio: content.about.bio,
+    aboutQuote: content.about.quote,
+    aboutLocation: content.about.location,
+    aboutDetails: content.about.details,
+    contactHeading: content.contact.heading,
+    contactLocation: content.contact.location,
+    contactWhatsappText: content.contact.whatsappText,
+    contactCtaText: content.contact.ctaText,
+    contactQuote: content.contact.quote,
+    footerTagline: content.footer.tagline,
+    footerRights: content.footer.rights,
+    specialtyItems: content.specialties.items,
+    portfolioTitles: content.portfolio.images.map((img) => img.title),
+  });
 
   return {
     ...content,
     i18n: {
       ...buildFallbackI18n(content),
       en: {
-        hero: { tagline, scrollText },
+        hero: { tagline: translated.heroTagline, scrollText: translated.heroScrollText },
         about: {
           sectionLabel: 'About',
-          heading: aboutHeading,
-          bio: aboutBio,
-          quote: aboutQuote,
-          location: aboutLocation,
-          details: aboutDetails,
+          heading: translated.aboutHeading,
+          bio: translated.aboutBio,
+          quote: translated.aboutQuote,
+          location: translated.aboutLocation,
+          details: translated.aboutDetails,
           established: content.about.established,
         },
         specialties: {
           sectionLabel: 'The Craft.',
-          items: specialtyItems,
+          items: translated.specialtyItems,
         },
         portfolio: {
           sectionLabel: 'THE WORK.',
           subtitle: 'Selected pieces. All custom. All permanent.',
           images: content.portfolio.images.map((img, index) => ({
             id: img.id,
-            title: portfolioTitleItems[index] ?? img.title,
+            title: translated.portfolioTitles[index] ?? img.title,
           })),
         },
         contact: {
           sectionLabel: 'Book a Session',
-          heading: contactHeading,
-          location: contactLocation,
-          whatsappText: contactWhatsappText,
-          ctaText: contactCtaText,
-          quote: contactQuote,
+          heading: translated.contactHeading,
+          location: translated.contactLocation,
+          whatsappText: translated.contactWhatsappText,
+          ctaText: translated.contactCtaText,
+          quote: translated.contactQuote,
         },
-        footer: { rights: footerRights, tagline: footerTagline },
+        footer: { rights: translated.footerRights, tagline: translated.footerTagline },
       },
     },
   };
