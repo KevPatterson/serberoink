@@ -3,7 +3,7 @@
     "title": "SERBERO INK.",
     "tagline": "arte permanente, sin arrepentimientos.",
     "scrollText": "Haz scroll para explorar.",
-    "artistImageSrc": "",
+    "artistImageSrc": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/screenshot-2026-04-02-160819-1775195161150.png",
     "artistImageAlt": "Tattoo artist portrait"
   },
   "about": {
@@ -85,7 +85,7 @@
     "tagline": "La tinta se desvanece. El arte no."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T05:45:58.272Z",
+    "lastUpdated": "2026-04-03T05:46:07.426Z",
     "version": 36
   },
   "i18n": {
