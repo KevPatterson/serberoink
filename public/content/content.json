@@ -2,7 +2,7 @@
   "hero": {
     "title": "SERBERO INK.",
     "tagline": "arte permanente, sin arrepentimientos.",
-    "scrollText": "Haz scrooll para explorar"
+    "scrollText": "Haz scrooll para explorar."
   },
   "about": {
     "sectionNumber": "001",
@@ -81,14 +81,14 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T04:40:12.075Z",
-    "version": 27
+    "lastUpdated": "2026-04-03T05:20:54.717Z",
+    "version": 28
   },
   "i18n": {
     "es": {
       "hero": {
         "tagline": "arte permanente, sin arrepentimientos.",
-        "scrollText": "Haz scrooll para explorar"
+        "scrollText": "Haz scrooll para explorar."
       },
       "about": {
         "sectionLabel": "About",
@@ -147,8 +147,8 @@
     },
     "en": {
       "hero": {
-        "tagline": "arte permanente sin arrepentimientos",
-        "scrollText": "Haz scroll para explorar."
+        "tagline": "permanent art, without regrets.",
+        "scrollText": "Scrooll to explore."
       },
       "about": {
         "sectionLabel": "About",
@@ -176,19 +176,19 @@
         "images": [
           {
             "id": "img_1775182453321",
-            "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring"
+            "title": "Malenia blade of Miquella\" Dotwork illustration from Elden Ring"
           },
           {
             "id": "img_1775182572205",
-            "title": "Máscara"
+            "title": "Mask"
           },
           {
             "id": "img_1775182687718",
-            "title": "Mujer"
+            "title": "Women"
           },
           {
             "id": "img_1775183169417",
-            "title": "Brazo"
+            "title": "Arm"
           }
         ]
       },
