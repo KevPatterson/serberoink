@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Toaster, toast } from 'sonner';
 import type { ContentI18nSection, PortfolioImage, SiteContent } from '@/lib/content';
 
@@ -54,11 +54,7 @@ export default function AdminDashboardPage() {
   const [dragImageIndex, setDragImageIndex] = useState<number | null>(null);
   const [dragSpecialtyIndex, setDragSpecialtyIndex] = useState<number | null>(null);
 
-  const previewContent = useMemo(() => {
-    if (!content) return null;
-    // En admin, la traduccion se persiste al guardar desde API.
-    return content;
-  }, [content]);
+  const previewContent = content;
 
   useEffect(() => {
     const load = async () => {
@@ -1124,6 +1120,16 @@ function BilingualPreview({ section, content }: { section: SectionKey; content: 
   return (
     <section className="mt-10">
       <SectionTitle title="Vista previa traducciones" />
+      <p
+        className="mb-4 font-mono-body"
+        style={{
+          fontSize: '0.58rem',
+          letterSpacing: '0.08em',
+          color: 'rgba(240,234,214,0.65)',
+        }}
+      >
+        Vista previa del ultimo guardado. Guarda cambios para actualizar.
+      </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <PreviewCard language="ES" data={esData} />
         <PreviewCard language="EN" data={enData} />
