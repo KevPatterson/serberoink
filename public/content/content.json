@@ -32,10 +32,10 @@
     "subtitle": "Selected pieces. All custom. All permanent.",
     "images": [
       {
-        "id": "img_1775170171971",
-        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/1000526996.jpg",
-        "title": "jsjsj",
-        "year": "1982",
+        "id": "img_1775181689187",
+        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/4b5fe0878b026d9e16769158d6366729.jpg",
+        "title": "gato borracho",
+        "year": "2020",
         "category": "general"
       }
     ]
@@ -60,8 +60,8 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T01:57:36.086Z",
-    "version": 8
+    "lastUpdated": "2026-04-03T02:01:29.187Z",
+    "version": 9
   },
   "i18n": {
     "es": {
@@ -94,8 +94,8 @@
         "subtitle": "Piezas seleccionadas. Todas personalizadas. Todas permanentes.",
         "images": [
           {
-            "id": "img_1775170171971",
-            "title": "jsjsj"
+            "id": "img_1775181689187",
+            "title": "gato borracho"
           }
         ]
       },
@@ -142,8 +142,8 @@
         "subtitle": "Selected pieces. All custom. All permanent.",
         "images": [
           {
-            "id": "img_1775170171971",
-            "title": "jsjsj"
+            "id": "img_1775181689187",
+            "title": "gato borracho"
           }
         ]
       },
