@@ -1,103 +1,70 @@
 import type { SiteContent } from '@/lib/content';
 
-const exactMapEs: Record<string, string> = {
-  'Scroll to explore': 'Desplázate para explorar',
-  'The Craft.': 'El Arte.',
-  'THE WORK.': 'EL TRABAJO.',
-  'BOOK A SESSION.': 'RESERVA TU SESIÓN.',
-  'Selected pieces. All custom. All permanent.': 'Piezas seleccionadas. Todas personalizadas. Todas permanentes.',
-  'By appointment only': 'Solo con cita previa',
-  'Every line is intentional.': 'Cada línea es intencional.',
-  'Get in Touch': 'Contáctame',
-  'DMs open. Serious inquiries only.': 'DMs abiertos. Solo consultas serias.',
-  'All Rights Reserved': 'Todos los Derechos Reservados',
-  "Ink fades. Art doesn't.": 'La tinta se desvanece. El arte no.',
-  "Hi! I'd like to book a tattoo session with Serbero Ink.": 'Hola, me gustaría reservar una sesión de tatuaje con Serbero Ink.',
-  'About': 'Sobre mí',
-  'Contact': 'Contacto',
-  'Portfolio': 'Portafolio',
-  'Specialties': 'Especialidades',
-  'Location': 'Ubicación',
-  'Email': 'Correo',
+// Diccionario ES -> EN (el base es español, traducimos al inglés)
+const exactMapEn: Record<string, string> = {
+  'arte permanente sin arrepentimientos': 'permanent art. no regrets.',
+  'Haz scroll para explorar': 'Scroll to explore',
+  'El Arte.': 'The Craft.',
+  'EL TRABAJO.': 'THE WORK.',
+  'RESERVA TU SESIÓN.': 'BOOK A SESSION.',
+  'RESERVA TU SESION.': 'BOOK A SESSION.',
+  'Piezas seleccionadas. Todas personalizadas. Todas permanentes.': 'Selected pieces. All custom. All permanent.',
+  'Solo con cita previa': 'By appointment only',
+  'Cada línea es intencional.': 'Every line is intentional.',
+  'Cada linea es intencional.': 'Every line is intentional.',
+  'Contáctame': 'Get in Touch',
+  'Contactame': 'Get in Touch',
+  'DMs abiertos. Solo consultas serias.': 'DMs open. Serious inquiries only.',
+  'Todos los Derechos Reservados': 'All Rights Reserved',
+  'La tinta se desvanece. El arte no.': "Ink fades. Art doesn't.",
+  'Hola, me gustaría reservar una sesión de tatuaje con Serbero Ink.': "Hi! I'd like to book a tattoo session with Serbero Ink.",
+  'Hola, me gustaria reservar una sesion de tatuaje con Serbero Ink.': "Hi! I'd like to book a tattoo session with Serbero Ink.",
+  'Sobre mí': 'About',
+  'Sobre mi': 'About',
+  'Contacto': 'Contact',
+  'Portafolio': 'Portfolio',
+  'Especialidades': 'Specialties',
+  'Ubicación': 'Location',
+  'Ubicacion': 'Location',
+  'Correo': 'Email',
+  'La Mano Detrás de la Aguja.': 'The Hand Behind the Needle.',
+  'La Mano Detras de la Aguja.': 'The Hand Behind the Needle.',
+  'El Arte': 'The Craft',
+  'El Artista': 'The Artist',
+  'Reservar Sesión': 'Book a Session',
+  'Reservar Sesion': 'Book a Session',
 };
 
-const tokenMapEs: Array<[RegExp, string]> = [
-  [/\bNew York\b/g, 'Nueva York'],
-  [/\bby appointment\b/gi, 'con cita previa'],
-  [/\bBook\b/g, 'Reserva'],
-  [/\bSession\b/g, 'Sesión'],
-  [/\bThe Hand Behind the Needle\./g, 'La Mano Detrás de la Aguja.'],
-  [/\bSerpent Study\b/g, 'Estudio de Serpiente'],
-  [/\bBotanical Sleeve Detail\b/g, 'Detalle de Manga Botánica'],
-  [/\bGeometric Chest Piece\b/g, 'Pieza Geométrica de Pecho'],
-  [/\bMoth & Dagger\b/g, 'Polilla y Daga'],
-  [/\bRose Flash\b/g, 'Flash de Rosa'],
-  [/\bSkull Study\b/g, 'Estudio de Calavera'],
-  [/\bCompass & Stars\b/g, 'Compás y Estrellas'],
-  [/\bSerpent Work\b/g, 'Trabajo de Serpientes'],
-  [/\bBlade & Dagger\b/g, 'Cuchillas y Dagas'],
-  [/\bBotanical & Flora\b/g, 'Botánica y Flora'],
-  [/\bGeometry & Compass\b/g, 'Geometría y Compás'],
-  [/\bMoth & Dark Fauna\b/g, 'Polillas y Fauna Oscura'],
+const tokenMapEn: Array<[RegExp, string]> = [
+  [/\bLa Habana\b/g, 'Havana, Cuba'],
+  [/\bcon cita previa\b/gi, 'by appointment'],
+  [/\bSolo con cita previa\b/gi, 'By appointment only'],
+  [/\bBlack & Grey Realism\b/g, 'Black & Grey Realism'],
+  [/\bAnime & Ilustración\b/g, 'Anime & Illustration'],
+  [/\bAnime & Ilustracion\b/g, 'Anime & Illustration'],
+  [/\bBlackwork & Ornamental\b/g, 'Blackwork & Ornamental'],
+  [/\bNeo Traditional\b/g, 'Neo Traditional'],
+  [/\bDark & Fantasy\b/g, 'Dark & Fantasy'],
+  [/\bDotwork & Puntillismo\b/g, 'Dotwork & Pointillism'],
 ];
 
-function translateTextToEs(input: string): string {
+function translateTextToEn(input: string): string {
   if (!input) return input;
-  if (exactMapEs[input]) return exactMapEs[input];
+  if (exactMapEn[input]) return exactMapEn[input];
 
   let value = input;
-  for (const [pattern, replacement] of tokenMapEs) {
+  for (const [pattern, replacement] of tokenMapEn) {
     value = value.replace(pattern, replacement);
   }
   return value;
 }
 
 export function applyAutomaticI18n(content: SiteContent): SiteContent {
-  const esImages = content.portfolio.images.map((image) => ({
-    id: image.id,
-    title: image.titleEs || translateTextToEs(image.title),
-  }));
-
   return {
     ...content,
     i18n: {
       es: {
-        hero: {
-          tagline: translateTextToEs(content.hero.tagline),
-          scrollText: translateTextToEs(content.hero.scrollText),
-        },
-        about: {
-          sectionLabel: translateTextToEs(content.about.sectionLabel),
-          heading: translateTextToEs(content.about.heading),
-          bio: translateTextToEs(content.about.bio),
-          quote: translateTextToEs(content.about.quote),
-          location: translateTextToEs(content.about.location),
-          details: translateTextToEs(content.about.details),
-          established: translateTextToEs(content.about.established),
-        },
-        specialties: {
-          sectionLabel: translateTextToEs(content.specialties.sectionLabel),
-          items: content.specialties.items.map(translateTextToEs),
-        },
-        portfolio: {
-          sectionLabel: translateTextToEs(content.portfolio.sectionLabel),
-          subtitle: translateTextToEs(content.portfolio.subtitle),
-          images: esImages,
-        },
-        contact: {
-          sectionLabel: translateTextToEs(content.contact.sectionLabel),
-          heading: translateTextToEs(content.contact.heading),
-          location: translateTextToEs(content.contact.location),
-          whatsappText: translateTextToEs(content.contact.whatsappText),
-          ctaText: translateTextToEs(content.contact.ctaText),
-          quote: translateTextToEs(content.contact.quote),
-        },
-        footer: {
-          rights: translateTextToEs(content.footer.rights),
-          tagline: translateTextToEs(content.footer.tagline),
-        },
-      },
-      en: {
+        // ES = contenido base tal cual (ya está en español)
         hero: {
           tagline: content.hero.tagline,
           scrollText: content.hero.scrollText,
@@ -120,7 +87,7 @@ export function applyAutomaticI18n(content: SiteContent): SiteContent {
           subtitle: content.portfolio.subtitle,
           images: content.portfolio.images.map((image) => ({
             id: image.id,
-            title: image.titleEn || image.title,
+            title: image.titleEs || image.title,
           })),
         },
         contact: {
@@ -134,6 +101,46 @@ export function applyAutomaticI18n(content: SiteContent): SiteContent {
         footer: {
           rights: content.footer.rights,
           tagline: content.footer.tagline,
+        },
+      },
+      en: {
+        // EN = traducción automática ES -> EN
+        hero: {
+          tagline: translateTextToEn(content.hero.tagline),
+          scrollText: translateTextToEn(content.hero.scrollText),
+        },
+        about: {
+          sectionLabel: translateTextToEn(content.about.sectionLabel),
+          heading: translateTextToEn(content.about.heading),
+          bio: translateTextToEn(content.about.bio),
+          quote: translateTextToEn(content.about.quote),
+          location: translateTextToEn(content.about.location),
+          details: translateTextToEn(content.about.details),
+          established: content.about.established,
+        },
+        specialties: {
+          sectionLabel: translateTextToEn(content.specialties.sectionLabel),
+          items: content.specialties.items.map(translateTextToEn),
+        },
+        portfolio: {
+          sectionLabel: translateTextToEn(content.portfolio.sectionLabel),
+          subtitle: translateTextToEn(content.portfolio.subtitle),
+          images: content.portfolio.images.map((image) => ({
+            id: image.id,
+            title: image.titleEn || translateTextToEn(image.title),
+          })),
+        },
+        contact: {
+          sectionLabel: translateTextToEn(content.contact.sectionLabel),
+          heading: translateTextToEn(content.contact.heading),
+          location: translateTextToEn(content.contact.location),
+          whatsappText: translateTextToEn(content.contact.whatsappText),
+          ctaText: translateTextToEn(content.contact.ctaText),
+          quote: translateTextToEn(content.contact.quote),
+        },
+        footer: {
+          rights: translateTextToEn(content.footer.rights),
+          tagline: translateTextToEn(content.footer.tagline),
         },
       },
     },
