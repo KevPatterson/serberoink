@@ -343,18 +343,19 @@ export default function AdminDashboardPage() {
             dragImageIndex={dragImageIndex}
             setDragImageIndex={setDragImageIndex}
             setContent={setContent}
-            onSave={() => persistContent(content, 'cms: update portfolio')}
+            onSave={(currentContent) => persistContent(currentContent, 'cms: update portfolio')}
             onDelete={(id) => {
               toast('Eliminar esta imagen? No se puede deshacer.', {
                 action: {
                   label: 'Eliminar',
                   onClick: () => {
                     const nextImages = content.portfolio.images.filter((img) => img.id !== id);
-                    setContent({
+                    const nextContent = {
                       ...content,
                       portfolio: { ...content.portfolio, images: nextImages },
-                    });
-                    toast.success('Imagen eliminada del borrador');
+                    };
+                    setContent(nextContent);
+                    void persistContent(nextContent, 'cms: delete image');
                   },
                 },
                 cancel: {
@@ -660,7 +661,7 @@ function AdminPortfolio(props: {
   dragImageIndex: number | null;
   setDragImageIndex: (index: number | null) => void;
   setContent: (next: SiteContent) => void;
-  onSave: () => void;
+  onSave: (currentContent: SiteContent) => void;
   onDelete: (id: string) => void;
   onOpenUpload: () => void;
 }) {
@@ -745,7 +746,7 @@ function AdminPortfolio(props: {
           </div>
         ))}
       </div>
-      <SaveButton saving={saving} onClick={onSave} />
+      <SaveButton saving={saving} onClick={() => onSave(content)} />
     </section>
   );
 }

@@ -100,3 +100,8 @@ Notas:
 - `GET /api/cms/content` devuelve el estado actual de `content.json`.
 - `POST /api/cms/update` actualiza JSON o archivos en una ruta del repo.
 - `POST /api/cms/upload-image` sube imágenes a `public/content/images/` y devuelve URL raw.
+
+## Documentacion de incidentes
+
+- Error 401 despues de cambio de contrasena: `docs/error-401-login-despues-cambio-contrasena.md`
+- Error de stale closures en portfolio: `docs/error-closures-stale-portfolio.md`
