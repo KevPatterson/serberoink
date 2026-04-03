@@ -15,7 +15,7 @@
     "location": "La Habana, Cuba",
     "details": "Solo con cita",
     "established": "Est. 2021",
-    "imageSrc": "",
+    "imageSrc": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/screenshot-2026-04-03-015149.png",
     "imageAlt": "Tattoo artist at work"
   },
   "specialties": {
@@ -85,8 +85,8 @@
     "tagline": "La tinta se desvanece. El arte no."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T05:46:07.426Z",
-    "version": 36
+    "lastUpdated": "2026-04-03T05:52:13.587Z",
+    "version": 37
   },
   "i18n": {
     "es": {
