@@ -17,6 +17,7 @@ interface HeroSectionProps {
 export default function HeroSection({ hero }: HeroSectionProps) {
   const ui = useUIStrings();
   const hasArtistImage = hero.artistImageSrc.trim().length > 0;
+  const heroRef = useRef<HTMLElement>(null);
   const line1Ref = useRef<HTMLSpanElement>(null);
   const line2Ref = useRef<HTMLSpanElement>(null);
   const taglineRef = useRef<HTMLParagraphElement>(null);
@@ -72,8 +73,40 @@ export default function HeroSection({ hero }: HeroSectionProps) {
     };
   }, [hero.title, hero.tagline, hero.scrollText, hasArtistImage]);
 
+  useEffect(() => {
+    const section = heroRef.current;
+    if (!section) return;
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const updateParallax = (event: PointerEvent) => {
+      const rect = section.getBoundingClientRect();
+      const px = (event.clientX - rect.left) / rect.width;
+      const py = (event.clientY - rect.top) / rect.height;
+      const rotateY = (px - 0.5) * 8;
+      const rotateX = (0.5 - py) * 8;
+
+      section.style.setProperty('--hero-tilt-x', `${rotateX.toFixed(2)}deg`);
+      section.style.setProperty('--hero-tilt-y', `${rotateY.toFixed(2)}deg`);
+    };
+
+    const resetParallax = () => {
+      section.style.setProperty('--hero-tilt-x', '0deg');
+      section.style.setProperty('--hero-tilt-y', '0deg');
+    };
+
+    section.addEventListener('pointermove', updateParallax);
+    section.addEventListener('pointerleave', resetParallax);
+
+    return () => {
+      section.removeEventListener('pointermove', updateParallax);
+      section.removeEventListener('pointerleave', resetParallax);
+    };
+  }, []);
+
   return (
     <section
+      ref={heroRef}
       className="relative min-h-screen flex items-center hero-vignette overflow-hidden"
       style={{ paddingTop: '6rem', paddingBottom: '4rem' }}
       aria-label="Hero"
@@ -95,7 +128,6 @@ export default function HeroSection({ hero }: HeroSectionProps) {
 
       <div className="relative z-10 w-full px-6 md:px-16 lg:px-24">
         <div className="flex flex-col lg:flex-row lg:items-stretch gap-10 lg:gap-0">
-
           {/* ── LEFT: Typography ── */}
           <div className="flex-1 flex flex-col justify-between">
             <div>
@@ -156,28 +188,184 @@ export default function HeroSection({ hero }: HeroSectionProps) {
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
                       >
-                        <rect x="35" y="20" width="50" height="70" rx="6" fill="#1a1410" stroke="#C8A96E" strokeWidth="1.2" />
-                        <ellipse cx="60" cy="20" rx="18" ry="6" fill="#111" stroke="#C8A96E" strokeWidth="1" />
-                        <line x1="42" y1="20" x2="42" y2="55" stroke="#C8A96E" strokeWidth="0.8" strokeDasharray="3 2" />
-                        <line x1="78" y1="20" x2="78" y2="55" stroke="#C8A96E" strokeWidth="0.8" strokeDasharray="3 2" />
-                        <rect x="47" y="90" width="26" height="40" rx="4" fill="#0f0d0b" stroke="#C8A96E" strokeWidth="1" />
-                        <line x1="47" y1="100" x2="73" y2="100" stroke="#C8A96E" strokeWidth="0.5" opacity="0.5" />
-                        <line x1="47" y1="108" x2="73" y2="108" stroke="#C8A96E" strokeWidth="0.5" opacity="0.5" />
-                        <line x1="47" y1="116" x2="73" y2="116" stroke="#C8A96E" strokeWidth="0.5" opacity="0.5" />
-                        <line x1="47" y1="124" x2="73" y2="124" stroke="#C8A96E" strokeWidth="0.5" opacity="0.5" />
-                        <rect x="57" y="130" width="6" height="20" rx="2" fill="#C8A96E" opacity="0.9" />
+                        <rect
+                          x="35"
+                          y="20"
+                          width="50"
+                          height="70"
+                          rx="6"
+                          fill="#1a1410"
+                          stroke="#C8A96E"
+                          strokeWidth="1.2"
+                        />
+                        <ellipse
+                          cx="60"
+                          cy="20"
+                          rx="18"
+                          ry="6"
+                          fill="#111"
+                          stroke="#C8A96E"
+                          strokeWidth="1"
+                        />
+                        <line
+                          x1="42"
+                          y1="20"
+                          x2="42"
+                          y2="55"
+                          stroke="#C8A96E"
+                          strokeWidth="0.8"
+                          strokeDasharray="3 2"
+                        />
+                        <line
+                          x1="78"
+                          y1="20"
+                          x2="78"
+                          y2="55"
+                          stroke="#C8A96E"
+                          strokeWidth="0.8"
+                          strokeDasharray="3 2"
+                        />
+                        <rect
+                          x="47"
+                          y="90"
+                          width="26"
+                          height="40"
+                          rx="4"
+                          fill="#0f0d0b"
+                          stroke="#C8A96E"
+                          strokeWidth="1"
+                        />
+                        <line
+                          x1="47"
+                          y1="100"
+                          x2="73"
+                          y2="100"
+                          stroke="#C8A96E"
+                          strokeWidth="0.5"
+                          opacity="0.5"
+                        />
+                        <line
+                          x1="47"
+                          y1="108"
+                          x2="73"
+                          y2="108"
+                          stroke="#C8A96E"
+                          strokeWidth="0.5"
+                          opacity="0.5"
+                        />
+                        <line
+                          x1="47"
+                          y1="116"
+                          x2="73"
+                          y2="116"
+                          stroke="#C8A96E"
+                          strokeWidth="0.5"
+                          opacity="0.5"
+                        />
+                        <line
+                          x1="47"
+                          y1="124"
+                          x2="73"
+                          y2="124"
+                          stroke="#C8A96E"
+                          strokeWidth="0.5"
+                          opacity="0.5"
+                        />
+                        <rect
+                          x="57"
+                          y="130"
+                          width="6"
+                          height="20"
+                          rx="2"
+                          fill="#C8A96E"
+                          opacity="0.9"
+                        />
                         <polygon points="57,150 63,150 60,160" fill="#C8A96E" />
-                        <ellipse className="ink-drop hero-machine-drop" cx="60" cy="162" rx="3" ry="2" fill="#8B0000" opacity="0.85" />
-                        <circle className="hero-blood-splash hero-blood-splash-right hero-blood-splash-1" cx="66" cy="160" r="1.4" fill="#8B0000" />
-                        <ellipse className="hero-blood-splash hero-blood-splash-right hero-blood-splash-2" cx="70" cy="156" rx="1.8" ry="1.2" fill="#8B0000" />
-                        <circle className="hero-blood-splash hero-blood-splash-right hero-blood-splash-3" cx="73" cy="151" r="1.1" fill="#8B0000" />
-                        <ellipse className="hero-blood-splash hero-blood-splash-right hero-blood-splash-4" cx="76" cy="147" rx="1.3" ry="0.95" fill="#8B0000" />
-                        <circle className="hero-blood-splash hero-blood-splash-left hero-blood-splash-5" cx="54" cy="160" r="1.35" fill="#8B0000" />
-                        <ellipse className="hero-blood-splash hero-blood-splash-left hero-blood-splash-6" cx="50" cy="156" rx="1.7" ry="1.15" fill="#8B0000" />
-                        <circle className="hero-blood-splash hero-blood-splash-left hero-blood-splash-7" cx="46" cy="152" r="1.05" fill="#8B0000" />
-                        <ellipse className="hero-blood-splash hero-blood-splash-left hero-blood-splash-8" cx="43" cy="148" rx="1.25" ry="0.9" fill="#8B0000" />
-                        <circle cx="45" cy="30" r="3" fill="#0f0d0b" stroke="#C8A96E" strokeWidth="0.8" />
-                        <circle cx="75" cy="30" r="3" fill="#0f0d0b" stroke="#C8A96E" strokeWidth="0.8" />
+                        <ellipse
+                          className="ink-drop hero-machine-drop"
+                          cx="60"
+                          cy="162"
+                          rx="3"
+                          ry="2"
+                          fill="#8B0000"
+                          opacity="0.85"
+                        />
+                        <circle
+                          className="hero-blood-splash hero-blood-splash-right hero-blood-splash-1"
+                          cx="66"
+                          cy="160"
+                          r="1.4"
+                          fill="#8B0000"
+                        />
+                        <ellipse
+                          className="hero-blood-splash hero-blood-splash-right hero-blood-splash-2"
+                          cx="70"
+                          cy="156"
+                          rx="1.8"
+                          ry="1.2"
+                          fill="#8B0000"
+                        />
+                        <circle
+                          className="hero-blood-splash hero-blood-splash-right hero-blood-splash-3"
+                          cx="73"
+                          cy="151"
+                          r="1.1"
+                          fill="#8B0000"
+                        />
+                        <ellipse
+                          className="hero-blood-splash hero-blood-splash-right hero-blood-splash-4"
+                          cx="76"
+                          cy="147"
+                          rx="1.3"
+                          ry="0.95"
+                          fill="#8B0000"
+                        />
+                        <circle
+                          className="hero-blood-splash hero-blood-splash-left hero-blood-splash-5"
+                          cx="54"
+                          cy="160"
+                          r="1.35"
+                          fill="#8B0000"
+                        />
+                        <ellipse
+                          className="hero-blood-splash hero-blood-splash-left hero-blood-splash-6"
+                          cx="50"
+                          cy="156"
+                          rx="1.7"
+                          ry="1.15"
+                          fill="#8B0000"
+                        />
+                        <circle
+                          className="hero-blood-splash hero-blood-splash-left hero-blood-splash-7"
+                          cx="46"
+                          cy="152"
+                          r="1.05"
+                          fill="#8B0000"
+                        />
+                        <ellipse
+                          className="hero-blood-splash hero-blood-splash-left hero-blood-splash-8"
+                          cx="43"
+                          cy="148"
+                          rx="1.25"
+                          ry="0.9"
+                          fill="#8B0000"
+                        />
+                        <circle
+                          cx="45"
+                          cy="30"
+                          r="3"
+                          fill="#0f0d0b"
+                          stroke="#C8A96E"
+                          strokeWidth="0.8"
+                        />
+                        <circle
+                          cx="75"
+                          cy="30"
+                          r="3"
+                          fill="#0f0d0b"
+                          stroke="#C8A96E"
+                          strokeWidth="0.8"
+                        />
                         <line x1="43" y1="30" x2="47" y2="30" stroke="#C8A96E" strokeWidth="0.6" />
                         <line x1="73" y1="30" x2="77" y2="30" stroke="#C8A96E" strokeWidth="0.6" />
                       </svg>
@@ -245,7 +433,7 @@ export default function HeroSection({ hero }: HeroSectionProps) {
           >
             <div
               ref={portraitRef}
-              className="portrait-placeholder img-grain"
+              className="portrait-placeholder img-grain hero-portrait-3d"
               style={{
                 width: 'clamp(160px, 28vw, 380px)',
                 aspectRatio: '2/3',
@@ -254,7 +442,11 @@ export default function HeroSection({ hero }: HeroSectionProps) {
                 transition: 'opacity 1.4s ease, transform 1.4s cubic-bezier(0.16,1,0.3,1)',
               }}
               role="img"
-              aria-label={hasArtistImage ? hero.artistImageAlt || 'Tattoo artist portrait' : 'Tattoo artist portrait placeholder'}
+              aria-label={
+                hasArtistImage
+                  ? hero.artistImageAlt || 'Tattoo artist portrait'
+                  : 'Tattoo artist portrait placeholder'
+              }
             >
               {hasArtistImage && (
                 <Image

@@ -38,13 +38,16 @@ function useItemReveal(count: number) {
       const obs = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) {
-            setTimeout(() => {
-              setVisible((prev) => {
-                const next = [...prev];
-                next[i] = true;
-                return next;
-              });
-            }, Math.min(i * 60, 900));
+            setTimeout(
+              () => {
+                setVisible((prev) => {
+                  const next = [...prev];
+                  next[i] = true;
+                  return next;
+                });
+              },
+              Math.min(i * 60, 900)
+            );
             obs.disconnect();
           }
         },
@@ -71,7 +74,8 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
   const { refs, visible } = useItemReveal(portfolio.images.length);
   const normalizedSectionLabel = portfolio.sectionLabel.trim().toLowerCase();
   const localizedSectionLabel =
-    lang === 'es' && (normalizedSectionLabel === 'the work.' || normalizedSectionLabel === 'the work')
+    lang === 'es' &&
+    (normalizedSectionLabel === 'the work.' || normalizedSectionLabel === 'the work')
       ? ui.sectionPortfolioLabel
       : portfolio.sectionLabel;
 
@@ -131,7 +135,7 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
               ref={(el) => {
                 refs.current[index] = el;
               }}
-              className={`gallery-img ${index % 4 === 2 ? 'col-span-2 md:col-span-2' : 'col-span-1'}`}
+              className={`gallery-img gallery-interactive ${index % 4 === 2 ? 'col-span-2 md:col-span-2' : 'col-span-1'}`}
               style={{
                 aspectRatio: resolveAspect(index),
                 opacity: visible[index] ? 1 : 0,
@@ -149,7 +153,7 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
                 style={{ objectFit: 'cover' }}
               />
               <div
-                className="absolute bottom-0 left-0 right-0 p-3"
+                className="absolute bottom-0 left-0 right-0 p-3 gallery-caption"
                 style={{
                   background: 'linear-gradient(to top, rgba(10,10,10,0.85) 0%, transparent 100%)',
                   zIndex: 4,
@@ -176,7 +180,7 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
             href={instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="cta-btn inline-flex items-center gap-2"
+            className="cta-btn cta-btn-ink inline-flex items-center gap-2"
             aria-label={ui.portfolioInstagramButton}
           >
             <svg

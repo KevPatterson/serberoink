@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useEffect, useRef } from 'react';
 import { useUIStrings } from '@/hooks/useUIStrings';
 import { useLang } from './LanguageContext';
 
@@ -22,11 +23,47 @@ interface AboutSectionProps {
 export default function AboutSection({ about }: AboutSectionProps) {
   const ui = useUIStrings();
   const { lang } = useLang();
+  const imageCardRef = useRef<HTMLDivElement>(null);
   const hasAboutImage = about.imageSrc.trim().length > 0;
   const headingLines = about.heading.split('\n');
   const normalizedSectionLabel = about.sectionLabel.trim().toLowerCase();
   const sectionLabel =
     lang === 'es' && normalizedSectionLabel === 'about' ? ui.sectionAboutLabel : about.sectionLabel;
+
+  useEffect(() => {
+    const card = imageCardRef.current;
+    if (!card) return;
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const updateTilt = (event: PointerEvent) => {
+      const rect = card.getBoundingClientRect();
+      const px = (event.clientX - rect.left) / rect.width;
+      const py = (event.clientY - rect.top) / rect.height;
+      const rotateY = (px - 0.5) * 9;
+      const rotateX = (0.5 - py) * 9;
+
+      card.style.setProperty('--about-tilt-x', `${rotateX.toFixed(2)}deg`);
+      card.style.setProperty('--about-tilt-y', `${rotateY.toFixed(2)}deg`);
+      card.style.setProperty('--about-glint-x', `${(px * 100).toFixed(1)}%`);
+      card.style.setProperty('--about-glint-y', `${(py * 100).toFixed(1)}%`);
+    };
+
+    const resetTilt = () => {
+      card.style.setProperty('--about-tilt-x', '0deg');
+      card.style.setProperty('--about-tilt-y', '0deg');
+      card.style.setProperty('--about-glint-x', '50%');
+      card.style.setProperty('--about-glint-y', '50%');
+    };
+
+    card.addEventListener('pointermove', updateTilt);
+    card.addEventListener('pointerleave', resetTilt);
+
+    return () => {
+      card.removeEventListener('pointermove', updateTilt);
+      card.removeEventListener('pointerleave', resetTilt);
+    };
+  }, []);
 
   return (
     <section
@@ -34,7 +71,6 @@ export default function AboutSection({ about }: AboutSectionProps) {
       aria-labelledby="about-heading"
     >
       <div className="max-w-6xl mx-auto">
-
         {/* Section label */}
         <p
           className="font-mono-body mb-10 md:mb-16"
@@ -50,7 +86,6 @@ export default function AboutSection({ about }: AboutSectionProps) {
         </p>
 
         <div className="flex flex-col md:flex-row gap-10 md:gap-0">
-
           {/* ── LEFT: Bio ── */}
           <div className="flex-1 md:pr-12 lg:pr-20">
             <h2
@@ -65,7 +100,9 @@ export default function AboutSection({ about }: AboutSectionProps) {
                 letterSpacing: '-0.01em',
               }}
             >
-              {headingLines?.[0]}<br />{headingLines?.[1]}
+              {headingLines?.[0]}
+              <br />
+              {headingLines?.[1]}
             </h2>
 
             <p
@@ -102,25 +139,25 @@ export default function AboutSection({ about }: AboutSectionProps) {
                 lineHeight: 1.45,
               }}
             >
-              "{about.quote}"
+              &ldquo;{about.quote}&rdquo;
             </blockquote>
           </div>
 
           {/* ── Vertical Rule (desktop only) ── */}
-          <div
-            className="hidden md:block vertical-rule mx-6 lg:mx-10"
-            aria-hidden="true"
-          />
+          <div className="hidden md:block vertical-rule mx-6 lg:mx-10" aria-hidden="true" />
 
           {/* ── RIGHT: Image ── */}
-          <div
-            className="md:w-56 lg:w-80 flex-shrink-0 flex flex-col justify-start gap-6"
-          >
+          <div className="md:w-56 lg:w-80 flex-shrink-0 flex flex-col justify-start gap-6">
             {/* Square image placeholder */}
             <div
-              className="about-img-placeholder img-grain w-full relative"
+              ref={imageCardRef}
+              className="about-img-placeholder about-img-3d img-grain w-full relative"
               role="img"
-              aria-label={hasAboutImage ? about.imageAlt || 'Artist at work' : 'Artist at work placeholder image'}
+              aria-label={
+                hasAboutImage
+                  ? about.imageAlt || 'Artist at work'
+                  : 'Artist at work placeholder image'
+              }
               style={{ borderRadius: 0 }}
             >
               {hasAboutImage && (

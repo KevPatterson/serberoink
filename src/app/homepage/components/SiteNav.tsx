@@ -38,7 +38,7 @@ export default function SiteNav() {
           type="button"
           onClick={() => setLanguage('es')}
           aria-label="Cambiar a Espanol"
-          className="font-mono-body"
+          className="font-mono-body nav-pill"
           style={{
             fontSize: '0.6rem',
             letterSpacing: '0.3em',
@@ -51,14 +51,6 @@ export default function SiteNav() {
             cursor: 'pointer',
             transition: 'border-color 0.3s ease, color 0.3s ease',
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--faded-gold)';
-            e.currentTarget.style.color = 'var(--parchment)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(200,169,110,0.35)';
-            e.currentTarget.style.color = 'var(--faded-gold)';
-          }}
         >
           ES
         </button>
@@ -67,7 +59,7 @@ export default function SiteNav() {
           type="button"
           onClick={() => setLanguage('en')}
           aria-label="Switch to English"
-          className="font-mono-body"
+          className="font-mono-body nav-pill"
           style={{
             fontSize: '0.6rem',
             letterSpacing: '0.3em',
@@ -80,15 +72,6 @@ export default function SiteNav() {
             cursor: 'pointer',
             transition: 'border-color 0.3s ease, color 0.3s ease',
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--faded-gold)';
-            e.currentTarget.style.color = 'var(--parchment)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor =
-              lang === 'en' ? 'var(--faded-gold)' : 'rgba(200,169,110,0.35)';
-            e.currentTarget.style.color = lang === 'en' ? 'var(--parchment)' : 'var(--faded-gold)';
-          }}
         >
           EN
         </button>
@@ -96,7 +79,7 @@ export default function SiteNav() {
         {/* Admin link */}
         <Link
           href="/admin"
-          className="font-mono-body"
+          className="font-mono-body nav-admin-link"
           style={{
             fontSize: '0.6rem',
             letterSpacing: '0.3em',
@@ -104,12 +87,6 @@ export default function SiteNav() {
             color: 'rgba(200,169,110,0.55)',
             textDecoration: 'none',
             transition: 'color 0.3s ease',
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.color = 'var(--faded-gold)';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(200,169,110,0.55)';
           }}
         >
           {ui.adminLink}
