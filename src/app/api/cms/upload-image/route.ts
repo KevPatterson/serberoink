@@ -3,7 +3,6 @@ import type { NextRequest } from 'next/server';
 import { ADMIN_COOKIE_NAME, isValidAdminCookie } from '@/lib/cms-auth';
 import { checkRateLimit } from '@/lib/cms-rate-limit';
 import {
-  buildRawGithubUrl,
   getRepoFileSha,
   putRepoBase64File,
   sanitizeFilename,
@@ -14,6 +13,14 @@ interface UploadBody {
   base64: string;
   mimeType: string;
   message?: string;
+}
+
+function toPublicImageUrl(repoPath: string): string {
+  const prefix = 'public/content/images/';
+  if (repoPath.startsWith(prefix)) {
+    return `/content/images/${repoPath.slice(prefix.length)}`;
+  }
+  return repoPath;
 }
 
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -70,7 +77,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      url: buildRawGithubUrl(repoPath),
+      url: toPublicImageUrl(repoPath),
       path: repoPath,
       filename: finalName,
     });

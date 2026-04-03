@@ -21,6 +21,46 @@ interface TranslationResult {
   translationWarning?: string;
 }
 
+function toLocalContentImageUrl(src: string): string {
+  const trimmed = src.trim();
+  if (!trimmed) return trimmed;
+
+  if (trimmed.startsWith('/content/images/')) {
+    return trimmed;
+  }
+
+  const rawGithubImageMatch = trimmed.match(
+    /^https?:\/\/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/public\/content\/images\/([^?#]+)(?:[?#].*)?$/i
+  );
+
+  if (rawGithubImageMatch?.[1]) {
+    return `/content/images/${rawGithubImageMatch[1]}`;
+  }
+
+  return trimmed;
+}
+
+function normalizeContentImageUrls(content: SiteContent): SiteContent {
+  return {
+    ...content,
+    hero: {
+      ...content.hero,
+      artistImageSrc: toLocalContentImageUrl(content.hero.artistImageSrc),
+    },
+    about: {
+      ...content.about,
+      imageSrc: toLocalContentImageUrl(content.about.imageSrc),
+    },
+    portfolio: {
+      ...content.portfolio,
+      images: content.portfolio.images.map((image) => ({
+        ...image,
+        src: toLocalContentImageUrl(image.src),
+      })),
+    },
+  };
+}
+
 async function withTranslationFallback(content: SiteContent): Promise<TranslationResult> {
   try {
     return { content: await translateSiteContent(content) };
@@ -85,7 +125,8 @@ export async function POST(req: NextRequest) {
       if (typeof body.content === 'string') {
         contentPayload = body.content;
       } else if (path === CONTENT_PATH) {
-        const translationResult = await withTranslationFallback(body.content as SiteContent);
+        const normalizedContent = normalizeContentImageUrls(body.content as SiteContent);
+        const translationResult = await withTranslationFallback(normalizedContent);
         contentPayload = translationResult.content;
         translationWarning = translationResult.translationWarning;
       } else {

@@ -149,13 +149,48 @@ export const defaultSiteContent: SiteContent = {
   },
 };
 
+function toLocalContentImageUrl(src: string): string {
+  const trimmed = src.trim();
+  if (!trimmed) return trimmed;
+
+  if (trimmed.startsWith('/content/images/')) {
+    return trimmed;
+  }
+
+  const rawGithubImageMatch = trimmed.match(
+    /^https?:\/\/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/public\/content\/images\/([^?#]+)(?:[?#].*)?$/i
+  );
+
+  if (rawGithubImageMatch?.[1]) {
+    return `/content/images/${rawGithubImageMatch[1]}`;
+  }
+
+  return trimmed;
+}
+
 function normalizeContent(input: unknown): SiteContent {
   const data = (input ?? {}) as Partial<SiteContent>;
   return {
     ...defaultSiteContent,
     ...data,
-    hero: { ...defaultSiteContent.hero, ...(data.hero ?? {}) },
-    about: { ...defaultSiteContent.about, ...(data.about ?? {}) },
+    hero: {
+      ...defaultSiteContent.hero,
+      ...(data.hero ?? {}),
+      artistImageSrc: toLocalContentImageUrl(
+        typeof data.hero?.artistImageSrc === 'string'
+          ? data.hero.artistImageSrc
+          : defaultSiteContent.hero.artistImageSrc
+      ),
+    },
+    about: {
+      ...defaultSiteContent.about,
+      ...(data.about ?? {}),
+      imageSrc: toLocalContentImageUrl(
+        typeof data.about?.imageSrc === 'string'
+          ? data.about.imageSrc
+          : defaultSiteContent.about.imageSrc
+      ),
+    },
     specialties: {
       ...defaultSiteContent.specialties,
       ...(data.specialties ?? {}),
@@ -182,7 +217,7 @@ function normalizeContent(input: unknown): SiteContent {
 
           const normalized: PortfolioImage = {
             id,
-            src,
+            src: toLocalContentImageUrl(src),
             title:
               typeof record.title === 'string' && record.title.trim().length > 0
                 ? record.title
