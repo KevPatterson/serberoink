@@ -25,11 +25,12 @@ async function withTranslationFallback(content: SiteContent): Promise<Translatio
   try {
     return { content: await translateSiteContent(content) };
   } catch (error) {
+    const detail = error instanceof Error ? error.message : 'Error desconocido';
     console.error('cms:update translation failed, saving original content', error);
     return {
       content: buildContentWithFallbackI18n(content),
       translationWarning:
-        'No se pudieron actualizar traducciones automaticas en este guardado. Revisa GEMINI_API_KEY.',
+        `No se pudieron actualizar traducciones automaticas en este guardado: ${detail}`,
     };
   }
 }

@@ -112,7 +112,7 @@ export default function AdminDashboardPage() {
       };
       setContent(payload.content ?? withMeta);
       if (payload.translationWarning) {
-        toast.message(payload.translationWarning);
+        toast.error(payload.translationWarning);
       }
       showToast('success', 'Cambios guardados');
     } catch (error) {

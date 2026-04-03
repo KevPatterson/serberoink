@@ -142,7 +142,8 @@ export async function translateSiteContent(content: SiteContent): Promise<SiteCo
     contactQuote,
     footerTagline,
     footerRights,
-    ...specialtyItems
+    specialtyItems,
+    portfolioTitleItems,
   ] = await Promise.all([
     translateToEnglish(content.hero.tagline),
     translateToEnglish(content.hero.scrollText),
@@ -158,7 +159,8 @@ export async function translateSiteContent(content: SiteContent): Promise<SiteCo
     translateToEnglish(content.contact.quote),
     translateToEnglish(content.footer.tagline),
     translateToEnglish(content.footer.rights),
-    ...content.specialties.items.map(translateToEnglish),
+    Promise.all(content.specialties.items.map(translateToEnglish)),
+    Promise.all(content.portfolio.images.map((img) => translateToEnglish(img.title))),
   ]);
 
   return {
@@ -183,7 +185,10 @@ export async function translateSiteContent(content: SiteContent): Promise<SiteCo
         portfolio: {
           sectionLabel: 'THE WORK.',
           subtitle: 'Selected pieces. All custom. All permanent.',
-          images: content.portfolio.images.map((img) => ({ id: img.id, title: img.title })),
+          images: content.portfolio.images.map((img, index) => ({
+            id: img.id,
+            title: portfolioTitleItems[index] ?? img.title,
+          })),
         },
         contact: {
           sectionLabel: 'Book a Session',
