@@ -32,17 +32,31 @@
     "subtitle": "Selected pieces. All custom. All permanent.",
     "images": [
       {
-        "id": "img_1775170171971",
-        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/1000526996.jpg",
-        "title": "jsjsj",
-        "year": "1982",
+        "id": "img_1775181689187",
+        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/4b5fe0878b026d9e16769158d6366729.jpg",
+        "title": "gato borracho",
+        "year": "2020",
         "category": "general"
       },
       {
-        "id": "img_1775178272387",
-        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/1bcce3c4991fc54b88c3aa09ea65dd02.jpg",
-        "title": "nmn",
-        "year": "ytyui",
+        "id": "img_1775182453321",
+        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/screenshot-2026-04-02-221024.png",
+        "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring",
+        "year": "2025",
+        "category": "blackwork"
+      },
+      {
+        "id": "img_1775182572205",
+        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/screenshot-2026-04-02-220947.png",
+        "title": "Máscara",
+        "year": "2025",
+        "category": "neo-tradicional"
+      },
+      {
+        "id": "img_1775182687718",
+        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/screenshot-2026-04-02-215702.png",
+        "title": "Mujer",
+        "year": "2025",
         "category": "general"
       }
     ]
@@ -67,8 +81,8 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T01:17:17.518Z",
-    "version": 7
+    "lastUpdated": "2026-04-03T02:19:18.310Z",
+    "version": 15
   },
   "i18n": {
     "es": {
@@ -101,12 +115,20 @@
         "subtitle": "Piezas seleccionadas. Todas personalizadas. Todas permanentes.",
         "images": [
           {
-            "id": "img_1775170171971",
-            "title": "jsjsj"
+            "id": "img_1775181689187",
+            "title": "gato borracho"
           },
           {
-            "id": "img_1775178272387",
-            "title": "nmn"
+            "id": "img_1775182453321",
+            "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring"
+          },
+          {
+            "id": "img_1775182572205",
+            "title": "Máscara"
+          },
+          {
+            "id": "img_1775182687718",
+            "title": "Mujer"
           }
         ]
       },
@@ -153,12 +175,20 @@
         "subtitle": "Selected pieces. All custom. All permanent.",
         "images": [
           {
-            "id": "img_1775170171971",
-            "title": "jsjsj"
+            "id": "img_1775181689187",
+            "title": "gato borracho"
           },
           {
-            "id": "img_1775178272387",
-            "title": "nmn"
+            "id": "img_1775182453321",
+            "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring"
+          },
+          {
+            "id": "img_1775182572205",
+            "title": "Máscara"
+          },
+          {
+            "id": "img_1775182687718",
+            "title": "Mujer"
           }
         ]
       },
