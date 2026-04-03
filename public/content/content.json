@@ -68,11 +68,11 @@
     "email": "studio@serberoink.com",
     "instagram": "@serbero_ink",
     "instagramUrl": "https://instagram.com/serbero_ink",
-    "location": "New York, NY - by appointment",
+    "location": "La Habana, Cuba - con citas",
     "whatsapp": "5355128205",
-    "whatsappText": "Hi! I'd like to book a tattoo session with Serbero Ink.",
-    "ctaText": "Get in Touch",
-    "quote": "DMs open. Serious inquiries only."
+    "whatsappText": "¡Hola! Me gustaría reservar una sesión de tatuaje con Serbero Ink.",
+    "ctaText": "Contactarme",
+    "quote": "DMs abiertos. Solo consultas serias."
   },
   "footer": {
     "brand": "Serbero Ink",
@@ -81,8 +81,8 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T05:26:52.774Z",
-    "version": 32
+    "lastUpdated": "2026-04-03T05:29:40.691Z",
+    "version": 33
   },
   "i18n": {
     "es": {
@@ -135,10 +135,10 @@
       "contact": {
         "sectionLabel": "BOOK A SESSION.",
         "heading": "BOOK A SESSION.",
-        "location": "New York, NY - by appointment",
-        "whatsappText": "Hi! I'd like to book a tattoo session with Serbero Ink.",
-        "ctaText": "Get in Touch",
-        "quote": "DMs open. Serious inquiries only."
+        "location": "La Habana, Cuba - con citas",
+        "whatsappText": "¡Hola! Me gustaría reservar una sesión de tatuaje con Serbero Ink.",
+        "ctaText": "Contactarme",
+        "quote": "DMs abiertos. Solo consultas serias."
       },
       "footer": {
         "rights": "All Rights Reserved",
@@ -195,10 +195,10 @@
       "contact": {
         "sectionLabel": "Book a Session",
         "heading": "BOOK A SESSION.",
-        "location": "New York, NY - by appointment",
-        "whatsappText": "Hi! I'd like to book a tattoo session with Serbero Ink.",
-        "ctaText": "Get in Touch",
-        "quote": "DMs open. Serious inquiries only."
+        "location": "Havana, Cuba - with appointments",
+        "whatsappText": "Hello! I would like to book a tattoo session with Serbero Ink.",
+        "ctaText": "Contact me",
+        "quote": "Open DMs. Only serious consultations."
       },
       "footer": {
         "rights": "All Rights Reserved",
