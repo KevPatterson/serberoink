@@ -176,9 +176,24 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
             href={instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="cta-btn"
+            className="cta-btn inline-flex items-center gap-2"
             aria-label={ui.portfolioInstagramButton}
           >
+            <svg
+              aria-hidden="true"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="5" />
+              <circle cx="12" cy="12" r="4" />
+              <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none" />
+            </svg>
             {ui.portfolioInstagramButton}
           </a>
         </div>

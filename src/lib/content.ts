@@ -171,30 +171,38 @@ function normalizeContent(input: unknown): SiteContent {
           ? ((data.portfolio as { images?: unknown[] }).images ?? [])
           : [];
 
-        return rawImages
-          .filter((img): img is Record<string, unknown> => !!img && typeof img === 'object')
-          .map((img) => {
-            const id = typeof img.id === 'string' ? img.id.trim() : '';
-            const src = typeof img.src === 'string' ? img.src.trim() : '';
-            if (!id || !src) return null;
+        return rawImages.reduce<PortfolioImage[]>((acc, img) => {
+          if (!img || typeof img !== 'object') return acc;
 
-            return {
-              id,
-              src,
-              title:
-                typeof img.title === 'string' && img.title.trim().length > 0
-                  ? img.title
-                  : 'Untitled',
-              titleEs: typeof img.titleEs === 'string' ? img.titleEs : undefined,
-              titleEn: typeof img.titleEn === 'string' ? img.titleEn : undefined,
-              year: typeof img.year === 'string' && img.year.trim().length > 0 ? img.year : 'N/A',
-              category:
-                typeof img.category === 'string' && img.category.trim().length > 0
-                  ? img.category
-                  : 'general',
-            };
-          })
-          .filter((img): img is PortfolioImage => img !== null);
+          const record = img as Record<string, unknown>;
+
+          const id = typeof record.id === 'string' ? record.id.trim() : '';
+          const src = typeof record.src === 'string' ? record.src.trim() : '';
+          if (!id || !src) return acc;
+
+          const normalized: PortfolioImage = {
+            id,
+            src,
+            title:
+              typeof record.title === 'string' && record.title.trim().length > 0
+                ? record.title
+                : 'Untitled',
+            year:
+              typeof record.year === 'string' && record.year.trim().length > 0
+                ? record.year
+                : 'N/A',
+            category:
+              typeof record.category === 'string' && record.category.trim().length > 0
+                ? record.category
+                : 'general',
+          };
+
+          if (typeof record.titleEs === 'string') normalized.titleEs = record.titleEs;
+          if (typeof record.titleEn === 'string') normalized.titleEn = record.titleEn;
+
+          acc.push(normalized);
+          return acc;
+        }, []);
       })(),
     },
     contact: { ...defaultSiteContent.contact, ...(data.contact ?? {}) },
