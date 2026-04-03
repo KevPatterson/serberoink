@@ -12,6 +12,78 @@ interface GeminiResponse {
   }>;
 }
 
+function buildFallbackI18n(content: SiteContent): NonNullable<SiteContent['i18n']> {
+  return {
+    es: {
+      hero: { tagline: content.hero.tagline, scrollText: content.hero.scrollText },
+      about: {
+        sectionLabel: content.about.sectionLabel,
+        heading: content.about.heading,
+        bio: content.about.bio,
+        quote: content.about.quote,
+        location: content.about.location,
+        details: content.about.details,
+        established: content.about.established,
+      },
+      specialties: {
+        sectionLabel: content.specialties.sectionLabel,
+        items: content.specialties.items,
+      },
+      portfolio: {
+        sectionLabel: content.portfolio.sectionLabel,
+        subtitle: content.portfolio.subtitle,
+        images: content.portfolio.images.map((img) => ({ id: img.id, title: img.title })),
+      },
+      contact: {
+        sectionLabel: content.contact.sectionLabel,
+        heading: content.contact.heading,
+        location: content.contact.location,
+        whatsappText: content.contact.whatsappText,
+        ctaText: content.contact.ctaText,
+        quote: content.contact.quote,
+      },
+      footer: { rights: content.footer.rights, tagline: content.footer.tagline },
+    },
+    en: {
+      hero: { tagline: content.hero.tagline, scrollText: content.hero.scrollText },
+      about: {
+        sectionLabel: 'About',
+        heading: content.about.heading,
+        bio: content.about.bio,
+        quote: content.about.quote,
+        location: content.about.location,
+        details: content.about.details,
+        established: content.about.established,
+      },
+      specialties: {
+        sectionLabel: 'The Craft.',
+        items: content.specialties.items,
+      },
+      portfolio: {
+        sectionLabel: 'THE WORK.',
+        subtitle: 'Selected pieces. All custom. All permanent.',
+        images: content.portfolio.images.map((img) => ({ id: img.id, title: img.title })),
+      },
+      contact: {
+        sectionLabel: 'Book a Session',
+        heading: content.contact.heading,
+        location: content.contact.location,
+        whatsappText: content.contact.whatsappText,
+        ctaText: content.contact.ctaText,
+        quote: content.contact.quote,
+      },
+      footer: { rights: content.footer.rights, tagline: content.footer.tagline },
+    },
+  };
+}
+
+export function buildContentWithFallbackI18n(content: SiteContent): SiteContent {
+  return {
+    ...content,
+    i18n: buildFallbackI18n(content),
+  };
+}
+
 export async function translateToEnglish(text: string): Promise<string> {
   if (!text?.trim()) return text;
 
@@ -92,36 +164,7 @@ export async function translateSiteContent(content: SiteContent): Promise<SiteCo
   return {
     ...content,
     i18n: {
-      es: {
-        hero: { tagline: content.hero.tagline, scrollText: content.hero.scrollText },
-        about: {
-          sectionLabel: content.about.sectionLabel,
-          heading: content.about.heading,
-          bio: content.about.bio,
-          quote: content.about.quote,
-          location: content.about.location,
-          details: content.about.details,
-          established: content.about.established,
-        },
-        specialties: {
-          sectionLabel: content.specialties.sectionLabel,
-          items: content.specialties.items,
-        },
-        portfolio: {
-          sectionLabel: content.portfolio.sectionLabel,
-          subtitle: content.portfolio.subtitle,
-          images: content.portfolio.images.map((img) => ({ id: img.id, title: img.title })),
-        },
-        contact: {
-          sectionLabel: content.contact.sectionLabel,
-          heading: content.contact.heading,
-          location: content.contact.location,
-          whatsappText: content.contact.whatsappText,
-          ctaText: content.contact.ctaText,
-          quote: content.contact.quote,
-        },
-        footer: { rights: content.footer.rights, tagline: content.footer.tagline },
-      },
+      ...buildFallbackI18n(content),
       en: {
         hero: { tagline, scrollText },
         about: {

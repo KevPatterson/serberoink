@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { ADMIN_COOKIE_NAME, isValidAdminCookie } from '@/lib/cms-auth';
 import { checkRateLimit } from '@/lib/cms-rate-limit';
 import { getRepoFileSha, putRepoBase64File, putRepoFile } from '@/lib/cms-github';
-import { translateSiteContent } from '@/lib/translate';
+import { buildContentWithFallbackI18n, translateSiteContent } from '@/lib/translate';
 import type { SiteContent } from '@/lib/content';
 
 interface UpdateBody {
@@ -16,12 +16,21 @@ interface UpdateBody {
 
 const CONTENT_PATH = 'public/content/content.json';
 
-async function withTranslationFallback(content: SiteContent): Promise<SiteContent> {
+interface TranslationResult {
+  content: SiteContent;
+  translationWarning?: string;
+}
+
+async function withTranslationFallback(content: SiteContent): Promise<TranslationResult> {
   try {
-    return await translateSiteContent(content);
+    return { content: await translateSiteContent(content) };
   } catch (error) {
     console.error('cms:update translation failed, saving original content', error);
-    return content;
+    return {
+      content: buildContentWithFallbackI18n(content),
+      translationWarning:
+        'No se pudieron actualizar traducciones automaticas en este guardado. Revisa GEMINI_API_KEY.',
+    };
   }
 }
 
@@ -69,12 +78,18 @@ export async function POST(req: NextRequest) {
         sha: sha || undefined,
       });
     } else {
-      const contentPayload =
-        typeof body.content === 'string'
-          ? body.content
-          : path === CONTENT_PATH
-            ? await withTranslationFallback(body.content as SiteContent)
-            : body.content;
+      let translationWarning: string | undefined;
+      let contentPayload: unknown;
+
+      if (typeof body.content === 'string') {
+        contentPayload = body.content;
+      } else if (path === CONTENT_PATH) {
+        const translationResult = await withTranslationFallback(body.content as SiteContent);
+        contentPayload = translationResult.content;
+        translationWarning = translationResult.translationWarning;
+      } else {
+        contentPayload = body.content;
+      }
 
       const nextContent =
         typeof contentPayload === 'string'
@@ -88,7 +103,7 @@ export async function POST(req: NextRequest) {
         sha: sha || undefined,
       });
 
-      return NextResponse.json({ success: true, content: contentPayload });
+      return NextResponse.json({ success: true, content: contentPayload, translationWarning });
     }
 
     return NextResponse.json({ success: true });
