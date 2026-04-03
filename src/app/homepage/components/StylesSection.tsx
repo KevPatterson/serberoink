@@ -1,6 +1,8 @@
 'use client';
 
 import { useRef } from 'react';
+import { useUIStrings } from '@/hooks/useUIStrings';
+import { useLang } from './LanguageContext';
 
 interface StylesSectionProps {
   specialties: {
@@ -83,6 +85,14 @@ function StyleCard({ id, label, icon, borderRight, borderBottom }: StyleCardProp
 }
 
 export default function StylesSection({ specialties }: StylesSectionProps) {
+  const ui = useUIStrings();
+  const { lang } = useLang();
+  const normalizedSectionLabel = specialties.sectionLabel.trim().toLowerCase();
+  const localizedSectionLabel =
+    lang === 'es' && (normalizedSectionLabel === 'the craft.' || normalizedSectionLabel === 'the craft')
+      ? ui.sectionCraftLabel
+      : specialties.sectionLabel;
+
   const specialtyCards = [
     {
       id: 'realism',
@@ -238,7 +248,7 @@ export default function StylesSection({ specialties }: StylesSectionProps) {
             opacity: 0.7,
           }}
         >
-          {specialties.sectionNumber} - {specialties.sectionLabel}
+          {specialties.sectionNumber} - {localizedSectionLabel}
         </p>
 
         <h2
@@ -253,7 +263,7 @@ export default function StylesSection({ specialties }: StylesSectionProps) {
             letterSpacing: '-0.01em',
           }}
         >
-          {specialties.sectionLabel}
+          {localizedSectionLabel}
         </h2>
 
         {/* 6-card grid */}

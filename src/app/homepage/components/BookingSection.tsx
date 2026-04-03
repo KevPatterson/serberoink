@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import { trackCtaClick } from '@/lib/analytics';
 import { useUIStrings } from '@/hooks/useUIStrings';
+import { useLang } from './LanguageContext';
 
 interface BookingSectionProps {
   contact: {
@@ -27,8 +28,14 @@ function createWhatsappUrl(number: string, message: string): string {
 
 export default function BookingSection({ contact }: BookingSectionProps) {
   const ui = useUIStrings();
+  const { lang } = useLang();
   const whatsappUrl = createWhatsappUrl(contact.whatsapp, contact.whatsappText);
-  const headingLines = contact.heading.split('\n');
+  const normalizedHeading = contact.heading.trim().toLowerCase();
+  const localizedHeading =
+    lang === 'es' && (normalizedHeading === 'book a session.' || normalizedHeading === 'book a session')
+      ? ui.sectionBookLabel
+      : contact.heading;
+  const headingLines = localizedHeading.split('\n');
   const btnRef = useRef<HTMLAnchorElement>(null);
 
   const handleBtnMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {

@@ -1,5 +1,8 @@
 'use client';
 
+import { useUIStrings } from '@/hooks/useUIStrings';
+import { useLang } from './LanguageContext';
+
 interface AboutSectionProps {
   about: {
     sectionNumber: string;
@@ -14,7 +17,12 @@ interface AboutSectionProps {
 }
 
 export default function AboutSection({ about }: AboutSectionProps) {
+  const ui = useUIStrings();
+  const { lang } = useLang();
   const headingLines = about.heading.split('\n');
+  const normalizedSectionLabel = about.sectionLabel.trim().toLowerCase();
+  const sectionLabel =
+    lang === 'es' && normalizedSectionLabel === 'about' ? ui.sectionAboutLabel : about.sectionLabel;
 
   return (
     <section
@@ -34,7 +42,7 @@ export default function AboutSection({ about }: AboutSectionProps) {
             opacity: 0.7,
           }}
         >
-          {about.sectionNumber} - {about.sectionLabel}
+          {about.sectionNumber} - {sectionLabel}
         </p>
 
         <div className="flex flex-col md:flex-row gap-10 md:gap-0">

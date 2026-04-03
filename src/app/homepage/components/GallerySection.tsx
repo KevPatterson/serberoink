@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import type { PortfolioImage } from '@/lib/content';
 import { useUIStrings } from '@/hooks/useUIStrings';
+import { useLang } from './LanguageContext';
 
 interface GallerySectionProps {
   portfolio: {
@@ -59,7 +60,13 @@ function resolveAspect(index: number): string {
 
 export default function GallerySection({ portfolio }: GallerySectionProps) {
   const ui = useUIStrings();
+  const { lang } = useLang();
   const { refs, visible } = useItemReveal(portfolio.images.length);
+  const normalizedSectionLabel = portfolio.sectionLabel.trim().toLowerCase();
+  const localizedSectionLabel =
+    lang === 'es' && (normalizedSectionLabel === 'the work.' || normalizedSectionLabel === 'the work')
+      ? ui.sectionPortfolioLabel
+      : portfolio.sectionLabel;
 
   return (
     <section
@@ -94,7 +101,7 @@ export default function GallerySection({ portfolio }: GallerySectionProps) {
                 letterSpacing: '-0.02em',
               }}
             >
-              {portfolio.sectionLabel}
+              {localizedSectionLabel}
             </h2>
           </div>
           <p
