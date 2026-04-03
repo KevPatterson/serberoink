@@ -183,6 +183,10 @@ body::before {
   display: block;
 }
 
+.hero-title-line-ink {
+  overflow: visible;
+}
+
 .hero-title-inner {
   display: block;
   transform: translateY(100%);
@@ -191,6 +195,115 @@ body::before {
 
 .hero-title-inner.revealed {
   transform: translateY(0);
+}
+
+.hero-ink-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.hero-machine-3d {
+  position: absolute;
+  right: clamp(-14px, -1.2vw, -22px);
+  top: clamp(-42px, -3.9vw, -66px);
+  width: clamp(38px, 5vw, 70px);
+  height: clamp(50px, 6.4vw, 94px);
+  transform: rotate(39deg);
+  animation: heroMachineFloat 2.3s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  pointer-events: none;
+  z-index: 5;
+  filter: drop-shadow(0 0 12px rgba(200, 169, 110, 0.22));
+}
+
+.hero-machine-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  animation: needleBuzz 0.08s linear infinite;
+}
+
+.hero-machine-drop {
+  transform-origin: center top;
+  fill: #b30000;
+  opacity: 1;
+  filter: drop-shadow(0 0 3px rgba(179, 0, 0, 0.7));
+}
+
+.hero-blood-splash {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  fill: #c40000;
+  filter: drop-shadow(0 0 4px rgba(196, 0, 0, 0.75));
+  animation-duration: 1.15s;
+  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  animation-iteration-count: infinite;
+}
+
+.hero-blood-splash-right { animation-name: heroBloodSplashRight; }
+.hero-blood-splash-left { animation-name: heroBloodSplashLeft; }
+
+.hero-blood-splash-1 { animation-delay: 0s; }
+.hero-blood-splash-2 { animation-delay: 0.12s; }
+.hero-blood-splash-3 { animation-delay: 0.2s; }
+.hero-blood-splash-4 { animation-delay: 0.28s; }
+.hero-blood-splash-5 { animation-delay: 0.06s; }
+.hero-blood-splash-6 { animation-delay: 0.16s; }
+.hero-blood-splash-7 { animation-delay: 0.24s; }
+.hero-blood-splash-8 { animation-delay: 0.32s; }
+
+@keyframes heroMachineFloat {
+  0%,
+  100% {
+    transform: rotate(39deg) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: rotate(36deg) translate3d(0, -3px, 0);
+  }
+}
+
+@keyframes heroBloodSplashRight {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.9);
+  }
+  32% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(9px, -11px) scale(1.28);
+  }
+}
+
+@keyframes heroBloodSplashLeft {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.9);
+  }
+  32% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-9px, -11px) scale(1.28);
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-machine-3d {
+    right: -10px;
+    top: -30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-machine-3d,
+  .hero-machine-svg,
+  .hero-machine-drop,
+  .hero-blood-splash {
+    animation: none;
+  }
 }
 
 .hero-vignette::after {
