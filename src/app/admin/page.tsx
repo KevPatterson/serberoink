@@ -89,6 +89,20 @@ export default function AdminDashboardPage() {
     void load();
   }, [router]);
 
+  useEffect(() => {
+    if (!translationStatus.visible || translationStatus.kind !== 'success') {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setTranslationStatus((prev) => ({ ...prev, visible: false }));
+    }, 4500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [translationStatus]);
+
   const showToast = (type: 'success' | 'error', message: string) => {
     if (type === 'success') {
       toast.success(message);
