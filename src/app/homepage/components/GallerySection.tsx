@@ -496,7 +496,7 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
                   style={{
                     zIndex: 40 - absDelta,
                     opacity: 1 - absDelta * 0.26,
-                    transform: `translate(-50%, -50%) translateX(${xOffset}%) translateY(${yOffset}px) rotate(${tilt}deg) scale(${scale})`,
+                    transform: `translate3d(-50%, -50%, 0) translate3d(${xOffset}%, ${yOffset}px, 0) rotate(${tilt}deg) scale(${scale})`,
                     transitionDelay: `${Math.max(0, 2 - absDelta) * 35}ms`,
                   }}
                   aria-label={`${ui.portfolioOpenImage}: ${image.title}, ${image.year}`}
