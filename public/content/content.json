@@ -37,6 +37,13 @@
         "title": "gato borracho",
         "year": "2020",
         "category": "general"
+      },
+      {
+        "id": "img_1775182453321",
+        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/screenshot-2026-04-02-221024.png",
+        "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring",
+        "year": "2025",
+        "category": "blackwork"
       }
     ]
   },
@@ -60,8 +67,8 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T02:01:36.462Z",
-    "version": 10
+    "lastUpdated": "2026-04-03T02:14:13.321Z",
+    "version": 11
   },
   "i18n": {
     "es": {
@@ -96,6 +103,10 @@
           {
             "id": "img_1775181689187",
             "title": "gato borracho"
+          },
+          {
+            "id": "img_1775182453321",
+            "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring"
           }
         ]
       },
@@ -144,6 +155,10 @@
           {
             "id": "img_1775181689187",
             "title": "gato borracho"
+          },
+          {
+            "id": "img_1775182453321",
+            "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring"
           }
         ]
       },
