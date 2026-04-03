@@ -76,13 +76,13 @@
   },
   "footer": {
     "brand": "Serbero Ink",
-    "established": "Est. 2024",
-    "rights": "All Rights Reserved",
-    "tagline": "Ink fades. Art doesn't."
+    "established": "Est. 2021",
+    "rights": "Todos los derechos reservados",
+    "tagline": "La tinta se desvanece. El arte no."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T05:29:40.691Z",
-    "version": 33
+    "lastUpdated": "2026-04-03T05:30:26.274Z",
+    "version": 34
   },
   "i18n": {
     "es": {
@@ -141,8 +141,8 @@
         "quote": "DMs abiertos. Solo consultas serias."
       },
       "footer": {
-        "rights": "All Rights Reserved",
-        "tagline": "Ink fades. Art doesn't."
+        "rights": "Todos los derechos reservados",
+        "tagline": "La tinta se desvanece. El arte no."
       }
     },
     "en": {
@@ -201,8 +201,8 @@
         "quote": "Open DMs. Only serious consultations."
       },
       "footer": {
-        "rights": "All Rights Reserved",
-        "tagline": "Ink fades. Art doesn't."
+        "rights": "All rights reserved",
+        "tagline": "The ink fades. Art does not."
       }
     }
   }
