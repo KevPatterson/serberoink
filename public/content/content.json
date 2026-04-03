@@ -37,13 +37,6 @@
         "title": "jsjsj",
         "year": "1982",
         "category": "general"
-      },
-      {
-        "id": "img_1775178272387",
-        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/1bcce3c4991fc54b88c3aa09ea65dd02.jpg",
-        "title": "nmn",
-        "year": "ytyui",
-        "category": "general"
       }
     ]
   },
@@ -67,8 +60,8 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T01:17:17.518Z",
-    "version": 7
+    "lastUpdated": "2026-04-03T01:57:36.086Z",
+    "version": 8
   },
   "i18n": {
     "es": {
@@ -103,10 +96,6 @@
           {
             "id": "img_1775170171971",
             "title": "jsjsj"
-          },
-          {
-            "id": "img_1775178272387",
-            "title": "nmn"
           }
         ]
       },
@@ -155,10 +144,6 @@
           {
             "id": "img_1775170171971",
             "title": "jsjsj"
-          },
-          {
-            "id": "img_1775178272387",
-            "title": "nmn"
           }
         ]
       },
