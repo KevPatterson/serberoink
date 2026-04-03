@@ -81,74 +81,14 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T03:20:56.162Z",
-    "version": 20
+    "lastUpdated": "2026-04-03T03:32:35.349Z",
+    "version": 21
   },
   "i18n": {
     "es": {
       "hero": {
-        "tagline": "permanent art. no regrets.",
-        "scrollText": "Haz scroll para explorar"
-      },
-      "about": {
-        "sectionLabel": "Sobre mí",
-        "heading": "La Mano Detrás de la Aguja.",
-        "bio": "Born from a city that does not sleep and a tradition that does not forget.",
-        "quote": "Cada línea es intencional.",
-        "location": "Nueva York, NY",
-        "details": "Solo con cita previa",
-        "established": "Est. 2024"
-      },
-      "specialties": {
-        "sectionLabel": "El Arte.",
-        "items": [
-          "Trabajo de Serpientes",
-          "Cuchillas y Dagas",
-          "Botánica y Flora",
-          "Geometría y Compás",
-          "Polillas y Fauna Oscura",
-          "Memento Mori"
-        ]
-      },
-      "portfolio": {
-        "sectionLabel": "EL TRABAJO.",
-        "subtitle": "Piezas seleccionadas. Todas personalizadas. Todas permanentes.",
-        "images": [
-          {
-            "id": "img_1775182453321",
-            "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring"
-          },
-          {
-            "id": "img_1775182572205",
-            "title": "Máscara"
-          },
-          {
-            "id": "img_1775182687718",
-            "title": "Mujer"
-          },
-          {
-            "id": "img_1775183169417",
-            "title": "Brazo"
-          }
-        ]
-      },
-      "contact": {
-        "sectionLabel": "RESERVA TU SESIÓN.",
-        "heading": "RESERVA TU SESIÓN.",
-        "location": "Nueva York, NY - con cita previa",
-        "whatsappText": "Hola, me gustaría reservar una sesión de tatuaje con Serbero Ink.",
-        "ctaText": "Contáctame",
-        "quote": "DMs abiertos. Solo consultas serias."
-      },
-      "footer": {
-        "rights": "Todos los Derechos Reservados",
-        "tagline": "La tinta se desvanece. El arte no."
-      }
-    },
-    "en": {
-      "hero": {
-        "tagline": "permanent art. no regrets.",
-        "scrollText": "Haz scroll para explorar"
+        "tagline": "arte permanente, sin arrepentimientos.",
+        "scrollText": "Haz scroll para explorar."
       },
       "about": {
         "sectionLabel": "About",
@@ -194,6 +134,66 @@
       },
       "contact": {
         "sectionLabel": "BOOK A SESSION.",
+        "heading": "BOOK A SESSION.",
+        "location": "New York, NY - by appointment",
+        "whatsappText": "Hi! I'd like to book a tattoo session with Serbero Ink.",
+        "ctaText": "Get in Touch",
+        "quote": "DMs open. Serious inquiries only."
+      },
+      "footer": {
+        "rights": "All Rights Reserved",
+        "tagline": "Ink fades. Art doesn't."
+      }
+    },
+    "en": {
+      "hero": {
+        "tagline": "arte permanente, sin arrepentimientos.",
+        "scrollText": "Haz scroll para explorar."
+      },
+      "about": {
+        "sectionLabel": "About",
+        "heading": "The Hand Behind the Needle.",
+        "bio": "Born from a city that does not sleep and a tradition that does not forget.",
+        "quote": "Every line is intentional.",
+        "location": "New York, NY",
+        "details": "By appointment only",
+        "established": "Est. 2024"
+      },
+      "specialties": {
+        "sectionLabel": "The Craft.",
+        "items": [
+          "Serpent Work",
+          "Blade & Dagger",
+          "Botanical & Flora",
+          "Geometry & Compass",
+          "Moth & Dark Fauna",
+          "Memento Mori"
+        ]
+      },
+      "portfolio": {
+        "sectionLabel": "THE WORK.",
+        "subtitle": "Selected pieces. All custom. All permanent.",
+        "images": [
+          {
+            "id": "img_1775182453321",
+            "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring"
+          },
+          {
+            "id": "img_1775182572205",
+            "title": "Máscara"
+          },
+          {
+            "id": "img_1775182687718",
+            "title": "Mujer"
+          },
+          {
+            "id": "img_1775183169417",
+            "title": "Brazo"
+          }
+        ]
+      },
+      "contact": {
+        "sectionLabel": "Book a Session",
         "heading": "BOOK A SESSION.",
         "location": "New York, NY - by appointment",
         "whatsappText": "Hi! I'd like to book a tattoo session with Serbero Ink.",
