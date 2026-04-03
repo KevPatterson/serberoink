@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { Toaster, toast } from 'sonner';
 import type { ContentI18nSection, PortfolioImage, SiteContent } from '@/lib/content';
-import { applyAutomaticI18n } from '@/lib/content-translation-core';
 
 type SectionKey = 'portfolio' | 'hero' | 'about' | 'specialties' | 'contact' | 'footer';
 
@@ -57,7 +56,8 @@ export default function AdminDashboardPage() {
 
   const previewContent = useMemo(() => {
     if (!content) return null;
-    return applyAutomaticI18n(content);
+    // En admin, la traduccion se persiste al guardar desde API.
+    return content;
   }, [content]);
 
   useEffect(() => {

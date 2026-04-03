@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { ADMIN_COOKIE_NAME, isValidAdminCookie } from '@/lib/cms-auth';
 import { checkRateLimit } from '@/lib/cms-rate-limit';
 import { getRepoFileSha, putRepoBase64File, putRepoFile } from '@/lib/cms-github';
-import { applyAutomaticI18n } from '@/lib/content-translation';
+import { translateSiteContent } from '@/lib/translate';
 import type { SiteContent } from '@/lib/content';
 
 interface UpdateBody {
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
         typeof body.content === 'string'
           ? body.content
           : path === CONTENT_PATH
-            ? applyAutomaticI18n(body.content as SiteContent)
+            ? await translateSiteContent(body.content as SiteContent)
             : body.content;
 
       const nextContent =
