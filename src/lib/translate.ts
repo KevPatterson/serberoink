@@ -12,6 +12,13 @@ interface GeminiResponse {
   }>;
 }
 
+interface GeminiErrorResponse {
+  error?: {
+    message?: string;
+    status?: string;
+  };
+}
+
 function buildFallbackI18n(content: SiteContent): NonNullable<SiteContent['i18n']> {
   return {
     es: {
@@ -78,9 +85,15 @@ function buildFallbackI18n(content: SiteContent): NonNullable<SiteContent['i18n'
 }
 
 export function buildContentWithFallbackI18n(content: SiteContent): SiteContent {
+  const fallback = buildFallbackI18n(content);
+  const previousEnglish = content.i18n?.en;
+
   return {
     ...content,
-    i18n: buildFallbackI18n(content),
+    i18n: {
+      es: fallback.es,
+      en: previousEnglish ?? fallback.en,
+    },
   };
 }
 
@@ -119,7 +132,17 @@ Text to translate: ${text}`,
   );
 
   if (!res.ok) {
-    throw new Error(`Gemini API error (${res.status})`);
+    let reason = '';
+    try {
+      const errorData = (await res.json()) as GeminiErrorResponse;
+      reason = errorData.error?.message?.trim() || errorData.error?.status?.trim() || '';
+    } catch {
+      // Ignore JSON parse failures and keep status-only error.
+    }
+
+    throw new Error(
+      reason ? `Gemini API error (${res.status}): ${reason}` : `Gemini API error (${res.status})`
+    );
   }
 
   const data = (await res.json()) as GeminiResponse;

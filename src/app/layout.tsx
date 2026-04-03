@@ -83,13 +83,8 @@ export default async function RootLayout({
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,900&family=DM+Mono:wght@400&display=swap"
-          media="print"
+          media="all"
           id="google-fonts-stylesheet"
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var l=document.getElementById('google-fonts-stylesheet');if(l)l.onload=function(){l.media='all'};})();`,
-          }}
         />
         <SchemaInjector />
       </head>

@@ -101,6 +101,12 @@ export default function AdminDashboardPage() {
         }),
       });
 
+      if (res.status === 401) {
+        showToast('error', 'Sesion expirada. Inicia sesion nuevamente.');
+        router.replace('/admin/login');
+        return;
+      }
+
       if (!res.ok) {
         const payload = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(payload.error || 'No se pudo guardar');
@@ -712,6 +718,7 @@ function AdminPortfolio(props: {
               alt={image.title}
               width={1200}
               height={700}
+              priority={index === 0}
               unoptimized
               className="w-full h-44 object-cover mb-3"
             />
