@@ -32,13 +32,6 @@
     "subtitle": "Selected pieces. All custom. All permanent.",
     "images": [
       {
-        "id": "img_1775181689187",
-        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/4b5fe0878b026d9e16769158d6366729.jpg",
-        "title": "gato borracho",
-        "year": "2020",
-        "category": "general"
-      },
-      {
         "id": "img_1775182453321",
         "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/screenshot-2026-04-02-221024.png",
         "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring",
@@ -88,8 +81,8 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T02:27:02.560Z",
-    "version": 17
+    "lastUpdated": "2026-04-03T02:28:31.141Z",
+    "version": 18
   },
   "i18n": {
     "es": {
@@ -121,10 +114,6 @@
         "sectionLabel": "EL TRABAJO.",
         "subtitle": "Piezas seleccionadas. Todas personalizadas. Todas permanentes.",
         "images": [
-          {
-            "id": "img_1775181689187",
-            "title": "gato borracho"
-          },
           {
             "id": "img_1775182453321",
             "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring"
@@ -185,10 +174,6 @@
         "sectionLabel": "THE WORK.",
         "subtitle": "Selected pieces. All custom. All permanent.",
         "images": [
-          {
-            "id": "img_1775181689187",
-            "title": "gato borracho"
-          },
           {
             "id": "img_1775182453321",
             "title": "Malenia blade of Miquella” Dotwork illustration from Elden Ring"
