@@ -8,6 +8,13 @@ import { Toaster, toast } from 'sonner';
 import type { ContentI18nSection, PortfolioImage, SiteContent } from '@/lib/content';
 
 type SectionKey = 'portfolio' | 'hero' | 'about' | 'specialties' | 'contact' | 'footer';
+type TranslationStatusKind = 'saving' | 'success' | 'warning' | 'error';
+
+interface TranslationStatus {
+  visible: boolean;
+  kind: TranslationStatusKind;
+  message: string;
+}
 
 const CONTENT_PATH = 'public/content/content.json';
 
@@ -53,6 +60,11 @@ export default function AdminDashboardPage() {
 
   const [dragImageIndex, setDragImageIndex] = useState<number | null>(null);
   const [dragSpecialtyIndex, setDragSpecialtyIndex] = useState<number | null>(null);
+  const [translationStatus, setTranslationStatus] = useState<TranslationStatus>({
+    visible: false,
+    kind: 'success',
+    message: '',
+  });
 
   const previewContent = content;
 
@@ -87,6 +99,11 @@ export default function AdminDashboardPage() {
 
   const persistContent = async (nextContent: SiteContent, message: string) => {
     setSaving(true);
+    setTranslationStatus({
+      visible: true,
+      kind: 'saving',
+      message: 'Guardando cambios y actualizando traducciones...'
+    });
     try {
       const withMeta = updateMeta(nextContent);
       const res = await fetch('/api/cms/update', {
@@ -102,6 +119,11 @@ export default function AdminDashboardPage() {
       });
 
       if (res.status === 401) {
+        setTranslationStatus({
+          visible: true,
+          kind: 'error',
+          message: 'Sesion expirada. Inicia sesion nuevamente para guardar y traducir.',
+        });
         showToast('error', 'Sesion expirada. Inicia sesion nuevamente.');
         router.replace('/admin/login');
         return;
@@ -118,10 +140,26 @@ export default function AdminDashboardPage() {
       };
       setContent(payload.content ?? withMeta);
       if (payload.translationWarning) {
+        setTranslationStatus({
+          visible: true,
+          kind: 'warning',
+          message: payload.translationWarning,
+        });
         toast.error(payload.translationWarning);
+      } else {
+        setTranslationStatus({
+          visible: true,
+          kind: 'success',
+          message: 'Traducciones actualizadas correctamente en este guardado.',
+        });
       }
       showToast('success', 'Cambios guardados');
     } catch (error) {
+      setTranslationStatus({
+        visible: true,
+        kind: 'error',
+        message: error instanceof Error ? error.message : 'Error al guardar y traducir',
+      });
       showToast('error', error instanceof Error ? error.message : 'Error al guardar');
     } finally {
       setSaving(false);
@@ -344,6 +382,8 @@ export default function AdminDashboardPage() {
       </aside>
 
       <main className="flex-1 p-6 md:p-8 max-w-5xl">
+        {translationStatus.visible && <TranslationStatusBanner status={translationStatus} />}
+
         {section === 'portfolio' && (
           <AdminPortfolio
             content={content}
@@ -1123,6 +1163,70 @@ function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void 
     >
       {saving ? 'Guardando...' : 'Guardar cambios'}
     </button>
+  );
+}
+
+function TranslationStatusBanner({ status }: { status: TranslationStatus }) {
+  const palette: Record<TranslationStatusKind, { border: string; background: string; color: string; label: string }> = {
+    saving: {
+      border: '1px solid rgba(200,169,110,0.45)',
+      background: 'rgba(200,169,110,0.09)',
+      color: 'var(--faded-gold)',
+      label: 'EN CURSO',
+    },
+    success: {
+      border: '1px solid rgba(120,190,140,0.5)',
+      background: 'rgba(120,190,140,0.1)',
+      color: 'rgba(140,210,160,0.95)',
+      label: 'OK',
+    },
+    warning: {
+      border: '1px solid rgba(230,180,90,0.55)',
+      background: 'rgba(230,180,90,0.12)',
+      color: 'rgba(245,195,95,0.95)',
+      label: 'WARNING',
+    },
+    error: {
+      border: '1px solid rgba(220,120,120,0.6)',
+      background: 'rgba(220,120,120,0.12)',
+      color: 'rgba(235,140,140,0.95)',
+      label: 'ERROR',
+    },
+  };
+
+  const styles = palette[status.kind];
+
+  return (
+    <section
+      className="mb-5 p-3"
+      aria-live="polite"
+      style={{
+        border: styles.border,
+        backgroundColor: styles.background,
+      }}
+    >
+      <p
+        className="font-mono-body mb-1"
+        style={{
+          fontSize: '0.56rem',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: styles.color,
+        }}
+      >
+        Estado traduccion: {styles.label}
+      </p>
+      <p
+        className="font-mono-body"
+        style={{
+          fontSize: '0.66rem',
+          lineHeight: 1.6,
+          color: 'rgba(240,234,214,0.9)',
+        }}
+      >
+        {status.message}
+      </p>
+    </section>
   );
 }
 
