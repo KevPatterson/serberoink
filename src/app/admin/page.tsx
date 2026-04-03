@@ -914,7 +914,7 @@ function AdminSpecialties(props: {
       <div className="space-y-2">
         {content.specialties.items.map((item, index) => (
           <div
-            key={`${item}-${index}`}
+            key={index}
             draggable
             onDragStart={() => setDragSpecialtyIndex(index)}
             onDragOver={(e) => e.preventDefault()}
