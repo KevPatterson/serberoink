@@ -2,7 +2,9 @@
   "hero": {
     "title": "SERBERO INK.",
     "tagline": "arte permanente, sin arrepentimientos.",
-    "scrollText": "Haz scroll para explorar."
+    "scrollText": "Haz scroll para explorar.",
+    "artistImageSrc": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/screenshot-2026-04-02-160819-1775195161150.png",
+    "artistImageAlt": "Tattoo artist portrait"
   },
   "about": {
     "sectionNumber": "001",
@@ -12,7 +14,9 @@
     "quote": "Cada línea es intencional",
     "location": "La Habana, Cuba",
     "details": "Solo con cita",
-    "established": "Est. 2021"
+    "established": "Est. 2021",
+    "imageSrc": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/screenshot-2026-04-03-015149.png",
+    "imageAlt": "Tattoo artist at work"
   },
   "specialties": {
     "sectionNumber": "002",
@@ -81,8 +85,8 @@
     "tagline": "La tinta se desvanece. El arte no."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T06:15:00.000Z",
-    "version": 35
+    "lastUpdated": "2026-04-03T05:52:25.152Z",
+    "version": 38
   },
   "i18n": {
     "es": {
@@ -148,7 +152,7 @@
     "en": {
       "hero": {
         "tagline": "permanent art, without regrets.",
-        "scrollText": "Scrooll to explore."
+        "scrollText": "Scroll to explore."
       },
       "about": {
         "sectionLabel": "About",
@@ -194,7 +198,7 @@
       },
       "contact": {
         "sectionLabel": "Book a Session",
-        "heading": "BOOK A SESSION.",
+        "heading": "BOOK SESSION.",
         "location": "Havana, Cuba - with appointments",
         "whatsappText": "Hello! I would like to book a tattoo session with Serbero Ink.",
         "ctaText": "Contact me",
