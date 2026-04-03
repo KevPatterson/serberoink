@@ -58,6 +58,13 @@
         "title": "Mujer",
         "year": "2025",
         "category": "general"
+      },
+      {
+        "id": "img_1775183169417",
+        "src": "https://raw.githubusercontent.com/KevPatterson/serberoink/main/public/content/images/screenshot-2026-04-02-215610.png",
+        "title": "Brazo",
+        "year": "2023",
+        "category": "general"
       }
     ]
   },
@@ -81,8 +88,8 @@
     "tagline": "Ink fades. Art doesn't."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T02:19:18.310Z",
-    "version": 15
+    "lastUpdated": "2026-04-03T02:26:09.417Z",
+    "version": 16
   },
   "i18n": {
     "es": {
@@ -129,6 +136,10 @@
           {
             "id": "img_1775182687718",
             "title": "Mujer"
+          },
+          {
+            "id": "img_1775183169417",
+            "title": "Brazo"
           }
         ]
       },
@@ -189,6 +200,10 @@
           {
             "id": "img_1775182687718",
             "title": "Mujer"
+          },
+          {
+            "id": "img_1775183169417",
+            "title": "Brazo"
           }
         ]
       },
