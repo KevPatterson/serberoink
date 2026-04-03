@@ -46,6 +46,11 @@ export default function AdminDashboardPage() {
   const [newImageTitle, setNewImageTitle] = useState('');
   const [newImageYear, setNewImageYear] = useState('');
   const [newImageCategory, setNewImageCategory] = useState('general');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const [dragImageIndex, setDragImageIndex] = useState<number | null>(null);
   const [dragSpecialtyIndex, setDragSpecialtyIndex] = useState<number | null>(null);
@@ -118,6 +123,53 @@ export default function AdminDashboardPage() {
   const handleLogout = async () => {
     await fetch('/api/cms/logout', { method: 'POST' });
     router.push('/admin/login');
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      showToast('error', 'Completa todos los campos');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showToast('error', 'Las contrasenas no coinciden');
+      return;
+    }
+    if (newPassword.length < 8) {
+      showToast('error', 'Minimo 8 caracteres');
+      return;
+    }
+    if (newPassword === currentPassword) {
+      showToast('error', 'La nueva contrasena debe ser diferente');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const res = await fetch('/api/cms/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const payload = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        throw new Error(payload.error || 'Error al cambiar contrasena');
+      }
+
+      setShowPasswordModal(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+
+      showToast('success', 'Contrasena actualizada. Inicia sesion de nuevo.');
+      setTimeout(() => {
+        router.push('/admin/login?passwordChanged=1');
+      }, 1500);
+    } catch (error) {
+      showToast('error', error instanceof Error ? error.message : 'Error inesperado');
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   const uploadPortfolioImage = async () => {
@@ -264,6 +316,21 @@ export default function AdminDashboardPage() {
             }}
           >
             Cerrar sesion
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowPasswordModal(true)}
+            className="font-mono-body text-left"
+            style={{
+              fontSize: '0.58rem',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: 'rgba(200,169,110,0.7)',
+              background: 'none',
+              border: 'none',
+            }}
+          >
+            Cambiar contrasena
           </button>
         </div>
       </aside>
@@ -502,6 +569,82 @@ export default function AdminDashboardPage() {
                 style={primaryButtonStyle}
               >
                 {uploading ? 'Subiendo...' : 'Subir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPasswordModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: 'rgba(0,0,0,0.72)' }}
+        >
+          <div
+            className="w-full max-w-md p-6"
+            style={{ backgroundColor: '#101010', border: '1px solid var(--rule-color)' }}
+          >
+            <p
+              className="font-mono-body mb-5"
+              style={{
+                fontSize: '0.68rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.2em',
+                color: 'var(--faded-gold)',
+              }}
+            >
+              Cambiar contrasena
+            </p>
+
+            <div className="space-y-3 mb-5">
+              <input
+                type="password"
+                placeholder="Contrasena actual"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full px-3 py-2 font-mono-body"
+                style={inputStyle}
+              />
+              <input
+                type="password"
+                placeholder="Nueva contrasena (min. 8 caracteres)"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-3 py-2 font-mono-body"
+                style={inputStyle}
+              />
+              <input
+                type="password"
+                placeholder="Confirmar nueva contrasena"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2 font-mono-body"
+                style={inputStyle}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
+                className="px-3 py-2 font-mono-body"
+                style={ghostButtonStyle}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleChangePassword()}
+                disabled={changingPassword}
+                className="px-3 py-2 font-mono-body"
+                style={primaryButtonStyle}
+              >
+                {changingPassword ? 'Guardando...' : 'Cambiar'}
               </button>
             </div>
           </div>

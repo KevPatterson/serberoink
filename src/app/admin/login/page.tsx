@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const passwordChanged = searchParams.get('passwordChanged') === '1';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,6 +93,15 @@ export default function AdminLoginPage() {
             color: 'var(--parchment)',
           }}
         />
+
+        {passwordChanged && (
+          <p
+            className="font-mono-body mb-4"
+            style={{ fontSize: '0.62rem', color: 'rgba(120,190,140,0.95)' }}
+          >
+            Contrasena actualizada. Inicia sesion con la nueva contrasena.
+          </p>
+        )}
 
         {error && (
           <p
