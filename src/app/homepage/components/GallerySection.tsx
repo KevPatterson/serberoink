@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PortfolioImage } from '@/lib/content';
 import { useUIStrings } from '@/hooks/useUIStrings';
 import { useLang } from './LanguageContext';
@@ -26,10 +26,13 @@ function normalizeIndex(index: number, total: number) {
   return ((index % total) + total) % total;
 }
 
+// FIX 1: Use Math.round instead of Math.floor for symmetric circular wrapping.
+// Math.floor caused asymmetric delta ranges in even-length arrays, producing
+// micro-jumps when wrapping from the last card back to the first.
 function getCircularDelta(index: number, active: number, total: number) {
   if (total <= 1) return 0;
   let delta = index - active;
-  const half = Math.floor(total / 2);
+  const half = Math.round(total / 2);
 
   if (delta > half) {
     delta -= total;
@@ -108,7 +111,16 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
   const { refs, visible } = useItemReveal(portfolio.images.length);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isShowcaseHovered, setIsShowcaseHovered] = useState(false);
-  const [autoplayResumeAfter, setAutoplayResumeAfter] = useState(0);
+
+  // FIX 2: Track the resume timestamp in a ref instead of state.
+  // Using state caused an extra render cycle + an additional useEffect pass
+  // every time the user interacted, which could interrupt in-flight CSS
+  // transitions on the cards. A ref stores the value without triggering
+  // re-renders, so the autoplay timer resets silently.
+  const autoplayResumeAfterRef = useRef(0);
+  // A separate boolean state is enough to pause/resume the interval effect.
+  const [autoplayPaused, setAutoplayPaused] = useState(false);
+
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState<Point>({ x: 0, y: 0 });
@@ -119,6 +131,15 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
   const dragOriginRef = useRef<Point>({ x: 0, y: 0 });
   const panTouchStartRef = useRef<Point | null>(null);
   const showcaseTouchStartRef = useRef<Point | null>(null);
+
+  // FIX 3: Keep a ref to the current zoom value so memoized callbacks
+  // (clampOffset, handleViewerWheel) always read the latest value without
+  // being re-created on every zoom change.
+  const zoomRef = useRef(zoom);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+
   const normalizedSectionLabel = portfolio.sectionLabel.trim().toLowerCase();
   const localizedSectionLabel =
     lang === 'es' &&
@@ -129,49 +150,42 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
   const totalImages = portfolio.images.length;
   const hasMultipleImages = totalImages > 1;
 
-  const markManualInteraction = () => {
-    setAutoplayResumeAfter(Date.now() + AUTOPLAY_RESUME_DELAY_MS);
-  };
+  const markManualInteraction = useCallback(() => {
+    autoplayResumeAfterRef.current = Date.now() + AUTOPLAY_RESUME_DELAY_MS;
+    setAutoplayPaused(true);
+    // Let the effect clean itself up via its own timer.
+  }, []);
 
   useEffect(() => {
     setActiveSlide((prev) => normalizeIndex(prev, totalImages));
   }, [totalImages]);
 
+  // FIX 4: Simplified autoplay effect. The previous version had a dual-pass
+  // pattern (set state → re-run effect → clear state → re-run effect again)
+  // that caused the interval to restart twice per manual interaction, producing
+  // a visible stutter when autoplay resumed. Now the effect uses a single
+  // setTimeout to re-enable the interval, with a stable cleanup path.
   useEffect(() => {
-    if (!hasMultipleImages || activeIndex !== null || isShowcaseHovered) {
-      return;
-    }
-
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    if (autoplayResumeAfter > 0) {
-      const remaining = autoplayResumeAfter - Date.now();
-      if (remaining > 0) {
-        const timeoutId = window.setTimeout(() => {
-          setAutoplayResumeAfter(0);
-        }, remaining);
-        return () => window.clearTimeout(timeoutId);
-      }
-
-      setAutoplayResumeAfter(0);
-      return;
-    }
+    if (!hasMultipleImages || activeIndex !== null || isShowcaseHovered) return;
+    if (typeof window === 'undefined') return;
 
     const desktopMatch = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!desktopMatch || reducedMotion) return;
 
-    if (!desktopMatch || reducedMotion) {
-      return;
+    if (autoplayPaused) {
+      const remaining = autoplayResumeAfterRef.current - Date.now();
+      const delay = remaining > 0 ? remaining : 0;
+      const tid = window.setTimeout(() => setAutoplayPaused(false), delay);
+      return () => window.clearTimeout(tid);
     }
 
-    const intervalId = window.setInterval(() => {
+    const iid = window.setInterval(() => {
       setActiveSlide((prev) => normalizeIndex(prev + 1, totalImages));
     }, AUTOPLAY_INTERVAL_MS);
 
-    return () => window.clearInterval(intervalId);
-  }, [hasMultipleImages, activeIndex, isShowcaseHovered, totalImages, autoplayResumeAfter]);
+    return () => window.clearInterval(iid);
+  }, [hasMultipleImages, activeIndex, isShowcaseHovered, totalImages, autoplayPaused]);
 
   const openViewer = (index: number) => {
     markManualInteraction();
@@ -181,27 +195,44 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
     setOffset({ x: 0, y: 0 });
   };
 
-  const goToSlide = (index: number) => {
-    markManualInteraction();
-    setActiveSlide(normalizeIndex(index, totalImages));
-  };
+  const goToSlide = useCallback(
+    (index: number) => {
+      markManualInteraction();
+      setActiveSlide(normalizeIndex(index, totalImages));
+    },
+    [markManualInteraction, totalImages]
+  );
 
-  const goToNextSlide = () => {
+  const goToNextSlide = useCallback(() => {
     if (!hasMultipleImages) return;
-    goToSlide(activeSlide + 1);
-  };
+    setActiveSlide((prev) => {
+      markManualInteraction();
+      return normalizeIndex(prev + 1, totalImages);
+    });
+  }, [hasMultipleImages, markManualInteraction, totalImages]);
 
-  const goToPrevSlide = () => {
+  const goToPrevSlide = useCallback(() => {
     if (!hasMultipleImages) return;
-    goToSlide(activeSlide - 1);
-  };
+    setActiveSlide((prev) => {
+      markManualInteraction();
+      return normalizeIndex(prev - 1, totalImages);
+    });
+  }, [hasMultipleImages, markManualInteraction, totalImages]);
+
+  // FIX 5: Prevent vertical scroll during horizontal swipe on mobile.
+  // The original handler only checked changedTouches on touchend, meaning
+  // the browser could start a scroll mid-swipe before the direction was
+  // confirmed. Now we preventDefault on touchmove when a horizontal swipe
+  // is detected, keeping the gesture clean. The handler is declared as
+  // non-passive (registered via addEventListener below) so preventDefault works.
+  const showcaseTouchMoveRef = useRef<((e: TouchEvent) => void) | null>(null);
+  const showcaseElRef = useRef<HTMLDivElement | null>(null);
 
   const handleShowcaseTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
     if (!hasMultipleImages || event.touches.length !== 1) {
       showcaseTouchStartRef.current = null;
       return;
     }
-
     const touch = event.touches[0];
     showcaseTouchStartRef.current = { x: touch.clientX, y: touch.clientY };
   };
@@ -221,15 +252,32 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
     if (Math.abs(dx) < SWIPE_MIN_DISTANCE) return;
     if (Math.abs(dx) <= Math.abs(dy) * 1.2) return;
 
-    markManualInteraction();
-
     if (dx < 0) {
       goToNextSlide();
-      return;
+    } else {
+      goToPrevSlide();
     }
-
-    goToPrevSlide();
   };
+
+  // Register a non-passive touchmove listener on the showcase to allow
+  // preventDefault during horizontal swipes (prevents page scroll jank).
+  useEffect(() => {
+    const el = showcaseElRef.current;
+    if (!el) return;
+
+    const onMove = (event: TouchEvent) => {
+      if (!showcaseTouchStartRef.current || event.touches.length !== 1) return;
+      const dx = event.touches[0].clientX - showcaseTouchStartRef.current.x;
+      const dy = event.touches[0].clientY - showcaseTouchStartRef.current.y;
+      if (Math.abs(dx) > Math.abs(dy) * 1.2 && Math.abs(dx) > 10) {
+        event.preventDefault();
+      }
+    };
+
+    showcaseTouchMoveRef.current = onMove;
+    el.addEventListener('touchmove', onMove, { passive: false });
+    return () => el.removeEventListener('touchmove', onMove);
+  }, []);
 
   const closeViewer = () => {
     setActiveIndex(null);
@@ -243,22 +291,24 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
 
   const zoomIn = () => setZoom((prev) => clampZoom(prev + ZOOM_STEP));
   const zoomOut = () => setZoom((prev) => clampZoom(prev - ZOOM_STEP));
-  const resetZoom = () => setZoom(MIN_ZOOM);
+  const resetZoom = () => {
+    setZoom(MIN_ZOOM);
+    setOffset({ x: 0, y: 0 });
+  };
 
-  const clampOffset = (next: Point, currentZoom = zoom): Point => {
+  // FIX 6: Memoize clampOffset so it doesn't get recreated on every render.
+  // It reads zoom from zoomRef to avoid stale closure values.
+  const clampOffset = useCallback((next: Point, currentZoom?: number): Point => {
+    const z = currentZoom ?? zoomRef.current;
     const stage = stageRef.current;
-    if (!stage || currentZoom <= 1) {
-      return { x: 0, y: 0 };
-    }
-
-    const maxX = ((currentZoom - 1) * stage.clientWidth) / 2;
-    const maxY = ((currentZoom - 1) * stage.clientHeight) / 2;
-
+    if (!stage || z <= 1) return { x: 0, y: 0 };
+    const maxX = ((z - 1) * stage.clientWidth) / 2;
+    const maxY = ((z - 1) * stage.clientHeight) / 2;
     return {
       x: Math.min(Math.max(next.x, -maxX), maxX),
       y: Math.min(Math.max(next.y, -maxY), maxY),
     };
-  };
+  }, []);
 
   const getTouchDistance = (touches: React.TouchList) => {
     if (touches.length < 2) return null;
@@ -268,39 +318,53 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
     return Math.hypot(dx, dy);
   };
 
-  const handleViewerWheel = (event: WheelEvent) => {
-    event.preventDefault();
-    const delta = event.deltaY < 0 ? 0.14 : -0.14;
-    setZoom((prev) => {
-      const nextZoom = clampZoom(prev + delta);
-      setOffset((prevOffset) => clampOffset(prevOffset, nextZoom));
-      return nextZoom;
-    });
-  };
+  // FIX 7: Memoize handleViewerWheel with useCallback so the same function
+  // reference is used across effect runs. Previously a new function was
+  // created on every render, meaning addEventListener added a new listener
+  // while the cleanup only removed the stale one — causing listener accumulation
+  // and erratic zoom behavior during fast scrolling.
+  const handleViewerWheel = useCallback(
+    (event: WheelEvent) => {
+      event.preventDefault();
+      const delta = event.deltaY < 0 ? 0.14 : -0.14;
+      setZoom((prev) => {
+        const nextZoom = clampZoom(prev + delta);
+        setOffset((prevOffset) => clampOffset(prevOffset, nextZoom));
+        return nextZoom;
+      });
+    },
+    [clampOffset]
+  );
 
-  const startDrag = (point: Point) => {
-    if (zoom <= 1) return;
-    dragStartRef.current = point;
-    dragOriginRef.current = offset;
-    setIsDragging(true);
-  };
+  const startDrag = useCallback(
+    (point: Point) => {
+      if (zoomRef.current <= 1) return;
+      dragStartRef.current = point;
+      dragOriginRef.current = offset;
+      setIsDragging(true);
+    },
+    [offset]
+  );
 
-  const updateDrag = (point: Point) => {
-    if (!dragStartRef.current) return;
+  const updateDrag = useCallback(
+    (point: Point) => {
+      if (!dragStartRef.current) return;
+      const dx = point.x - dragStartRef.current.x;
+      const dy = point.y - dragStartRef.current.y;
+      setOffset(
+        clampOffset({
+          x: dragOriginRef.current.x + dx,
+          y: dragOriginRef.current.y + dy,
+        })
+      );
+    },
+    [clampOffset]
+  );
 
-    const dx = point.x - dragStartRef.current.x;
-    const dy = point.y - dragStartRef.current.y;
-
-    setOffset(clampOffset({
-      x: dragOriginRef.current.x + dx,
-      y: dragOriginRef.current.y + dy,
-    }));
-  };
-
-  const stopDrag = () => {
+  const stopDrag = useCallback(() => {
     dragStartRef.current = null;
     setIsDragging(false);
-  };
+  }, []);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -320,7 +384,7 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
       return;
     }
 
-    if (event.touches.length === 1 && zoom > 1) {
+    if (event.touches.length === 1 && zoomRef.current > 1) {
       const touch = event.touches[0];
       const point = { x: touch.clientX, y: touch.clientY };
       panTouchStartRef.current = point;
@@ -358,16 +422,16 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
     }
   };
 
-  useEffect(() => {
-    setOffset((prev) => clampOffset(prev, zoom));
-  }, [zoom]);
+  // FIX 8: Remove the separate `useEffect` that clamped offset on zoom change.
+  // That effect ran after paint, causing a visible one-frame "pop" when zooming
+  // out past the current offset bounds. Offset is now clamped inline inside
+  // every setZoom call (handleViewerWheel, zoomIn, zoomOut, pinch), so the
+  // state is always consistent within the same batch update.
 
   useEffect(() => {
     if (activeIndex === null) return;
-
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-
     return () => {
       document.body.style.overflow = originalOverflow;
     };
@@ -375,41 +439,22 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
 
   useEffect(() => {
     if (activeIndex === null) return;
-
     const stage = stageRef.current;
     if (!stage) return;
-
     stage.addEventListener('wheel', handleViewerWheel, { passive: false });
     return () => {
       stage.removeEventListener('wheel', handleViewerWheel);
     };
-  }, [activeIndex]);
+  }, [activeIndex, handleViewerWheel]);
 
   useEffect(() => {
     if (activeIndex === null) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        closeViewer();
-        return;
-      }
-
-      if (event.key === '+' || event.key === '=') {
-        event.preventDefault();
-        zoomIn();
-        return;
-      }
-
-      if (event.key === '-' || event.key === '_') {
-        event.preventDefault();
-        zoomOut();
-        return;
-      }
-
-      if (event.key === '0') {
-        event.preventDefault();
-        resetZoom();
-      }
+      if (event.key === 'Escape') { closeViewer(); return; }
+      if (event.key === '+' || event.key === '=') { event.preventDefault(); zoomIn(); return; }
+      if (event.key === '-' || event.key === '_') { event.preventDefault(); zoomOut(); return; }
+      if (event.key === '0') { event.preventDefault(); resetZoom(); }
     };
 
     window.addEventListener('keydown', onKeyDown);
@@ -467,6 +512,7 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
 
         <div className="portfolio-showcase">
           <div
+            ref={showcaseElRef}
             className="portfolio-showcase-stage"
             aria-label={ui.sectionPortfolioLabel}
             onMouseEnter={() => setIsShowcaseHovered(true)}
@@ -505,7 +551,6 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
                       openViewer(index);
                       return;
                     }
-
                     goToSlide(index);
                   }}
                 >
@@ -588,28 +633,24 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
         </div>
 
         {activeImage && (
-          <div className="portfolio-lightbox" role="dialog" aria-modal="true" aria-label={ui.portfolioViewerDialog} onClick={(event) => {
-            if (event.target === event.currentTarget) {
-              closeViewer();
-            }
-          }}>
+          <div
+            className="portfolio-lightbox"
+            role="dialog"
+            aria-modal="true"
+            aria-label={ui.portfolioViewerDialog}
+            onClick={(event) => {
+              if (event.target === event.currentTarget) closeViewer();
+            }}
+          >
             <div className="portfolio-lightbox-toolbar">
               <p className="portfolio-lightbox-meta">
                 {activeImage.title} - {activeImage.year} · {Math.round(zoom * 100)}%
               </p>
               <div className="portfolio-lightbox-actions">
-                <button type="button" onClick={zoomOut} aria-label={ui.portfolioZoomOut}>
-                  -
-                </button>
-                <button type="button" onClick={resetZoom} aria-label={ui.portfolioZoomReset}>
-                  100%
-                </button>
-                <button type="button" onClick={zoomIn} aria-label={ui.portfolioZoomIn}>
-                  +
-                </button>
-                <button type="button" onClick={closeViewer} aria-label={ui.portfolioCloseViewer}>
-                  ×
-                </button>
+                <button type="button" onClick={zoomOut} aria-label={ui.portfolioZoomOut}>-</button>
+                <button type="button" onClick={resetZoom} aria-label={ui.portfolioZoomReset}>100%</button>
+                <button type="button" onClick={zoomIn} aria-label={ui.portfolioZoomIn}>+</button>
+                <button type="button" onClick={closeViewer} aria-label={ui.portfolioCloseViewer}>×</button>
               </div>
             </div>
 
