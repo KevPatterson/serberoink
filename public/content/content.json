@@ -10,7 +10,7 @@
     "sectionNumber": "001",
     "sectionLabel": "Sobre mí",
     "heading": "La Mano Detrás de la Tinta.",
-    "bio": "Nacido en Cuba, formado en la calle y perfeccionado \nen cada sesión. Serbero lleva más de una década \nconvirtiendo ideas en arte permanente — desde el \nrealismo más oscuro hasta el anime más detallado, \npasando por blackwork que cubre y define.\n\nEl estudio trabaja por cita. Sin apuro. Cada pieza \nnace de una conversación, de lo que quieres cargar \nen la piel para siempre.",
+    "bio": "Nacido en Cuba, formado en la calle y perfeccionado en cada sesión. Serbero lleva más de una década convirtiendo ideas en arte permanente — desde el realismo más oscuro hasta el anime más detallado, pasando por blackwork que cubre y define.\n\nEl estudio trabaja por cita. Sin apuro. Cada pieza nace de una conversación, de lo que quieres cargar en la piel para siempre.",
     "quote": "Cada línea es intencional",
     "location": "La Habana, Cuba",
     "details": "Solo con cita",
@@ -85,8 +85,8 @@
     "tagline": "La tinta se desvanece. El arte no."
   },
   "_meta": {
-    "lastUpdated": "2026-04-03T05:52:25.152Z",
-    "version": 38
+    "lastUpdated": "2026-04-03T20:51:18.757Z",
+    "version": 39
   },
   "i18n": {
     "es": {
@@ -97,7 +97,7 @@
       "about": {
         "sectionLabel": "Sobre mí",
         "heading": "La Mano Detrás de la Tinta.",
-        "bio": "Nacido en Cuba, formado en la calle y perfeccionado \nen cada sesión. Serbero lleva más de una década \nconvirtiendo ideas en arte permanente — desde el \nrealismo más oscuro hasta el anime más detallado, \npasando por blackwork que cubre y define.\n\nEl estudio trabaja por cita. Sin apuro. Cada pieza \nnace de una conversación, de lo que quieres cargar \nen la piel para siempre.",
+        "bio": "Nacido en Cuba, formado en la calle y perfeccionado en cada sesión. Serbero lleva más de una década convirtiendo ideas en arte permanente — desde el realismo más oscuro hasta el anime más detallado, pasando por blackwork que cubre y define.\n\nEl estudio trabaja por cita. Sin apuro. Cada pieza nace de una conversación, de lo que quieres cargar en la piel para siempre.",
         "quote": "Cada línea es intencional",
         "location": "La Habana, Cuba",
         "details": "Solo con cita",
@@ -157,7 +157,7 @@
       "about": {
         "sectionLabel": "About",
         "heading": "The Hand Behind the Ink.",
-        "bio": "Born in Cuba, trained on the street and perfected \nin each session. Serbero has been around for more than a decade \nturning ideas into permanent art — from the \ndarkest realism to the most detailed anime, \nthrough blackwork that covers and defines.\n\nThe studio works by appointment. No rush. Each piece \nis born from a conversation, from what you want to upload \non the skin forever.",
+        "bio": "Born in Cuba, trained on the street and perfected in each session. Serbero has been turning ideas into permanent art for more than a decade — from the darkest realism to the most detailed anime, to the blackwork that covers and defines.\n\nThe studio works by appointment. No rush. Each piece is born from a conversation, from what you want to carry on your skin forever.",
         "quote": "Every line is intentional",
         "location": "Havana, Cuba",
         "details": "By appointment only",
