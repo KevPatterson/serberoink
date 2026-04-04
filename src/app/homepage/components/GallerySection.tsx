@@ -657,6 +657,11 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
             <div
               ref={stageRef}
               className={`portfolio-lightbox-stage ${zoom > 1 ? 'is-pannable' : ''} ${isDragging ? 'is-dragging' : ''}`}
+              onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                  closeViewer();
+                }
+              }}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={stopDrag}

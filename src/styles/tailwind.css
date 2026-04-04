@@ -674,8 +674,7 @@ body::before {
   }
 
   .portfolio-nav {
-    right: 0.45rem;
-    bottom: 0.4rem;
+    display: none;
   }
 }
 
@@ -1183,6 +1182,18 @@ body::before {
   .portfolio-lightbox-media {
     width: 100%;
     height: min(76vh, 700px);
+  }
+
+  .cta-btn-ink {
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    padding: 0.72rem 1.35rem;
+    gap: 0.42rem;
+  }
+
+  .cta-btn-ink svg {
+    width: 14px;
+    height: 14px;
   }
 }
 

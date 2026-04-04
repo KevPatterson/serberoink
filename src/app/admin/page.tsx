@@ -576,11 +576,11 @@ export default function AdminDashboardPage() {
             style={{ backgroundColor: '#101010', border: '1px solid var(--rule-color)' }}
           >
             <p
-              className="font-mono-body mb-5"
+              className="font-mono-body mb-5 break-words leading-relaxed"
               style={{
-                fontSize: '0.68rem',
+                fontSize: '0.64rem',
                 textTransform: 'uppercase',
-                letterSpacing: '0.2em',
+                letterSpacing: '0.14em',
                 color: 'var(--faded-gold)',
               }}
             >
@@ -601,7 +601,7 @@ export default function AdminDashboardPage() {
                 reader.onload = () => setUploadPreview((reader.result as string) || '');
                 reader.readAsDataURL(file);
               }}
-              className="mb-4"
+              className="mb-4 w-full font-mono-body text-[0.62rem] leading-relaxed text-[rgba(240,234,214,0.82)]"
             />
 
             {uploadPreview && (
@@ -780,10 +780,10 @@ function AdminPortfolio(props: {
       </button>
       {pendingImageIds.length > 0 && (
         <p
-          className="mb-4 font-mono-body"
+          className="mb-4 font-mono-body break-words leading-relaxed"
           style={{
             fontSize: '0.58rem',
-            letterSpacing: '0.08em',
+            letterSpacing: '0.06em',
             color: 'rgba(240,234,214,0.8)',
           }}
         >
@@ -1383,15 +1383,15 @@ function ImageUploadField(props: {
         onChange={(event) => {
           handleFileChange(event);
         }}
-        className="mb-3"
+        className="mb-3 w-full font-mono-body text-[0.62rem] leading-relaxed text-[rgba(240,234,214,0.82)]"
       />
 
       {props.pendingFileName && (
         <p
-          className="mb-3 font-mono-body"
+          className="mb-3 font-mono-body break-all leading-relaxed"
           style={{
             fontSize: '0.58rem',
-            letterSpacing: '0.08em',
+            letterSpacing: '0.06em',
             color: 'rgba(240,234,214,0.75)',
           }}
         >
@@ -1411,10 +1411,10 @@ function ImageUploadField(props: {
       )}
 
       <p
-        className="mt-2 font-mono-body"
+        className="mt-2 font-mono-body break-words leading-relaxed"
         style={{
           fontSize: '0.58rem',
-          letterSpacing: '0.08em',
+          letterSpacing: '0.06em',
           color: 'rgba(240,234,214,0.62)',
         }}
       >
