@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { ADMIN_COOKIE_NAME, createAdminCookieValue, getAdminPassword } from '@/lib/cms-auth';
+import {
+  ADMIN_COOKIE_NAME,
+  ADMIN_SESSION_TTL_SECONDS,
+  createAdminSessionCookieValue,
+  getAdminPassword,
+} from '@/lib/cms-auth';
 import { checkRateLimit } from '@/lib/cms-rate-limit';
 
 export async function POST(req: Request) {
@@ -20,7 +25,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false }, { status: 401 });
   }
 
-  const cookieValue = createAdminCookieValue(password);
+  const cookieValue = createAdminSessionCookieValue(password);
   const res = NextResponse.json({ success: true });
   res.cookies.set({
     name: ADMIN_COOKIE_NAME,
@@ -29,7 +34,7 @@ export async function POST(req: Request) {
     sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
-    maxAge: 60 * 60 * 12,
+    maxAge: ADMIN_SESSION_TTL_SECONDS,
   });
 
   return res;

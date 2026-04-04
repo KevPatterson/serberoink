@@ -3,6 +3,8 @@ import 'server-only';
 import { createHash } from 'crypto';
 
 export const ADMIN_COOKIE_NAME = 'admin_authenticated';
+export const ADMIN_SESSION_TTL_SECONDS = 60 * 60 * 12;
+const COOKIE_VERSION = 'v1';
 
 export function getAdminPassword(): string {
   const password = process.env.ADMIN_PASSWORD;
@@ -16,8 +18,41 @@ export function createAdminCookieValue(password: string): string {
   return createHash('sha256').update(`serberoink:${password}`).digest('hex');
 }
 
+export function createAdminSessionCookieValue(password: string, nowMs = Date.now()): string {
+  const expiresAt = nowMs + ADMIN_SESSION_TTL_SECONDS * 1000;
+  const signature = createAdminCookieValue(`${password}:${expiresAt}`);
+  return `${COOKIE_VERSION}.${expiresAt}.${signature}`;
+}
+
 export function getExpectedAdminCookieValue(): string {
   return createAdminCookieValue(getAdminPassword());
+}
+
+function parseAdminSessionCookie(cookieValue: string): {
+  version: string;
+  expiresAt: number;
+  signature: string;
+} | null {
+  const parts = cookieValue.split('.');
+  if (parts.length !== 3) {
+    return null;
+  }
+
+  const [version, expiresRaw, signature] = parts;
+  if (!version || !expiresRaw || !signature) {
+    return null;
+  }
+
+  if (!/^\d+$/.test(expiresRaw)) {
+    return null;
+  }
+
+  const expiresAt = Number(expiresRaw);
+  if (!Number.isFinite(expiresAt)) {
+    return null;
+  }
+
+  return { version, expiresAt, signature };
 }
 
 function secureEqual(a: string, b: string): boolean {
@@ -32,7 +67,18 @@ function secureEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-export function isValidAdminCookie(cookieValue: string | null): boolean {
+export function isValidAdminCookie(cookieValue: string | null, nowMs = Date.now()): boolean {
   if (!cookieValue) return false;
-  return secureEqual(cookieValue, getExpectedAdminCookieValue());
+
+  const session = parseAdminSessionCookie(cookieValue);
+  if (!session || session.version !== COOKIE_VERSION) {
+    return false;
+  }
+
+  if (session.expiresAt <= nowMs) {
+    return false;
+  }
+
+  const expectedSignature = createAdminCookieValue(`${getAdminPassword()}:${session.expiresAt}`);
+  return secureEqual(session.signature, expectedSignature);
 }

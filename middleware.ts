@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 
 const ADMIN_COOKIE_NAME = 'admin_authenticated';
 const HASH_PREFIX = 'serberoink:';
+const COOKIE_VERSION = 'v1';
 
 function toHex(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
@@ -31,6 +32,29 @@ function secureEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
+function parseSessionCookie(cookieValue: string): { version: string; expiresAt: number; signature: string } | null {
+  const parts = cookieValue.split('.');
+  if (parts.length !== 3) {
+    return null;
+  }
+
+  const [version, expiresRaw, signature] = parts;
+  if (!version || !expiresRaw || !signature) {
+    return null;
+  }
+
+  if (!/^\d+$/.test(expiresRaw)) {
+    return null;
+  }
+
+  const expiresAt = Number(expiresRaw);
+  if (!Number.isFinite(expiresAt)) {
+    return null;
+  }
+
+  return { version, expiresAt, signature };
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -50,8 +74,14 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  const expectedCookie = await sha256(`${HASH_PREFIX}${adminPassword}`);
-  if (!secureEqual(authCookie, expectedCookie)) {
+  const session = parseSessionCookie(authCookie);
+  if (!session || session.version !== COOKIE_VERSION || session.expiresAt <= Date.now()) {
+    const loginUrl = new URL('/admin/login', req.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  const expectedSignature = await sha256(`${HASH_PREFIX}${adminPassword}:${session.expiresAt}`);
+  if (!secureEqual(session.signature, expectedSignature)) {
     const loginUrl = new URL('/admin/login', req.url);
     return NextResponse.redirect(loginUrl);
   }

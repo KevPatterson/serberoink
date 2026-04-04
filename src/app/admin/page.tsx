@@ -1,14 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Toaster, toast } from 'sonner';
 import type { ContentI18nSection, PortfolioImage, SiteContent } from '@/lib/content';
 import { hasPendingFiles, hasSectionChanged } from '@/lib/admin-change-utils';
+import AdminSidebar, { type SectionKey } from './components/AdminSidebar';
 
-type SectionKey = 'portfolio' | 'hero' | 'about' | 'specialties' | 'contact' | 'footer';
 type TranslationStatusKind = 'saving' | 'success' | 'warning' | 'error';
 
 interface TranslationStatus {
@@ -18,15 +17,6 @@ interface TranslationStatus {
 }
 
 const CONTENT_PATH = 'public/content/content.json';
-
-const sectionItems: { key: SectionKey; label: string }[] = [
-  { key: 'portfolio', label: 'Portfolio' },
-  { key: 'hero', label: 'Hero' },
-  { key: 'about', label: 'About' },
-  { key: 'specialties', label: 'Especialidades' },
-  { key: 'contact', label: 'Contacto' },
-  { key: 'footer', label: 'Footer' },
-];
 
 function updateMeta(nextContent: SiteContent): SiteContent {
   return {
@@ -323,93 +313,12 @@ export default function AdminDashboardPage() {
       className="min-h-screen md:flex"
       style={{ backgroundColor: 'var(--ink-black)', color: 'var(--parchment)' }}
     >
-      <aside className="md:w-64 p-6" style={{ borderRight: '1px solid var(--rule-color)' }}>
-        <p
-          className="font-serif-display"
-          style={{ fontSize: '1.3rem', fontStyle: 'italic', color: 'var(--faded-gold)' }}
-        >
-          SERBERO INK
-        </p>
-        <p
-          className="font-mono-body mb-6"
-          style={{
-            fontSize: '0.58rem',
-            letterSpacing: '0.28em',
-            textTransform: 'uppercase',
-            color: 'rgba(200,169,110,0.65)',
-          }}
-        >
-          Admin CMS
-        </p>
-
-        <div className="space-y-1 mb-8">
-          {sectionItems.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => setSection(item.key)}
-              className="w-full text-left px-3 py-2 font-mono-body"
-              style={{
-                fontSize: '0.62rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.18em',
-                color: section === item.key ? 'var(--faded-gold)' : 'rgba(240,234,214,0.5)',
-                borderLeft:
-                  section === item.key ? '1px solid var(--faded-gold)' : '1px solid transparent',
-                backgroundColor: section === item.key ? 'rgba(200,169,110,0.08)' : 'transparent',
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <Link
-            href="/homepage"
-            className="font-mono-body"
-            style={{
-              fontSize: '0.58rem',
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: 'rgba(240,234,214,0.55)',
-              textDecoration: 'none',
-            }}
-          >
-            Volver al sitio
-          </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="font-mono-body text-left"
-            style={{
-              fontSize: '0.58rem',
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: 'rgba(220,120,120,0.95)',
-              background: 'none',
-              border: 'none',
-            }}
-          >
-            Cerrar sesion
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowPasswordModal(true)}
-            className="font-mono-body text-left"
-            style={{
-              fontSize: '0.58rem',
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: 'rgba(200,169,110,0.7)',
-              background: 'none',
-              border: 'none',
-            }}
-          >
-            Cambiar contrasena
-          </button>
-        </div>
-      </aside>
+      <AdminSidebar
+        section={section}
+        onSectionChange={setSection}
+        onLogout={handleLogout}
+        onOpenPasswordModal={() => setShowPasswordModal(true)}
+      />
 
       <main className="flex-1 p-6 md:p-8 max-w-5xl">
         {translationStatus.visible && <TranslationStatusBanner status={translationStatus} />}
@@ -1360,10 +1269,10 @@ function InputField(props: { label: string; value: string; onChange: (value: str
       <label
         className="block mb-2 font-mono-body"
         style={{
-          fontSize: '0.58rem',
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-          color: 'rgba(200,169,110,0.7)',
+          fontSize: '0.54rem',
+          letterSpacing: '0.08em',
+          textTransform: 'none',
+          color: 'rgba(240,234,214,0.62)',
         }}
       >
         {props.label}
@@ -1384,10 +1293,10 @@ function TextareaField(props: { label: string; value: string; onChange: (value: 
       <label
         className="block mb-2 font-mono-body"
         style={{
-          fontSize: '0.58rem',
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-          color: 'rgba(200,169,110,0.7)',
+          fontSize: '0.54rem',
+          letterSpacing: '0.08em',
+          textTransform: 'none',
+          color: 'rgba(240,234,214,0.62)',
         }}
       >
         {props.label}
@@ -1432,14 +1341,21 @@ function ImageUploadField(props: {
   };
 
   return (
-    <div className="mb-6 p-4" style={{ border: '1px solid rgba(200,169,110,0.25)' }}>
+    <div
+      className="mb-6 p-4"
+      style={{
+        border: '1px solid rgba(200,169,110,0.16)',
+        borderRadius: '0.55rem',
+        backgroundColor: 'rgba(240,234,214,0.02)',
+      }}
+    >
       <label
         className="block mb-2 font-mono-body"
         style={{
-          fontSize: '0.58rem',
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-          color: 'rgba(200,169,110,0.7)',
+          fontSize: '0.54rem',
+          letterSpacing: '0.08em',
+          textTransform: 'none',
+          color: 'rgba(240,234,214,0.62)',
         }}
       >
         {props.label}
@@ -1609,60 +1525,313 @@ function BilingualPreview({ section, content }: { section: SectionKey; content: 
   const enData = getPreviewSection(content.i18n?.en, section);
 
   return (
-    <section className="mt-10">
-      <SectionTitle title="Vista previa traducciones" />
+    <section className="mt-12">
+      <SectionTitle title="Vista editorial por idioma" />
       <p
-        className="mb-4 font-mono-body"
+        className="mb-5 font-mono-body"
         style={{
-          fontSize: '0.58rem',
+          fontSize: '0.62rem',
           letterSpacing: '0.08em',
-          color: 'rgba(240,234,214,0.65)',
+          color: 'rgba(240,234,214,0.75)',
         }}
       >
-        Vista previa del ultimo guardado. Guarda cambios para actualizar.
+        Asi se lee el contenido para cada idioma, sin formato tecnico. Guarda cambios para actualizar.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <PreviewCard language="ES" data={esData} />
-        <PreviewCard language="EN" data={enData} />
+        <PreviewCard language="ES" section={section} data={esData} />
+        <PreviewCard language="EN" section={section} data={enData} />
       </div>
     </section>
   );
 }
 
-function PreviewCard({ language, data }: { language: 'ES' | 'EN'; data: unknown }) {
+function PreviewCard({ language, section, data }: { language: 'ES' | 'EN'; section: SectionKey; data: unknown }) {
+  const model = toPreviewModel(section, data);
+
   return (
     <div
-      className="p-4"
+      className="p-5 md:p-6"
       style={{
-        border: '1px solid rgba(200,169,110,0.25)',
-        backgroundColor: 'rgba(240,234,214,0.02)',
+        border: '1px solid rgba(200,169,110,0.2)',
+        borderRadius: '0.55rem',
+        backgroundColor: 'rgba(14,14,14,0.78)',
       }}
     >
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <p
+            className="font-mono-body mb-1"
+            style={{
+              fontSize: '0.56rem',
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: 'rgba(200,169,110,0.95)',
+            }}
+          >
+            Idioma {language}
+          </p>
+          <p
+            className="font-serif-display"
+            style={{
+              fontSize: '1.14rem',
+              color: 'rgba(240,234,214,0.95)',
+              lineHeight: 1.3,
+            }}
+          >
+            {model.title}
+          </p>
+        </div>
+        <p
+          className="font-mono-body"
+          style={{
+            fontSize: '0.5rem',
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            color: 'rgba(200,169,110,0.7)',
+          }}
+        >
+          Vista rapida
+        </p>
+      </div>
+
+      {model.subtitle && (
+        <p
+          className="mb-4"
+          style={{
+            fontSize: '0.84rem',
+            lineHeight: 1.7,
+            color: 'rgba(240,234,214,0.82)',
+          }}
+        >
+          {model.subtitle}
+        </p>
+      )}
+
+      {model.imageSrc && (
+        <div className="mb-4 overflow-hidden" style={{ borderRadius: '0.6rem' }}>
+          <Image
+            src={model.imageSrc}
+            alt={model.imageAlt || model.title}
+            width={1200}
+            height={700}
+            unoptimized
+            className="w-full h-44 md:h-52 object-cover"
+          />
+        </div>
+      )}
+
+      {model.fields.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          {model.fields.map((field) => (
+            <div
+              key={`${field.label}-${field.value}`}
+              className="p-3"
+              style={{
+                border: '1px solid rgba(200,169,110,0.16)',
+                borderRadius: '0.45rem',
+                backgroundColor: 'rgba(240,234,214,0.02)',
+              }}
+            >
+              <p
+                className="font-mono-body mb-1"
+                style={{
+                  fontSize: '0.5rem',
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(200,169,110,0.85)',
+                }}
+              >
+                {field.label}
+              </p>
+              <p style={{ fontSize: '0.78rem', color: 'rgba(240,234,214,0.88)', lineHeight: 1.5 }}>
+                {field.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {model.items.length > 0 && (
+        <div
+          className="p-3 mb-4"
+          style={{
+            borderRadius: '0.45rem',
+            border: '1px solid rgba(200,169,110,0.14)',
+            backgroundColor: 'rgba(240,234,214,0.02)',
+          }}
+        >
+          <p
+            className="font-mono-body mb-2"
+            style={{
+              fontSize: '0.54rem',
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'rgba(200,169,110,0.9)',
+            }}
+          >
+            Puntos clave
+          </p>
+          <ul className="space-y-1.5 pl-4" style={{ color: 'rgba(240,234,214,0.88)' }}>
+            {model.items.map((item, index) => (
+              <li key={`${item}-${index}`} style={{ fontSize: '0.78rem', lineHeight: 1.5 }}>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <p
-        className="font-mono-body mb-3"
+        className="font-mono-body"
         style={{
-          fontSize: '0.58rem',
-          letterSpacing: '0.2em',
+          fontSize: '0.54rem',
+          letterSpacing: '0.12em',
           textTransform: 'uppercase',
-          color: 'var(--faded-gold)',
+          color: 'rgba(240,234,214,0.55)',
         }}
       >
-        {language}
+        Representacion visual del contenido publicado
       </p>
-      <pre
-        className="font-mono-body overflow-auto"
-        style={{
-          fontSize: '0.64rem',
-          lineHeight: 1.6,
-          color: 'rgba(240,234,214,0.9)',
-          maxHeight: '20rem',
-          whiteSpace: 'pre-wrap',
-        }}
-      >
-        {JSON.stringify(data ?? {}, null, 2)}
-      </pre>
     </div>
   );
+}
+
+function toPreviewModel(section: SectionKey, data: unknown): {
+  title: string;
+  subtitle: string;
+  imageSrc: string;
+  imageAlt: string;
+  fields: Array<{ label: string; value: string }>;
+  items: string[];
+} {
+  const fallback = {
+    title: 'Sin contenido cargado',
+    subtitle: 'Aun no hay una traduccion disponible para esta seccion.',
+    imageSrc: '',
+    imageAlt: '',
+    fields: [] as Array<{ label: string; value: string }>,
+    items: [] as string[],
+  };
+
+  if (!data || typeof data !== 'object') {
+    return fallback;
+  }
+
+  const sectionData = data as Record<string, unknown>;
+
+  if (section === 'hero') {
+    return {
+      title: getText(sectionData.title, 'Hero principal'),
+      subtitle: getText(sectionData.tagline, 'Sin subtitulo'),
+      imageSrc: getText(sectionData.artistImageSrc),
+      imageAlt: getText(sectionData.artistImageAlt),
+      fields: [{ label: 'Texto de desplazamiento', value: getText(sectionData.scrollText, 'No definido') }],
+      items: [],
+    };
+  }
+
+  if (section === 'about') {
+    return {
+      title: getText(sectionData.heading, 'Sobre el artista'),
+      subtitle: getText(sectionData.bio, 'Sin descripcion disponible.'),
+      imageSrc: getText(sectionData.imageSrc),
+      imageAlt: getText(sectionData.imageAlt),
+      fields: [
+        { label: 'Frase', value: getText(sectionData.quote, 'No definida') },
+        { label: 'Ubicacion', value: getText(sectionData.location, 'No definida') },
+        { label: 'Detalles', value: getText(sectionData.details, 'No definidos') },
+        { label: 'Desde', value: getText(sectionData.established, 'No definido') },
+      ],
+      items: [],
+    };
+  }
+
+  if (section === 'specialties') {
+    return {
+      title: getText(sectionData.sectionLabel, 'Especialidades'),
+      subtitle: 'Resumen de estilos disponibles en el estudio.',
+      imageSrc: '',
+      imageAlt: '',
+      fields: [{ label: 'Numero de seccion', value: getText(sectionData.sectionNumber, 'No definido') }],
+      items: toTextList(sectionData.items),
+    };
+  }
+
+  if (section === 'portfolio') {
+    const images = Array.isArray(sectionData.images)
+      ? (sectionData.images as Array<Record<string, unknown>>)
+      : [];
+
+    const featuredImage = images.find(
+      (image) => image && typeof image === 'object' && typeof image.src === 'string' && image.src.trim().length > 0
+    ) ?? null;
+
+    const items = images.slice(0, 5).map((image, index) => {
+      const title = getText(image.title, `Pieza ${index + 1}`);
+      const year = getText(image.year);
+      const category = getText(image.category);
+      return [title, year, category].filter(Boolean).join(' · ');
+    });
+
+    return {
+      title: getText(sectionData.sectionLabel, 'Galeria de trabajos'),
+      subtitle: getText(sectionData.subtitle, 'Seleccion visual de trabajos recientes.'),
+      imageSrc: getText(featuredImage?.src),
+      imageAlt: getText(featuredImage?.title, 'Pieza destacada'),
+      fields: [{ label: 'Piezas visibles', value: `${images.length}` }],
+      items,
+    };
+  }
+
+  if (section === 'contact') {
+    return {
+      title: getText(sectionData.heading, 'Reservas y contacto'),
+      subtitle: getText(sectionData.quote, 'Canales para agendar una sesion.'),
+      imageSrc: '',
+      imageAlt: '',
+      fields: [
+        { label: 'Email', value: getText(sectionData.email, 'No definido') },
+        { label: 'Instagram', value: getText(sectionData.instagram, 'No definido') },
+        { label: 'Ubicacion', value: getText(sectionData.location, 'No definida') },
+        { label: 'WhatsApp', value: getText(sectionData.whatsapp, 'No definido') },
+      ],
+      items: [getText(sectionData.ctaText), getText(sectionData.whatsappText)].filter(Boolean),
+    };
+  }
+
+  if (section === 'footer') {
+    return {
+      title: getText(sectionData.brand, 'Marca del estudio'),
+      subtitle: getText(sectionData.tagline, 'Sin frase disponible.'),
+      imageSrc: '',
+      imageAlt: '',
+      fields: [
+        { label: 'Fundado', value: getText(sectionData.established, 'No definido') },
+        { label: 'Derechos', value: getText(sectionData.rights, 'No definido') },
+      ],
+      items: [],
+    };
+  }
+
+  return fallback;
+}
+
+function getText(value: unknown, fallback = ''): string {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const trimmed = value.trim();
+  return trimmed || fallback;
+}
+
+function toTextList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => getText(item))
+    .filter(Boolean);
 }
 
 function getPreviewSection(i18n: ContentI18nSection | undefined, section: SectionKey): unknown {
@@ -1687,10 +1856,12 @@ function getPreviewSection(i18n: ContentI18nSection | undefined, section: Sectio
 }
 
 const inputStyle: React.CSSProperties = {
-  backgroundColor: 'rgba(240,234,214,0.05)',
-  border: '1px solid rgba(200,169,110,0.25)',
+  backgroundColor: 'rgba(240,234,214,0.025)',
+  border: '1px solid rgba(200,169,110,0.16)',
+  borderRadius: '0.45rem',
   color: 'var(--parchment)',
-  fontSize: '0.75rem',
+  fontSize: '0.72rem',
+  lineHeight: 1.45,
 };
 
 const primaryButtonStyle: React.CSSProperties = {
