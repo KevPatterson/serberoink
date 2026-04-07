@@ -243,7 +243,7 @@ npm run type-check
 npm run build
 ```
 
-Nota: la configuracion de next.config.mjs actualmente permite ignoreBuildErrors e ignoreDuringBuilds. Si quieres endurecer CI/CD, considera desactivarlos.
+Nota: la configuracion de next.config.mjs actualmente permite ignoreBuildErrors e ignoreDuringBuilds. Si quieres endurecer CI/CD, considera desactivarlos
 
 ## Produccion
 
