@@ -6,6 +6,7 @@ export interface PortfolioImage {
   titleEn?: string;
   year: string;
   category: string;
+  placements?: string[];
 }
 
 export interface ContentI18nSection {
@@ -231,6 +232,15 @@ function normalizeContent(input: unknown): SiteContent {
                 ? record.category
                 : 'general',
           };
+
+          if (Array.isArray(record.placements)) {
+            const placements = record.placements
+              .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+              .map((value) => value.trim().toLowerCase());
+            if (placements.length > 0) {
+              normalized.placements = placements;
+            }
+          }
 
           if (typeof record.titleEs === 'string') normalized.titleEs = record.titleEs;
           if (typeof record.titleEn === 'string') normalized.titleEn = record.titleEn;

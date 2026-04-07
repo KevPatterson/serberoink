@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 interface TattooPlacementMapProps {
   onZoneClick?: (zone: string) => void;
@@ -8,446 +8,1241 @@ interface TattooPlacementMapProps {
   lang?: "es" | "en";
 }
 
-type ZoneKey =
-  | "head" | "neck" | "chest"
-  | "left-arm" | "right-arm"
-  | "left-forearm" | "right-forearm"
-  | "left-hand" | "right-hand"
-  | "ribs" | "stomach"
-  | "left-thigh" | "right-thigh"
-  | "left-shin" | "right-shin"
-  | "left-foot" | "right-foot"
-  | "upper-back" | "lower-back";
+interface BodyZone {
+  id: string;
+  label: string;
+  cx: number;
+  cy: number;
+  pain: number;
+  healing: string;
+  works: string[];
+  painLabel: string;
+  description: string;
+  mirrorId?: string;
+}
 
-type ZoneInfo = { label: string; labelEs: string; pain: 1|2|3|4|5; healing: string };
-type BodyView = "front" | "back";
-
-const ZONE_DATA: Record<ZoneKey, ZoneInfo> = {
-  head:            { label: "Head",          labelEs: "Cabeza",              pain: 3, healing: "2-4 semanas" },
-  neck:            { label: "Neck",          labelEs: "Cuello",              pain: 4, healing: "3-5 semanas" },
-  chest:           { label: "Chest",         labelEs: "Pecho",               pain: 3, healing: "3-6 semanas" },
-  "left-arm":      { label: "Left Arm",      labelEs: "Brazo Izquierdo",     pain: 2, healing: "2-4 semanas" },
-  "right-arm":     { label: "Right Arm",     labelEs: "Brazo Derecho",       pain: 2, healing: "2-4 semanas" },
-  "left-forearm":  { label: "Left Forearm",  labelEs: "Antebrazo Izquierdo", pain: 2, healing: "2-4 semanas" },
-  "right-forearm": { label: "Right Forearm", labelEs: "Antebrazo Derecho",   pain: 2, healing: "2-4 semanas" },
-  "left-hand":     { label: "Left Hand",     labelEs: "Mano Izquierda",      pain: 5, healing: "4-6 semanas" },
-  "right-hand":    { label: "Right Hand",    labelEs: "Mano Derecha",        pain: 5, healing: "4-6 semanas" },
-  ribs:            { label: "Ribs",          labelEs: "Costilla",            pain: 5, healing: "3-6 semanas" },
-  stomach:         { label: "Stomach",       labelEs: "Estómago",            pain: 3, healing: "3-5 semanas" },
-  "left-thigh":    { label: "Left Thigh",    labelEs: "Muslo Izquierdo",     pain: 2, healing: "2-4 semanas" },
-  "right-thigh":   { label: "Right Thigh",   labelEs: "Muslo Derecho",       pain: 2, healing: "2-4 semanas" },
-  "left-shin":     { label: "Left Shin",     labelEs: "Espinilla Izquierda", pain: 2, healing: "2-4 semanas" },
-  "right-shin":    { label: "Right Shin",    labelEs: "Espinilla Derecha",   pain: 2, healing: "2-4 semanas" },
-  "left-foot":     { label: "Left Foot",     labelEs: "Pie Izquierdo",       pain: 5, healing: "4-6 semanas" },
-  "right-foot":    { label: "Right Foot",    labelEs: "Pie Derecho",         pain: 5, healing: "4-6 semanas" },
-  "upper-back":    { label: "Upper Back",    labelEs: "Espalda Alta",        pain: 4, healing: "3-6 semanas" },
-  "lower-back":    { label: "Lower Back",    labelEs: "Espalda Baja",        pain: 4, healing: "3-5 semanas" },
+const painColors: Record<string, string> = {
+  "Very Low": "#22c55e",
+  Low: "#86efac",
+  Moderate: "#facc15",
+  High: "#f97316",
+  "Very High": "#ef4444",
+  Extreme: "#dc2626",
 };
 
-const VP_FRONT: Record<ZoneKey, string> = {
-  head:            "M150,20 C136,20 126,32 126,47 C126,61 136,72 150,72 C164,72 174,61 174,47 C174,32 164,20 150,20 Z",
-  neck:            "M140,72 C138,82 138,90 142,98 L158,98 C162,90 162,82 160,72 Z",
-  chest:           "M116,98 C108,112 106,126 108,144 C114,158 126,166 150,166 C174,166 186,158 192,144 C194,126 192,112 184,98 Z",
-  "left-arm":      "M108,100 C90,108 82,122 84,146 C88,168 94,186 102,202 C108,206 114,204 117,198 C112,180 108,160 108,140 Z",
-  "right-arm":     "M192,100 C210,108 218,122 216,146 C212,168 206,186 198,202 C192,206 186,204 183,198 C188,180 192,160 192,140 Z",
-  "left-forearm":  "M102,202 C96,218 92,236 92,252 C96,266 102,270 110,266 C112,244 114,222 117,198 Z",
-  "right-forearm": "M198,202 C204,218 208,236 208,252 C204,266 198,270 190,266 C188,244 186,222 183,198 Z",
-  "left-hand":     "M92,252 C86,262 86,272 94,280 C102,284 108,282 110,266 Z",
-  "right-hand":    "M208,252 C214,262 214,272 206,280 C198,284 192,282 190,266 Z",
-  ribs:            "M118,148 C116,166 118,182 126,198 C134,204 142,200 142,188 L142,166 C140,156 132,150 118,148 Z",
-  stomach:         "M142,166 L158,166 C164,178 164,192 158,208 L142,208 C136,192 136,178 142,166 Z",
-  "left-thigh":    "M130,208 C118,224 114,246 116,272 C122,286 130,292 140,292 C142,266 142,236 142,208 Z",
-  "right-thigh":   "M170,208 C182,224 186,246 184,272 C178,286 170,292 160,292 C158,266 158,236 158,208 Z",
-  "left-shin":     "M116,272 C114,294 116,318 124,338 C130,344 136,344 140,338 C140,318 140,304 140,292 C130,292 122,286 116,272 Z",
-  "right-shin":    "M184,272 C186,294 184,318 176,338 C170,344 164,344 160,338 C160,318 160,304 160,292 C170,292 178,286 184,272 Z",
-  "left-foot":     "M124,338 C114,342 108,350 108,358 C118,362 130,362 142,358 C144,350 140,344 132,340 Z",
-  "right-foot":    "M176,338 C186,342 192,350 192,358 C182,362 170,362 158,358 C156,350 160,344 168,340 Z",
-  "upper-back":    "M126,108 C120,122 122,136 128,148 C136,154 144,154 150,150 C156,154 164,154 172,148 C178,136 180,122 174,108 C166,102 158,100 150,102 C142,100 134,102 126,108 Z",
-  "lower-back":    "M132,176 C126,188 128,202 136,214 C144,218 156,218 164,214 C172,202 174,188 168,176 C160,170 140,170 132,176 Z",
+const painLabels: Record<"es" | "en", Record<string, string>> = {
+  es: {
+    "Very Low": "Muy bajo",
+    Low: "Bajo",
+    Moderate: "Moderado",
+    High: "Alto",
+    "Very High": "Muy alto",
+    Extreme: "Extremo",
+  },
+  en: {
+    "Very Low": "Very Low",
+    Low: "Low",
+    Moderate: "Moderate",
+    High: "High",
+    "Very High": "Very High",
+    Extreme: "Extreme",
+  },
 };
 
-const VP_BACK: Record<ZoneKey, string> = {
-  ...VP_FRONT,
-  "left-arm":      VP_FRONT["right-arm"],
-  "right-arm":     VP_FRONT["left-arm"],
-  "left-forearm":  VP_FRONT["right-forearm"],
-  "right-forearm": VP_FRONT["left-forearm"],
-  "left-hand":     VP_FRONT["right-hand"],
-  "right-hand":    VP_FRONT["left-hand"],
-  "left-thigh":    VP_FRONT["right-thigh"],
-  "right-thigh":   VP_FRONT["left-thigh"],
-  "left-shin":     VP_FRONT["right-shin"],
-  "right-shin":    VP_FRONT["left-shin"],
-  "left-foot":     VP_FRONT["right-foot"],
-  "right-foot":    VP_FRONT["left-foot"],
-  "upper-back":    "M118,98 C110,112 110,132 120,150 C132,162 142,168 150,166 C158,168 168,162 180,150 C190,132 190,112 182,98 C172,90 160,88 150,92 C140,88 128,90 118,98 Z",
-  "lower-back":    "M126,168 C120,184 122,204 134,220 C142,226 158,226 166,220 C178,204 180,184 174,168 C164,160 136,160 126,168 Z",
-};
-
-// Bounding boxes rectangulares para shins y feet — los paths originales son
-// demasiado estrechos para hover confiable. Los rect cubren toda el área visible.
-const HIT_FRONT: Partial<Record<ZoneKey, string>> = {
-  "left-shin":  "M108,272 L144,272 L144,344 L108,344 Z",
-  "right-shin": "M156,272 L192,272 L192,344 L156,344 Z",
-  "left-foot":  "M104,336 L146,336 L146,366 L104,366 Z",
-  "right-foot": "M154,336 L196,336 L196,366 L154,366 Z",
-};
-
-const HIT_BACK: Partial<Record<ZoneKey, string>> = {
-  "left-shin":  HIT_FRONT["right-shin"],
-  "right-shin": HIT_FRONT["left-shin"],
-  "left-foot":  HIT_FRONT["right-foot"],
-  "right-foot": HIT_FRONT["left-foot"],
-};
-
-const FRONT_ZONES: ZoneKey[] = [
-  "head","neck","chest",
-  "left-arm","right-arm","left-forearm","right-forearm","left-hand","right-hand",
-  "ribs","stomach","left-thigh","right-thigh","left-shin","right-shin","left-foot","right-foot",
+const frontZones: BodyZone[] = [
+  {
+    id: "head",
+    label: "Head / Scalp",
+    cx: 100,
+    cy: 32,
+    pain: 9,
+    healing: "2-3 weeks",
+    works: ["Lettering", "Geometric"],
+    painLabel: "Extreme",
+    description:
+      "Very sensitive area. Thin skin over bone. Requires experienced artist.",
+  },
+  {
+    id: "neck",
+    label: "Neck",
+    cx: 100,
+    cy: 74,
+    pain: 8,
+    healing: "2-3 weeks",
+    works: ["Fine Line", "Lettering"],
+    painLabel: "Very High",
+    description:
+      "Sensitive with lots of nerve endings. Heals well but fades faster.",
+  },
+  {
+    id: "chest-left",
+    label: "Chest",
+    cx: 80,
+    cy: 118,
+    pain: 7,
+    healing: "2-3 weeks",
+    works: ["Blackwork", "Realism", "Neo-Traditional"],
+    painLabel: "High",
+    description:
+      "Flat surface ideal for large pieces. Sternum area is very painful.",
+    mirrorId: "chest-right",
+  },
+  {
+    id: "chest-right",
+    label: "Chest",
+    cx: 120,
+    cy: 118,
+    pain: 7,
+    healing: "2-3 weeks",
+    works: ["Blackwork", "Realism", "Neo-Traditional"],
+    painLabel: "High",
+    description:
+      "Flat surface ideal for large pieces. Sternum area is very painful.",
+    mirrorId: "chest-left",
+  },
+  {
+    id: "ribs-left",
+    label: "Ribs",
+    cx: 60,
+    cy: 152,
+    pain: 10,
+    healing: "3-4 weeks",
+    works: ["Fine Line", "Blackwork"],
+    painLabel: "Extreme",
+    description:
+      "The most painful area. Thin skin over bone. Serbero has stunning rib pieces.",
+    mirrorId: "ribs-right",
+  },
+  {
+    id: "ribs-right",
+    label: "Ribs",
+    cx: 140,
+    cy: 152,
+    pain: 10,
+    healing: "3-4 weeks",
+    works: ["Fine Line", "Blackwork"],
+    painLabel: "Extreme",
+    description:
+      "The most painful area. Thin skin over bone. Serbero has stunning rib pieces.",
+    mirrorId: "ribs-left",
+  },
+  {
+    id: "stomach",
+    label: "Stomach",
+    cx: 100,
+    cy: 175,
+    pain: 6,
+    healing: "2-3 weeks",
+    works: ["Blackwork", "Geometric"],
+    painLabel: "Moderate",
+    description:
+      "Soft tissue means more movement. Heals well with proper aftercare.",
+  },
+  {
+    id: "upper-arm-left",
+    label: "Upper Arm",
+    cx: 44,
+    cy: 130,
+    pain: 4,
+    healing: "2 weeks",
+    works: ["Sleeve", "Blackwork", "Realism", "Neo-Traditional"],
+    painLabel: "Low",
+    description:
+      "One of the best spots. Fleshy, flat, and heals beautifully. Perfect for sleeves.",
+    mirrorId: "upper-arm-right",
+  },
+  {
+    id: "upper-arm-right",
+    label: "Upper Arm",
+    cx: 156,
+    cy: 130,
+    pain: 4,
+    healing: "2 weeks",
+    works: ["Sleeve", "Blackwork", "Realism", "Neo-Traditional"],
+    painLabel: "Low",
+    description:
+      "One of the best spots. Fleshy, flat, and heals beautifully. Perfect for sleeves.",
+    mirrorId: "upper-arm-left",
+  },
+  {
+    id: "forearm-left",
+    label: "Forearm",
+    cx: 35,
+    cy: 192,
+    pain: 3,
+    healing: "2 weeks",
+    works: ["Fine Line", "Blackwork", "Lettering"],
+    painLabel: "Very Low",
+    description:
+      "Excellent visibility and healing. Serbero's most requested placement.",
+    mirrorId: "forearm-right",
+  },
+  {
+    id: "forearm-right",
+    label: "Forearm",
+    cx: 165,
+    cy: 192,
+    pain: 3,
+    healing: "2 weeks",
+    works: ["Fine Line", "Blackwork", "Lettering"],
+    painLabel: "Very Low",
+    description:
+      "Excellent visibility and healing. Serbero's most requested placement.",
+    mirrorId: "forearm-left",
+  },
+  {
+    id: "hand-left",
+    label: "Hand / Wrist",
+    cx: 34,
+    cy: 242,
+    pain: 7,
+    healing: "3-4 weeks",
+    works: ["Geometric", "Lettering", "Fine Line"],
+    painLabel: "High",
+    description:
+      "High fade rate due to constant use. Requires touch-ups. Bold designs recommended.",
+    mirrorId: "hand-right",
+  },
+  {
+    id: "hand-right",
+    label: "Hand / Wrist",
+    cx: 166,
+    cy: 242,
+    pain: 7,
+    healing: "3-4 weeks",
+    works: ["Geometric", "Lettering", "Fine Line"],
+    painLabel: "High",
+    description:
+      "High fade rate due to constant use. Requires touch-ups. Bold designs recommended.",
+    mirrorId: "hand-left",
+  },
+  {
+    id: "thigh-left",
+    label: "Thigh",
+    cx: 68,
+    cy: 272,
+    pain: 3,
+    healing: "2 weeks",
+    works: ["Large Pieces", "Realism", "Blackwork", "Neo-Traditional"],
+    painLabel: "Very Low",
+    description:
+      "Large fleshy area perfect for big, detailed work. Heals very well.",
+    mirrorId: "thigh-right",
+  },
+  {
+    id: "thigh-right",
+    label: "Thigh",
+    cx: 132,
+    cy: 272,
+    pain: 3,
+    healing: "2 weeks",
+    works: ["Large Pieces", "Realism", "Blackwork", "Neo-Traditional"],
+    painLabel: "Very Low",
+    description:
+      "Large fleshy area perfect for big, detailed work. Heals very well.",
+    mirrorId: "thigh-left",
+  },
+  {
+    id: "knee-left",
+    label: "Knee",
+    cx: 67,
+    cy: 326,
+    pain: 8,
+    healing: "3 weeks",
+    works: ["Geometric", "Blackwork"],
+    painLabel: "Very High",
+    description:
+      "Bony and sensitive. Constant movement affects healing. Bold designs work best.",
+    mirrorId: "knee-right",
+  },
+  {
+    id: "knee-right",
+    label: "Knee",
+    cx: 133,
+    cy: 326,
+    pain: 8,
+    healing: "3 weeks",
+    works: ["Geometric", "Blackwork"],
+    painLabel: "Very High",
+    description:
+      "Bony and sensitive. Constant movement affects healing. Bold designs work best.",
+    mirrorId: "knee-left",
+  },
+  {
+    id: "calf-left",
+    label: "Calf",
+    cx: 66,
+    cy: 375,
+    pain: 4,
+    healing: "2 weeks",
+    works: ["Fine Line", "Blackwork", "Realism"],
+    painLabel: "Low",
+    description:
+      "Fleshy and forgiving. Great for medium to large pieces. Heals consistently well.",
+    mirrorId: "calf-right",
+  },
+  {
+    id: "calf-right",
+    label: "Calf",
+    cx: 134,
+    cy: 375,
+    pain: 4,
+    healing: "2 weeks",
+    works: ["Fine Line", "Blackwork", "Realism"],
+    painLabel: "Low",
+    description:
+      "Fleshy and forgiving. Great for medium to large pieces. Heals consistently well.",
+    mirrorId: "calf-left",
+  },
+  {
+    id: "ankle-left",
+    label: "Ankle / Foot",
+    cx: 63,
+    cy: 440,
+    pain: 8,
+    healing: "4-6 weeks",
+    works: ["Fine Line", "Geometric", "Lettering"],
+    painLabel: "Very High",
+    description:
+      "Thin skin over bone. Slow healing due to circulation. Delicate designs recommended.",
+    mirrorId: "ankle-right",
+  },
+  {
+    id: "ankle-right",
+    label: "Ankle / Foot",
+    cx: 137,
+    cy: 440,
+    pain: 8,
+    healing: "4-6 weeks",
+    works: ["Fine Line", "Geometric", "Lettering"],
+    painLabel: "Very High",
+    description:
+      "Thin skin over bone. Slow healing due to circulation. Delicate designs recommended.",
+    mirrorId: "ankle-left",
+  },
 ];
 
-const BACK_ZONES: ZoneKey[] = [
-  "head","neck","upper-back","lower-back",
-  "left-arm","right-arm","left-forearm","right-forearm","left-hand","right-hand",
-  "left-thigh","right-thigh","left-shin","right-shin","left-foot","right-foot",
+const backZones: BodyZone[] = [
+  {
+    id: "back-head",
+    label: "Back of Head",
+    cx: 100,
+    cy: 32,
+    pain: 9,
+    healing: "2-3 weeks",
+    works: ["Geometric", "Lettering"],
+    painLabel: "Extreme",
+    description:
+      "Thin skin over skull. Requires shaving. Very painful but striking results.",
+  },
+  {
+    id: "back-neck",
+    label: "Nape of Neck",
+    cx: 100,
+    cy: 74,
+    pain: 7,
+    healing: "2-3 weeks",
+    works: ["Fine Line", "Lettering", "Geometric"],
+    painLabel: "High",
+    description:
+      "Popular placement, highly visible. Heals well but can fade with sun exposure.",
+  },
+  {
+    id: "shoulder-left",
+    label: "Shoulder",
+    cx: 54,
+    cy: 104,
+    pain: 4,
+    healing: "2 weeks",
+    works: ["Sleeve", "Blackwork", "Realism"],
+    painLabel: "Low",
+    description: "Rounded surface, great for wrapping designs. Heals beautifully.",
+    mirrorId: "shoulder-right",
+  },
+  {
+    id: "shoulder-right",
+    label: "Shoulder",
+    cx: 146,
+    cy: 104,
+    pain: 4,
+    healing: "2 weeks",
+    works: ["Sleeve", "Blackwork", "Realism"],
+    painLabel: "Low",
+    description: "Rounded surface, great for wrapping designs. Heals beautifully.",
+    mirrorId: "shoulder-left",
+  },
+  {
+    id: "upper-back",
+    label: "Upper Back",
+    cx: 100,
+    cy: 128,
+    pain: 5,
+    healing: "2-3 weeks",
+    works: ["Large Pieces", "Blackwork", "Realism", "Neo-Traditional"],
+    painLabel: "Moderate",
+    description:
+      "Large flat canvas. Ideal for back pieces and wings. Heals very well.",
+  },
+  {
+    id: "back-ribs-left",
+    label: "Back Ribs",
+    cx: 60,
+    cy: 160,
+    pain: 9,
+    healing: "3-4 weeks",
+    works: ["Fine Line", "Blackwork"],
+    painLabel: "Extreme",
+    description:
+      "Extremely painful. Thin skin over ribs. Stunning placement for large work.",
+    mirrorId: "back-ribs-right",
+  },
+  {
+    id: "back-ribs-right",
+    label: "Back Ribs",
+    cx: 140,
+    cy: 160,
+    pain: 9,
+    healing: "3-4 weeks",
+    works: ["Fine Line", "Blackwork"],
+    painLabel: "Extreme",
+    description:
+      "Extremely painful. Thin skin over ribs. Stunning placement for large work.",
+    mirrorId: "back-ribs-left",
+  },
+  {
+    id: "lower-back",
+    label: "Lower Back",
+    cx: 100,
+    cy: 196,
+    pain: 6,
+    healing: "2-3 weeks",
+    works: ["Blackwork", "Geometric", "Tribal"],
+    painLabel: "Moderate",
+    description:
+      "Classic placement. Flat surface, heals well. Great for symmetrical designs.",
+  },
+  {
+    id: "back-upper-arm-left",
+    label: "Tricep",
+    cx: 44,
+    cy: 130,
+    pain: 4,
+    healing: "2 weeks",
+    works: ["Sleeve", "Blackwork", "Realism"],
+    painLabel: "Low",
+    description: "Tricep area. Fleshy and flat. Excellent for sleeve continuation.",
+    mirrorId: "back-upper-arm-right",
+  },
+  {
+    id: "back-upper-arm-right",
+    label: "Tricep",
+    cx: 156,
+    cy: 130,
+    pain: 4,
+    healing: "2 weeks",
+    works: ["Sleeve", "Blackwork", "Realism"],
+    painLabel: "Low",
+    description: "Tricep area. Fleshy and flat. Excellent for sleeve continuation.",
+    mirrorId: "back-upper-arm-left",
+  },
+  {
+    id: "back-forearm-left",
+    label: "Forearm (Back)",
+    cx: 35,
+    cy: 192,
+    pain: 3,
+    healing: "2 weeks",
+    works: ["Fine Line", "Blackwork", "Lettering"],
+    painLabel: "Very Low",
+    description:
+      "Outer forearm. Very visible, heals well. One of the easiest placements.",
+    mirrorId: "back-forearm-right",
+  },
+  {
+    id: "back-forearm-right",
+    label: "Forearm (Back)",
+    cx: 165,
+    cy: 192,
+    pain: 3,
+    healing: "2 weeks",
+    works: ["Fine Line", "Blackwork", "Lettering"],
+    painLabel: "Very Low",
+    description:
+      "Outer forearm. Very visible, heals well. One of the easiest placements.",
+    mirrorId: "back-forearm-left",
+  },
+  {
+    id: "back-thigh-left",
+    label: "Back Thigh",
+    cx: 68,
+    cy: 272,
+    pain: 3,
+    healing: "2 weeks",
+    works: ["Large Pieces", "Realism", "Blackwork"],
+    painLabel: "Very Low",
+    description: "Hamstring area. Large fleshy canvas. Heals very well, low pain.",
+    mirrorId: "back-thigh-right",
+  },
+  {
+    id: "back-thigh-right",
+    label: "Back Thigh",
+    cx: 132,
+    cy: 272,
+    pain: 3,
+    healing: "2 weeks",
+    works: ["Large Pieces", "Realism", "Blackwork"],
+    painLabel: "Very Low",
+    description: "Hamstring area. Large fleshy canvas. Heals very well, low pain.",
+    mirrorId: "back-thigh-left",
+  },
+  {
+    id: "back-knee-left",
+    label: "Back of Knee",
+    cx: 67,
+    cy: 326,
+    pain: 9,
+    healing: "3-4 weeks",
+    works: ["Small Pieces", "Fine Line"],
+    painLabel: "Extreme",
+    description:
+      "Ditch of the knee. One of the most painful spots. Constant movement slows healing.",
+    mirrorId: "back-knee-right",
+  },
+  {
+    id: "back-knee-right",
+    label: "Back of Knee",
+    cx: 133,
+    cy: 326,
+    pain: 9,
+    healing: "3-4 weeks",
+    works: ["Small Pieces", "Fine Line"],
+    painLabel: "Extreme",
+    description:
+      "Ditch of the knee. One of the most painful spots. Constant movement slows healing.",
+    mirrorId: "back-knee-left",
+  },
+  {
+    id: "back-calf-left",
+    label: "Calf (Back)",
+    cx: 66,
+    cy: 375,
+    pain: 4,
+    healing: "2 weeks",
+    works: ["Fine Line", "Blackwork", "Realism"],
+    painLabel: "Low",
+    description: "Great canvas for detailed work. Heals consistently well.",
+    mirrorId: "back-calf-right",
+  },
+  {
+    id: "back-calf-right",
+    label: "Calf (Back)",
+    cx: 134,
+    cy: 375,
+    pain: 4,
+    healing: "2 weeks",
+    works: ["Fine Line", "Blackwork", "Realism"],
+    painLabel: "Low",
+    description: "Great canvas for detailed work. Heals consistently well.",
+    mirrorId: "back-calf-left",
+  },
+  {
+    id: "back-ankle-left",
+    label: "Achilles / Heel",
+    cx: 63,
+    cy: 440,
+    pain: 8,
+    healing: "4-6 weeks",
+    works: ["Fine Line", "Geometric"],
+    painLabel: "Very High",
+    description: "Thin skin over tendon. Slow healing. Minimal designs recommended.",
+    mirrorId: "back-ankle-right",
+  },
+  {
+    id: "back-ankle-right",
+    label: "Achilles / Heel",
+    cx: 137,
+    cy: 440,
+    pain: 8,
+    healing: "4-6 weeks",
+    works: ["Fine Line", "Geometric"],
+    painLabel: "Very High",
+    description: "Thin skin over tendon. Slow healing. Minimal designs recommended.",
+    mirrorId: "back-ankle-left",
+  },
 ];
 
-function InkDrop({ filled }: { filled: boolean }) {
+function FrontSilhouette() {
+  const fill = "#1c1917";
+  const stroke = "#44403c";
+  const sw = "1.2";
   return (
-    <svg width="10" height="12" viewBox="0 0 10 12" aria-hidden="true">
-      <path
-        d="M5 1 C5.8 2.9 9 5.4 9 8 A4 4 0 1 1 1 8 C1 5.4 4.2 2.9 5 1 Z"
-        fill={filled ? "var(--faded-gold)" : "transparent"}
-        stroke="var(--faded-gold)"
-        strokeWidth="1"
-      />
+    <g>
+      <ellipse cx="100" cy="32" rx="26" ry="30" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <ellipse cx="74" cy="34" rx="5" ry="8" fill={fill} stroke={stroke} strokeWidth="1" />
+      <ellipse cx="126" cy="34" rx="5" ry="8" fill={fill} stroke={stroke} strokeWidth="1" />
+      <path d="M 91 60 L 88 80 L 112 80 L 109 60 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 88 80 Q 70 82 56 96 L 60 100 Q 74 88 90 88 L 110 88 Q 126 88 140 100 L 144 96 Q 130 82 112 80 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 60 100 Q 54 108 54 120 L 54 200 Q 54 210 62 214 L 80 218 Q 90 222 100 222 Q 110 222 120 218 L 128 214 Q 138 210 146 200 L 146 120 Q 146 108 140 100 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 68 108 Q 84 116 100 112 Q 116 116 132 108" fill="none" stroke="#2a2520" strokeWidth="1" />
+      <line x1="100" y1="130" x2="100" y2="210" stroke="#2a2520" strokeWidth="0.8" />
+      <path d="M 72 148 Q 100 152 128 148" fill="none" stroke="#2a2520" strokeWidth="0.7" />
+      <path d="M 72 166 Q 100 170 128 166" fill="none" stroke="#2a2520" strokeWidth="0.7" />
+      <path d="M 74 184 Q 100 188 126 184" fill="none" stroke="#2a2520" strokeWidth="0.7" />
+      <circle cx="100" cy="198" r="2.5" fill="#2a2520" />
+      <path d="M 54 100 Q 36 106 32 130 Q 30 148 34 162 Q 38 170 44 170 Q 50 170 54 162 Q 58 148 56 120 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 146 100 Q 164 106 168 130 Q 170 148 166 162 Q 162 170 156 170 Q 150 170 146 162 Q 142 148 144 120 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 34 162 Q 28 172 26 192 Q 24 210 28 226 Q 30 232 36 232 Q 42 232 44 226 Q 46 210 44 192 Q 44 172 36 172 Q 32 172 28 172 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 166 162 Q 172 172 174 192 Q 176 210 172 226 Q 170 232 164 232 Q 158 232 156 226 Q 154 210 156 192 Q 156 172 156 162 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 28 226 Q 24 234 24 244 Q 24 252 30 254 Q 36 256 42 252 Q 46 248 44 240 Q 44 232 36 232 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 172 226 Q 176 234 176 244 Q 176 252 170 254 Q 164 256 158 252 Q 154 248 156 240 Q 156 232 164 232 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 62 214 Q 54 218 52 228 L 56 232 Q 62 224 72 222 L 80 220 Q 90 222 100 222 Q 110 222 120 220 L 128 222 Q 138 224 144 232 L 148 228 Q 146 218 138 214 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 56 232 Q 50 240 50 260 Q 50 290 54 310 Q 56 318 64 320 Q 72 322 78 316 Q 84 308 84 290 Q 84 264 82 244 Q 80 232 72 228 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 144 232 Q 150 240 150 260 Q 150 290 146 310 Q 144 318 136 320 Q 128 322 122 316 Q 116 308 116 290 Q 116 264 118 244 Q 120 232 128 228 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 54 310 Q 50 320 52 332 Q 54 340 62 342 Q 70 344 78 340 Q 84 336 84 326 Q 84 316 78 316 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 146 310 Q 150 320 148 332 Q 146 340 138 342 Q 130 344 122 340 Q 116 336 116 326 Q 116 316 122 316 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 52 332 Q 48 346 50 368 Q 52 388 56 402 Q 60 410 66 412 Q 74 414 80 408 Q 86 400 86 382 Q 86 360 84 344 Q 82 336 78 340 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 148 332 Q 152 346 150 368 Q 148 388 144 402 Q 140 410 134 412 Q 126 414 120 408 Q 114 400 114 382 Q 114 360 116 344 Q 118 336 122 340 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 56 402 Q 52 412 52 422 Q 52 430 58 434 Q 64 438 72 436 Q 78 432 80 424 Q 80 412 80 408 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 144 402 Q 148 412 148 422 Q 148 430 142 434 Q 136 438 128 436 Q 122 432 120 424 Q 120 412 120 408 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 52 422 Q 44 428 40 438 Q 38 446 44 450 Q 52 454 66 452 Q 76 450 80 444 Q 82 436 72 436 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 148 422 Q 156 428 160 438 Q 162 446 156 450 Q 148 454 134 452 Q 124 450 120 444 Q 118 436 128 436 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+    </g>
+  );
+}
+
+function BackSilhouette() {
+  const fill = "#1c1917";
+  const stroke = "#44403c";
+  const sw = "1.2";
+  return (
+    <g>
+      <ellipse cx="100" cy="32" rx="26" ry="30" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <ellipse cx="74" cy="34" rx="5" ry="8" fill={fill} stroke={stroke} strokeWidth="1" />
+      <ellipse cx="126" cy="34" rx="5" ry="8" fill={fill} stroke={stroke} strokeWidth="1" />
+      <path d="M 80 10 Q 100 4 120 10" fill="none" stroke="#2a2520" strokeWidth="1.5" />
+      <path d="M 91 60 L 88 80 L 112 80 L 109 60 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 88 80 Q 68 82 54 96 L 58 100 Q 72 88 90 88 L 110 88 Q 128 88 142 100 L 146 96 Q 132 82 112 80 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 58 100 Q 52 110 52 124 L 52 200 Q 52 212 60 216 L 78 220 Q 90 224 100 224 Q 110 224 122 220 L 140 216 Q 148 212 148 200 L 148 124 Q 148 110 142 100 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <line x1="100" y1="100" x2="100" y2="216" stroke="#252220" strokeWidth="1" strokeDasharray="3 2" />
+      <path d="M 62 112 Q 58 128 62 144 Q 66 152 76 150 Q 86 148 88 136 Q 90 122 84 112 Z" fill="none" stroke="#2a2520" strokeWidth="1" />
+      <path d="M 138 112 Q 142 128 138 144 Q 134 152 124 150 Q 114 148 112 136 Q 110 122 116 112 Z" fill="none" stroke="#2a2520" strokeWidth="1" />
+      <path d="M 64 168 Q 100 174 136 168" fill="none" stroke="#2a2520" strokeWidth="0.7" />
+      <path d="M 66 186 Q 100 192 134 186" fill="none" stroke="#2a2520" strokeWidth="0.7" />
+      <path d="M 52 100 Q 34 106 30 130 Q 28 148 32 162 Q 36 170 42 170 Q 48 170 52 162 Q 56 148 54 120 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 148 100 Q 166 106 170 130 Q 172 148 168 162 Q 164 170 158 170 Q 152 170 148 162 Q 144 148 146 120 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 32 162 Q 26 172 24 192 Q 22 210 26 226 Q 28 232 34 232 Q 40 232 42 226 Q 44 210 42 192 Q 42 172 42 162 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 168 162 Q 174 172 176 192 Q 178 210 174 226 Q 172 232 166 232 Q 160 232 158 226 Q 156 210 158 192 Q 158 172 158 162 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 26 226 Q 22 234 22 244 Q 22 252 28 254 Q 34 256 40 252 Q 44 248 42 240 Q 42 232 34 232 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 174 226 Q 178 234 178 244 Q 178 252 172 254 Q 166 256 160 252 Q 156 248 158 240 Q 158 232 166 232 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 60 216 Q 52 220 50 230 L 54 234 Q 60 226 70 224 L 80 222 Q 90 224 100 224 Q 110 224 120 222 L 130 224 Q 140 226 146 234 L 150 230 Q 148 220 140 216 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 54 234 Q 48 242 48 262 Q 48 292 52 312 Q 54 320 62 322 Q 70 324 76 318 Q 82 310 82 292 Q 82 266 80 246 Q 78 234 70 230 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 146 234 Q 152 242 152 262 Q 152 292 148 312 Q 146 320 138 322 Q 130 324 124 318 Q 118 310 118 292 Q 118 266 120 246 Q 122 234 130 230 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 52 312 Q 48 322 50 334 Q 52 342 60 344 Q 68 346 76 342 Q 82 338 82 328 Q 82 318 76 318 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 148 312 Q 152 322 150 334 Q 148 342 140 344 Q 132 346 124 342 Q 118 338 118 328 Q 118 318 124 318 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 50 334 Q 46 348 48 370 Q 50 390 54 404 Q 58 412 64 414 Q 72 416 78 410 Q 84 402 84 384 Q 84 362 82 346 Q 80 338 76 342 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 150 334 Q 154 348 152 370 Q 150 390 146 404 Q 142 412 136 414 Q 128 416 122 410 Q 116 402 116 384 Q 116 362 118 346 Q 120 338 124 342 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 54 404 Q 50 414 50 424 Q 50 432 56 436 Q 62 440 70 438 Q 78 436 80 428 Q 82 420 78 410 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 146 404 Q 150 414 150 424 Q 150 432 144 436 Q 138 440 130 438 Q 122 436 120 428 Q 118 420 122 410 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 50 424 Q 42 430 38 440 Q 36 448 42 452 Q 50 456 64 454 Q 74 452 78 446 Q 80 438 70 438 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+      <path d="M 150 424 Q 158 430 162 440 Q 164 448 158 452 Q 150 456 136 454 Q 126 452 122 446 Q 120 438 130 438 Z" fill={fill} stroke={stroke} strokeWidth={sw} />
+    </g>
+  );
+}
+
+interface BodyMapProps {
+  zones: BodyZone[];
+  hoveredIds: Set<string>;
+  activeIds: Set<string>;
+  onHover: (id: string | null) => void;
+  onClick: (zone: BodyZone) => void;
+  isFront: boolean;
+}
+
+function BodySVGMirrored({
+  zones,
+  hoveredIds,
+  activeIds,
+  onHover,
+  onClick,
+  isFront,
+}: BodyMapProps) {
+  return (
+    <svg
+      viewBox="0 0 200 480"
+      className="tpm-body"
+      style={{ filter: "drop-shadow(0 0 32px rgba(200,56,42,0.18))" }}
+      aria-label={isFront ? "Body front map" : "Body back map"}
+    >
+      {isFront ? <FrontSilhouette /> : <BackSilhouette />}
+
+      {zones.map((zone) => {
+        const isActive = activeIds.has(zone.id) || hoveredIds.has(zone.id);
+        const color = painColors[zone.painLabel] ?? "#f97316";
+        return (
+          <g key={zone.id}>
+            <circle
+              cx={zone.cx}
+              cy={zone.cy}
+              r={12}
+              fill={isActive ? `${color}30` : "rgba(200,56,42,0.08)"}
+              stroke={isActive ? color : "rgba(200,56,42,0.4)"}
+              strokeWidth="1.5"
+              className="tpm-dot"
+              onMouseEnter={() => onHover(zone.id)}
+              onMouseLeave={() => onHover(null)}
+              onClick={() => onClick(zone)}
+            />
+            <circle
+              cx={zone.cx}
+              cy={zone.cy}
+              r={4}
+              fill={isActive ? color : "rgba(200,56,42,0.7)"}
+              className="tpm-dot-inner"
+            />
+            {isActive && (
+              <circle
+                cx={zone.cx}
+                cy={zone.cy}
+                r={17}
+                fill="none"
+                stroke={color}
+                strokeWidth="1"
+                opacity="0.35"
+                className="tpm-dot-inner"
+              />
+            )}
+          </g>
+        );
+      })}
     </svg>
   );
 }
 
-export default function TattooPlacementMap({ onZoneClick, className, lang = "es" }: TattooPlacementMapProps) {
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const [view, setView]                   = useState<BodyView>("front");
-  const [hoveredZone, setHoveredZone]     = useState<ZoneKey | null>(null);
-  const [focusedZone, setFocusedZone]     = useState<ZoneKey | null>(null);
-  const [selectedZone, setSelectedZone]   = useState<ZoneKey | null>(null);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-  const [isMobile, setIsMobile]           = useState(false);
-  const [cursor, setCursor]               = useState({ x: 0, y: 0 });
+const labels = {
+  es: {
+    title: "Guía de ubicación del tatuaje",
+    subtitle:
+      "Explora zonas del cuerpo para ver dolor, cicatrizacion y estilos recomendados.",
+    front: "Frontal",
+    back: "Posterior",
+    hint: "Toca una zona para explorar",
+    selected: "Zona seleccionada",
+    pain: "Dolor",
+    healing: "Cicatrizacion",
+    bestStyles: "Mejores estilos",
+    cta: "Ver trabajos de esta zona",
+    emptyTitle: "Selecciona una zona",
+    emptyText:
+      "Pasa el cursor o toca cualquier punto destacado para ver detalles.",
+  },
+  en: {
+    title: "Tattoo Placement Guide",
+    subtitle:
+      "Explore body zones to compare pain, healing time, and best fitting styles.",
+    front: "Front",
+    back: "Back",
+    hint: "Tap a zone to explore",
+    selected: "Selected zone",
+    pain: "Pain",
+    healing: "Healing",
+    bestStyles: "Best styles",
+    cta: "View work in this zone",
+    emptyTitle: "Select a body zone",
+    emptyText:
+      "Hover or tap any highlighted point on the body map to see details.",
+  },
+};
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const media       = window.matchMedia("(hover: none), (pointer: coarse)");
-    const mobileMedia = window.matchMedia("(max-width: 639px)");
-    const sync = () => { setIsTouchDevice(media.matches); setIsMobile(mobileMedia.matches); };
-    sync();
-    media.addEventListener("change", sync);
-    mobileMedia.addEventListener("change", sync);
-    return () => { media.removeEventListener("change", sync); mobileMedia.removeEventListener("change", sync); };
-  }, []);
+export default function TattooPlacementMap({
+  onZoneClick,
+  className,
+  lang = "es",
+}: TattooPlacementMapProps) {
+  const t = labels[lang];
+  const translatePainLabel = (value: string) => painLabels[lang][value] ?? value;
+  const [hoveredFrontIds, setHoveredFrontIds] = useState<Set<string>>(new Set());
+  const [activeFrontIds, setActiveFrontIds] = useState<Set<string>>(new Set());
+  const [hoveredBackIds, setHoveredBackIds] = useState<Set<string>>(new Set());
+  const [activeBackIds, setActiveBackIds] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    const handleOutside = (e: PointerEvent) => {
-      if (!isTouchDevice) return;
-      if (!rootRef.current?.contains(e.target as Node)) setSelectedZone(null);
-    };
-    document.addEventListener("pointerdown", handleOutside);
-    return () => document.removeEventListener("pointerdown", handleOutside);
-  }, [isTouchDevice]);
-
-  const zonesInView = useMemo(() => view === "front" ? FRONT_ZONES : BACK_ZONES, [view]);
-  const vpInView    = useMemo(() => view === "front" ? VP_FRONT : VP_BACK, [view]);
-  const hitInView   = useMemo(() => view === "front" ? HIT_FRONT : HIT_BACK, [view]);
-
-  const activeZone = useMemo(() => {
-    if (isTouchDevice) return selectedZone;
-    return hoveredZone ?? focusedZone ?? selectedZone;
-  }, [focusedZone, hoveredZone, isTouchDevice, selectedZone]);
-
-  const hasFocusEffect = Boolean(activeZone);
-
-  const switchView = (v: BodyView) => {
-    setView(v);
-    setHoveredZone(null);
-    setFocusedZone(null);
-    setSelectedZone(null);
-  };
-
-  const handleZoneClick = (zone: ZoneKey) => {
-    if (isTouchDevice) setSelectedZone((c) => c === zone ? null : zone);
-    else setSelectedZone(zone);
-    onZoneClick?.(zone);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent, zone: ZoneKey) => {
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleZoneClick(zone); }
-  };
-
-  const tooltipContent = (zone: ZoneKey) => {
-    const info = ZONE_DATA[zone];
-    return (
-      <>
-        <div className="tpm-tooltip-title">{info.labelEs} / {info.label}</div>
-        <div className="tpm-meta-line">
-          <span>Dolor</span>
-          <span className="tpm-drops" aria-label={`Nivel de dolor ${info.pain} de 5`}>
-            {[1,2,3,4,5].map((n) => <InkDrop key={n} filled={n <= info.pain} />)}
-          </span>
-        </div>
-        <div className="tpm-meta-line">
-          <span>Cicatrización</span>
-          <span>{info.healing}</span>
-        </div>
-        <button type="button" className="tpm-link" onClick={() => onZoneClick?.(zone)}>
-          Ver trabajos en esta zona →
-        </button>
-      </>
-    );
-  };
-
-  const renderTooltip = () => {
-    if (!activeZone) return null;
-    if (isMobile) {
-      return (
-        <div className="tpm-tooltip tpm-tooltip-mobile" role="tooltip" aria-live="polite">
-          {tooltipContent(activeZone)}
-        </div>
-      );
+  const getDisplayZone = (
+    zones: BodyZone[],
+    activeIds: Set<string>,
+    hoveredIds: Set<string>
+  ): BodyZone | null => {
+    for (const id of activeIds) {
+      const zone = zones.find((z) => z.id === id);
+      if (zone) return zone;
     }
-    const rootRect = rootRef.current?.getBoundingClientRect();
-    const rw = rootRect?.width ?? 480;
-    const rh = rootRect?.height ?? 380;
-    const left = Math.min(Math.max(8, cursor.x + 18), rw - 230);
-    const top  = Math.min(Math.max(28, cursor.y - 18), rh - 10);
-    return (
-      <div className="tpm-tooltip" role="tooltip" aria-live="polite"
-        style={{ left, top, transform: "translateY(-100%)" }}>
-        {tooltipContent(activeZone)}
-      </div>
-    );
+    for (const id of hoveredIds) {
+      const zone = zones.find((z) => z.id === id);
+      if (zone) return zone;
+    }
+    return null;
+  };
+
+  const displayZone = useMemo(
+    () =>
+      getDisplayZone(frontZones, activeFrontIds, hoveredFrontIds) ??
+      getDisplayZone(backZones, activeBackIds, hoveredBackIds),
+    [activeBackIds, activeFrontIds, hoveredBackIds, hoveredFrontIds]
+  );
+
+  const legend = useMemo(
+    () =>
+      Object.entries(painColors).map(([label, color]) => ({
+        label,
+        translatedLabel: translatePainLabel(label),
+        color,
+      })),
+    [lang]
+  );
+
+  const getMirroredIds = (zones: BodyZone[], id: string): Set<string> => {
+    const zone = zones.find((z) => z.id === id);
+    const ids = new Set<string>([id]);
+    if (zone?.mirrorId) ids.add(zone.mirrorId);
+    return ids;
+  };
+
+  const handleFrontHover = (id: string | null) => {
+    if (!id) {
+      setHoveredFrontIds(new Set());
+      return;
+    }
+    setHoveredFrontIds(getMirroredIds(frontZones, id));
+  };
+
+  const handleBackHover = (id: string | null) => {
+    if (!id) {
+      setHoveredBackIds(new Set());
+      return;
+    }
+    setHoveredBackIds(getMirroredIds(backZones, id));
+  };
+
+  const handleFrontClick = (zone: BodyZone) => {
+    const ids = getMirroredIds(frontZones, zone.id);
+    const alreadyActive = activeFrontIds.has(zone.id);
+    setActiveBackIds(new Set());
+    setActiveFrontIds(alreadyActive ? new Set() : ids);
+  };
+
+  const handleBackClick = (zone: BodyZone) => {
+    const ids = getMirroredIds(backZones, zone.id);
+    const alreadyActive = activeBackIds.has(zone.id);
+    setActiveFrontIds(new Set());
+    setActiveBackIds(alreadyActive ? new Set() : ids);
   };
 
   return (
-    <div ref={rootRef} className={className ? `tpm-root ${className}` : "tpm-root"}>
+    <section className={className ? `tpm-root ${className}` : "tpm-root"}>
+      <div className="tpm-bg" aria-hidden="true" />
+      <div className="tpm-shell">
+        <div className="tpm-header">
+          <p className="tpm-kicker">004 - Interactive Map</p>
+          <h2 className="tpm-title">{t.title}</h2>
+          <p className="tpm-subtitle">{t.subtitle}</p>
+        </div>
 
-      <div className="tpm-view-toggle" role="group" aria-label="Selección de vista del cuerpo">
-        <button type="button"
-          className={`tpm-toggle-btn ${view === "front" ? "is-active" : ""}`}
-          onClick={() => switchView("front")}>
-          {lang === "es" ? "Frontal" : "Front"}
-        </button>
-        <button type="button"
-          className={`tpm-toggle-btn ${view === "back" ? "is-active" : ""}`}
-          onClick={() => switchView("back")}>
-          {lang === "es" ? "Posterior" : "Back"}
-        </button>
+        <div className="tpm-layout">
+          <div className="tpm-maps">
+            <div className="tpm-map-col">
+              <span className="tpm-map-label">{t.front}</span>
+              <BodySVGMirrored
+                zones={frontZones}
+                hoveredIds={hoveredFrontIds}
+                activeIds={activeFrontIds}
+                onHover={handleFrontHover}
+                onClick={handleFrontClick}
+                isFront
+              />
+              <p className="tpm-hint">{t.hint}</p>
+            </div>
+
+            <div className="tpm-map-col">
+              <span className="tpm-map-label">{t.back}</span>
+              <BodySVGMirrored
+                zones={backZones}
+                hoveredIds={hoveredBackIds}
+                activeIds={activeBackIds}
+                onHover={handleBackHover}
+                onClick={handleBackClick}
+                isFront={false}
+              />
+              <p className="tpm-hint">{t.hint}</p>
+            </div>
+          </div>
+
+          <div className="tpm-panel-wrap">
+            {displayZone ? (
+              <div className="tpm-panel tpm-enter">
+                <div className="tpm-panel-head">
+                  <div>
+                    <p className="tpm-meta-label">{t.selected}</p>
+                    <h3 className="tpm-zone-title">{displayZone.label}</h3>
+                  </div>
+                  <span
+                    className="tpm-pill"
+                    style={{
+                      backgroundColor: `${painColors[displayZone.painLabel]}22`,
+                      color: painColors[displayZone.painLabel],
+                      borderColor: `${painColors[displayZone.painLabel]}44`,
+                    }}
+                  >
+                    {translatePainLabel(displayZone.painLabel)}
+                  </span>
+                </div>
+
+                <div className="tpm-meter-wrap">
+                  <div className="tpm-meter-head">
+                    <span>{t.pain}</span>
+                    <span>{displayZone.pain}/10</span>
+                  </div>
+                  <div className="tpm-meter-track">
+                    <div
+                      className="tpm-meter-fill"
+                      style={{
+                        width: `${displayZone.pain * 10}%`,
+                        backgroundColor: painColors[displayZone.painLabel],
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <p className="tpm-desc">{displayZone.description}</p>
+
+                <div className="tpm-grid">
+                  <div className="tpm-card">
+                    <p className="tpm-meta-label">{t.healing}</p>
+                    <p className="tpm-card-value">{displayZone.healing}</p>
+                  </div>
+                  <div className="tpm-card">
+                    <p className="tpm-meta-label">{t.bestStyles}</p>
+                    <div className="tpm-tags">
+                      {displayZone.works.map((work) => (
+                        <span key={work} className="tpm-tag">
+                          {work}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="tpm-cta"
+                  onClick={() => onZoneClick?.(displayZone.id)}
+                >
+                  {t.cta}
+                </button>
+              </div>
+            ) : (
+              <div className="tpm-panel tpm-empty">
+                <p className="tpm-zone-title">{t.emptyTitle}</p>
+                <p className="tpm-desc">{t.emptyText}</p>
+                <div className="tpm-legend">
+                  {legend.map(({ label, translatedLabel, color }) => (
+                    <div key={label} className="tpm-legend-item">
+                      <span className="tpm-legend-dot" style={{ backgroundColor: color }} />
+                      <span>{translatedLabel}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-
-      <svg key={view} viewBox="0 0 300 380"
-        aria-label={`Mapa de zonas de tatuaje vista ${view === "front" ? "frontal" : "posterior"}`}
-        className="tpm-svg tpm-svg-enter">
-        <title>Mapa anatómico de zonas de tatuaje</title>
-
-        {zonesInView.map((zone) => {
-          const info     = ZONE_DATA[zone];
-          const isActive = activeZone === zone;
-          const isDimmed = hasFocusEffect && !isActive;
-          // Hit path: bbox rectangular para shins/feet, path original para el resto
-          const hitPath = hitInView[zone] ?? vpInView[zone];
-
-          return (
-            <g key={zone}>
-              {/*
-                VISUAL path — estética pura, sin pointer events.
-                fill/stroke se controlan desde React (isActive/isDimmed).
-                NO hay selector CSS sibling — eso requería orden DOM específico
-                y era frágil. React maneja el estado directamente aquí.
-              */}
-              <path
-                d={vpInView[zone]}
-                aria-hidden="true"
-                style={{
-                  fill:          isActive ? "rgba(139,0,0,0.3)" : "rgba(0,0,0,0.001)",
-                  stroke:        isActive ? "var(--faded-gold)" : "rgba(240,234,214,0.35)",
-                  strokeWidth:   1.35,
-                  vectorEffect:  "non-scaling-stroke",
-                  pointerEvents: "none",
-                  opacity:       isDimmed ? 0.5 : 1,
-                  transition:    "fill 280ms var(--ease-out-strong), stroke 280ms var(--ease-out-strong), opacity 280ms var(--ease-out-strong)",
-                } as React.CSSProperties}
-              />
-              {/*
-                HIT path — invisible, maneja todos los eventos.
-                fill="rgba(0,0,0,0.001)" es crítico: fill:transparent
-                desactiva pointer-events en el interior del shape en SVG.
-                strokeWidth:14 da margen de tolerancia en el borde.
-              */}
-              <path
-                d={hitPath}
-                data-zone={zone}
-                role="button"
-                tabIndex={0}
-                aria-label={`${info.labelEs} / ${info.label}`}
-                style={{
-                  fill:          "rgba(0,0,0,0.001)",
-                  stroke:        "transparent",
-                  strokeWidth:   14,
-                  vectorEffect:  "non-scaling-stroke",
-                  pointerEvents: "all",
-                  cursor:        "pointer",
-                  outline:       "none",
-                } as React.CSSProperties}
-                onMouseEnter={() => { if (!isTouchDevice) setHoveredZone(zone); }}
-                onMouseLeave={() => { if (!isTouchDevice) setHoveredZone((c) => c === zone ? null : c); }}
-                onMouseMove={(e) => {
-                  if (isTouchDevice) return;
-                  const rect = rootRef.current?.getBoundingClientRect();
-                  if (!rect) return;
-                  setCursor({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-                }}
-                onFocus={() => setFocusedZone(zone)}
-                onBlur={() => setFocusedZone((c) => c === zone ? null : c)}
-                onClick={() => handleZoneClick(zone)}
-                onKeyDown={(e) => handleKeyDown(e, zone)}
-              />
-            </g>
-          );
-        })}
-      </svg>
-
-      {renderTooltip()}
 
       <style jsx>{`
         .tpm-root {
           position: relative;
-          width: 100%;
-          max-width: 480px;
+          overflow: hidden;
+          padding: 5rem 1.25rem;
+          background: radial-gradient(circle at 15% 20%, rgba(139, 0, 0, 0.2), transparent 40%),
+            linear-gradient(180deg, #0b0a09 0%, #12100f 100%);
+        }
+        .tpm-bg {
+          position: absolute;
+          inset: -20% auto auto 50%;
+          width: min(720px, 90vw);
+          height: min(720px, 90vw);
+          transform: translateX(-50%);
+          border-radius: 999px;
+          background: radial-gradient(circle, rgba(200, 169, 110, 0.12), rgba(200, 169, 110, 0));
+          filter: blur(18px);
+          pointer-events: none;
+        }
+        .tpm-shell {
+          position: relative;
+          z-index: 1;
+          max-width: 1100px;
           margin: 0 auto;
         }
-        .tpm-view-toggle {
-          display: flex;
-          width: fit-content;
-          align-items: center;
-          gap: 0.35rem;
-          margin: 0 auto 0.9rem;
-          padding: 0.3rem;
-          border: 1px solid rgba(200,169,110,0.35);
-          background: rgba(10,10,10,0.55);
+        .tpm-header {
+          text-align: center;
+          margin-bottom: 2.5rem;
         }
-        .tpm-toggle-btn {
-          border: 0;
-          background: transparent;
+        .tpm-kicker {
+          margin: 0 0 0.75rem;
+          color: var(--faded-gold);
+          font-family: "DM Mono", monospace;
+          font-size: 0.72rem;
+          letter-spacing: 0.28em;
+          text-transform: uppercase;
+        }
+        .tpm-title {
+          margin: 0;
+          color: var(--parchment);
+          font-family: "Fraunces", serif;
+          font-style: italic;
+          font-weight: 400;
+          font-size: clamp(1.8rem, 5.5vw, 3.1rem);
+        }
+        .tpm-subtitle {
+          margin: 0.9rem auto 0;
+          max-width: 740px;
+          color: var(--muted-parchment);
+          font-family: "DM Mono", monospace;
+          font-size: 0.8rem;
+          letter-spacing: 0.08em;
+          line-height: 1.7;
+          text-transform: uppercase;
+        }
+        .tpm-layout {
+          display: grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 1.2rem;
+          align-items: stretch;
+        }
+        .tpm-maps {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 1rem;
+        }
+        .tpm-map-col {
+          border: 1px solid rgba(200, 169, 110, 0.2);
+          background: rgba(12, 11, 10, 0.72);
+          padding: 0.95rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .tpm-map-label {
+          margin-bottom: 0.45rem;
+          color: var(--faded-gold);
+          font-family: "DM Mono", monospace;
+          font-size: 0.66rem;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+        }
+        .tpm-body {
+          width: 100%;
+          max-width: 250px;
+          height: auto;
+        }
+        .tpm-dot {
+          cursor: pointer;
+          transition: all 200ms ease;
+        }
+        .tpm-dot-inner {
+          pointer-events: none;
+        }
+        .tpm-hint {
+          margin: 0.5rem 0 0;
           color: var(--muted-parchment);
           font-family: "DM Mono", monospace;
           font-size: 0.62rem;
           letter-spacing: 0.16em;
           text-transform: uppercase;
-          padding: 0.34rem 0.56rem;
-          cursor: pointer;
-          transition: color 220ms ease, background-color 220ms ease;
+          text-align: center;
         }
-        .tpm-toggle-btn.is-active {
-          color: var(--faded-gold);
-          background: rgba(139,0,0,0.24);
+        .tpm-panel-wrap {
+          min-width: 0;
         }
-        .tpm-toggle-btn:focus-visible {
-          outline: 1px solid var(--faded-gold);
-          outline-offset: 1px;
+        .tpm-panel {
+          height: 100%;
+          border: 1px solid rgba(200, 169, 110, 0.25);
+          background: rgba(10, 10, 10, 0.84);
+          padding: 1rem;
         }
-        .tpm-svg {
-          width: 100%;
-          height: auto;
-          display: block;
-          filter: sepia(0.2) contrast(1.1);
+        .tpm-enter {
+          animation: fadeIn 220ms ease;
         }
-        .tpm-svg-enter {
-          animation: tpm-fade-in 220ms ease;
+        .tpm-panel-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 0.7rem;
+          align-items: flex-start;
+          margin-bottom: 0.9rem;
         }
-        @keyframes tpm-fade-in {
-          from { opacity: 0; }
-          to   { opacity: 1; }
+        .tpm-meta-label {
+          margin: 0 0 0.25rem;
+          color: var(--muted-parchment);
+          font-family: "DM Mono", monospace;
+          font-size: 0.6rem;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
         }
-        .tpm-tooltip {
-          position: absolute;
-          z-index: 50;
-          min-width: 190px;
-          max-width: 220px;
-          padding: 0.7rem 0.75rem;
-          background: rgba(10,10,10,0.92);
-          border: 1px solid rgba(200,169,110,0.3);
+        .tpm-zone-title {
+          margin: 0;
+          color: var(--parchment);
+          font-family: "Fraunces", serif;
+          font-weight: 500;
+          font-size: 1.45rem;
+          line-height: 1.2;
+        }
+        .tpm-pill {
+          border: 1px solid;
+          border-radius: 999px;
+          padding: 0.25rem 0.55rem;
+          font-family: "DM Mono", monospace;
+          font-size: 0.6rem;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+        .tpm-meter-wrap {
+          margin-bottom: 0.9rem;
+        }
+        .tpm-meter-head {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 0.35rem;
+          color: var(--muted-parchment);
+          font-family: "DM Mono", monospace;
+          font-size: 0.62rem;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+        }
+        .tpm-meter-track {
+          height: 8px;
+          background: rgba(240, 234, 214, 0.12);
+          overflow: hidden;
+        }
+        .tpm-meter-fill {
+          height: 100%;
+          transition: width 600ms ease;
+        }
+        .tpm-desc {
+          margin: 0 0 0.9rem;
           color: var(--parchment);
           font-family: "DM Mono", monospace;
-          font-size: 0.65rem;
-          letter-spacing: 0.14em;
-          line-height: 1.5;
-          backdrop-filter: blur(2px);
-          pointer-events: auto;
-          transition: opacity 280ms var(--ease-out-strong);
+          font-size: 0.7rem;
+          letter-spacing: 0.08em;
+          line-height: 1.65;
+          opacity: 0.9;
+          text-transform: uppercase;
         }
-        .tpm-tooltip-mobile {
-          position: fixed;
-          left: 0.75rem;
-          right: 0.75rem;
-          bottom: 0.75rem;
-          top: auto;
-          max-width: none;
-          transform: none;
+        .tpm-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 0.6rem;
+          margin-bottom: 0.95rem;
         }
-        .tpm-tooltip-title {
+        .tpm-card {
+          border: 1px solid rgba(200, 169, 110, 0.18);
+          background: rgba(22, 20, 18, 0.85);
+          padding: 0.55rem;
+        }
+        .tpm-card-value {
+          margin: 0;
+          color: var(--parchment);
           font-family: "Fraunces", serif;
-          font-style: italic;
-          font-size: 0.85rem;
-          letter-spacing: 0.06em;
-          margin-bottom: 0.45rem;
-          color: var(--faded-gold);
+          font-size: 1rem;
+          line-height: 1.2;
         }
-        .tpm-meta-line {
+        .tpm-tags {
           display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 0.5rem;
-          margin-bottom: 0.35rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
         }
-        .tpm-drops {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.17rem;
+        .tpm-tag {
+          border: 1px solid rgba(139, 0, 0, 0.45);
+          background: rgba(139, 0, 0, 0.18);
+          color: #f8d6d2;
+          font-family: "DM Mono", monospace;
+          font-size: 0.58rem;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          padding: 0.18rem 0.36rem;
         }
-        .tpm-link {
-          display: block;
-          margin-top: 0.45rem;
-          border: 0;
-          background: transparent;
+        .tpm-cta {
+          width: 100%;
+          border: 1px solid rgba(200, 169, 110, 0.4);
+          background: rgba(139, 0, 0, 0.22);
           color: var(--faded-gold);
-          text-decoration: underline;
-          text-underline-offset: 0.16rem;
-          font: inherit;
-          letter-spacing: 0.14em;
+          padding: 0.6rem 0.75rem;
+          font-family: "DM Mono", monospace;
+          font-size: 0.65rem;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
           cursor: pointer;
-          padding: 0;
-          text-align: left;
+          transition: all 180ms ease;
         }
-        .tpm-link:hover,
-        .tpm-link:focus-visible {
+        .tpm-cta:hover,
+        .tpm-cta:focus-visible {
+          background: rgba(139, 0, 0, 0.35);
           color: var(--parchment);
           outline: none;
         }
-        @media (max-width: 639px) {
-          .tpm-root { padding-bottom: 7.5rem; }
+        .tpm-empty {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        .tpm-legend {
+          margin-top: 0.8rem;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.45rem 0.7rem;
+        }
+        .tpm-legend-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.32rem;
+          color: var(--muted-parchment);
+          font-family: "DM Mono", monospace;
+          font-size: 0.58rem;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+        .tpm-legend-dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 999px;
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @media (max-width: 1024px) {
+          .tpm-layout {
+            grid-template-columns: 1fr;
+          }
+          .tpm-panel {
+            min-height: 260px;
+          }
+        }
+        @media (max-width: 720px) {
+          .tpm-root {
+            padding: 4rem 0.8rem;
+          }
+          .tpm-maps {
+            grid-template-columns: 1fr;
+          }
+          .tpm-grid {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
-    </div>
+    </section>
   );
 }
-
-/* USAGE EXAMPLE
-import TattooPlacementMap from "@/components/TattooPlacementMap";
-
-const [zoneFilter, setZoneFilter] = useState<string | null>(null);
-
-<TattooPlacementMap
-  onZoneClick={(zone) => setZoneFilter(zone)}
-  className="mx-auto"
-  lang="es"
-/>
-*/

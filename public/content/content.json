@@ -40,28 +40,48 @@
         "src": "/content/images/screenshot-2026-04-02-221024.png",
         "title": "Malenia blade of Miquella Dotwork illustration from Elden Ring",
         "year": "2025",
-        "category": "blackwork"
+        "category": "blackwork",
+        "placements": [
+          "forearm",
+          "arm",
+          "hand"
+        ]
       },
       {
         "id": "img_1775182572205",
         "src": "/content/images/screenshot-2026-04-02-220947.png",
         "title": "Máscara",
         "year": "2025",
-        "category": "neo-tradicional"
+        "category": "neo-tradicional",
+        "placements": [
+          "thigh",
+          "knee",
+          "calf"
+        ]
       },
       {
         "id": "img_1775182687718",
         "src": "/content/images/screenshot-2026-04-02-215702.png",
         "title": "Mujer",
         "year": "2025",
-        "category": "general"
+        "category": "general",
+        "placements": [
+          "upper-back",
+          "ribs",
+          "shoulder"
+        ]
       },
       {
         "id": "img_1775183169417",
         "src": "/content/images/screenshot-2026-04-02-215610.png",
         "title": "Brazo",
         "year": "2023",
-        "category": "general"
+        "category": "general",
+        "placements": [
+          "arm",
+          "forearm",
+          "hand"
+        ]
       }
     ]
   },

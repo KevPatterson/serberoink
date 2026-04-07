@@ -28,6 +28,13 @@ function updateMeta(nextContent: SiteContent): SiteContent {
   };
 }
 
+function parsePlacementsInput(rawValue: string): string[] {
+  return rawValue
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter((item) => item.length > 0);
+}
+
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [content, setContent] = useState<SiteContent | null>(null);
@@ -43,6 +50,7 @@ export default function AdminDashboardPage() {
   const [newImageTitle, setNewImageTitle] = useState('');
   const [newImageYear, setNewImageYear] = useState('');
   const [newImageCategory, setNewImageCategory] = useState('general');
+  const [newImagePlacements, setNewImagePlacements] = useState('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -283,6 +291,7 @@ export default function AdminDashboardPage() {
       title: newImageTitle.trim(),
       year: newImageYear.trim(),
       category: newImageCategory.trim() || 'general',
+      placements: parsePlacementsInput(newImagePlacements),
     };
 
     const nextContent: SiteContent = {
@@ -301,6 +310,7 @@ export default function AdminDashboardPage() {
     setNewImageTitle('');
     setNewImageYear('');
     setNewImageCategory('general');
+    setNewImagePlacements('');
     showToast('success', 'Imagen en cola. Se subira al guardar cambios.');
   };
 
@@ -639,6 +649,25 @@ export default function AdminDashboardPage() {
               />
             </div>
 
+            <input
+              value={newImagePlacements}
+              onChange={(e) => setNewImagePlacements(e.target.value)}
+              placeholder="Ubicaciones (coma separadas): arm, forearm, ribs"
+              className="mb-2 w-full px-3 py-2 font-mono-body"
+              style={inputStyle}
+            />
+            <p
+              className="mb-4 font-mono-body"
+              style={{
+                fontSize: '0.55rem',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'rgba(240,234,214,0.65)',
+              }}
+            >
+              Claves sugeridas: head, neck, chest, ribs, stomach, shoulder, upper-back, lower-back, arm, forearm, hand, thigh, knee, calf, ankle.
+            </p>
+
             <div className="flex justify-end gap-3">
               <button
                 type="button"
@@ -849,6 +878,19 @@ function AdminPortfolio(props: {
                 );
                 setContent({ ...content, portfolio: { ...content.portfolio, images: next } });
               }}
+              className="w-full px-3 py-2 mb-2 font-mono-body"
+              style={inputStyle}
+            />
+            <input
+              value={(image.placements ?? []).join(', ')}
+              onChange={(e) => {
+                const nextPlacements = parsePlacementsInput(e.target.value);
+                const next = content.portfolio.images.map((item) =>
+                  item.id === image.id ? { ...item, placements: nextPlacements } : item
+                );
+                setContent({ ...content, portfolio: { ...content.portfolio, images: next } });
+              }}
+              placeholder="Ubicaciones: arm, forearm"
               className="w-full px-3 py-2 mb-2 font-mono-body"
               style={inputStyle}
             />

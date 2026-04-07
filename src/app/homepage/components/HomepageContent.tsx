@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { SiteContent } from '@/lib/content';
 import { localizeContent, useLang } from './LanguageContext';
 import { useContentPolling } from '@/hooks/useContentPolling';
@@ -20,11 +20,31 @@ interface HomepageContentProps {
   initialVersion: number;
 }
 
+function normalizePlacementFromZone(zone: string): string {
+  if (zone.includes('head')) return 'head';
+  if (zone.includes('neck')) return 'neck';
+  if (zone.includes('chest')) return 'chest';
+  if (zone.includes('ribs')) return 'ribs';
+  if (zone.includes('stomach')) return 'stomach';
+  if (zone.includes('shoulder')) return 'shoulder';
+  if (zone.includes('upper-back')) return 'upper-back';
+  if (zone.includes('lower-back')) return 'lower-back';
+  if (zone.includes('upper-arm') || zone === 'left-arm' || zone === 'right-arm') return 'arm';
+  if (zone.includes('forearm')) return 'forearm';
+  if (zone.includes('hand')) return 'hand';
+  if (zone.includes('thigh')) return 'thigh';
+  if (zone.includes('knee')) return 'knee';
+  if (zone.includes('calf') || zone.includes('shin')) return 'calf';
+  if (zone.includes('ankle') || zone.includes('foot') || zone.includes('heel')) return 'ankle';
+  return zone;
+}
+
 export default function HomepageContent({
   initialContent,
   initialVersion,
 }: HomepageContentProps) {
   const { lang } = useLang();
+  const [selectedPlacement, setSelectedPlacement] = useState<string | null>(null);
   const content = useContentPolling(initialContent, initialVersion);
 
   const localizedContent = useMemo(
@@ -32,12 +52,18 @@ export default function HomepageContent({
     [content, lang]
   );
 
-  const placementTitle = lang === 'es' ? 'Mapa de Ubicacion' : 'Placement Map';
-  const placementHeading = lang === 'es' ? 'Ubicacion del Tatuaje' : 'Tattoo Placement';
-  const placementSubtitle =
-    lang === 'es'
-      ? 'Explora zonas del cuerpo para inspirarte y filtrar referencias por ubicacion.'
-      : 'Explore body zones to get inspired and filter references by placement.';
+  const handlePlacementZoneClick = useCallback((zone: string) => {
+    const nextPlacement = normalizePlacementFromZone(zone);
+    setSelectedPlacement((current) =>
+      current === nextPlacement ? null : nextPlacement
+    );
+    const gallery = document.getElementById('gallery-section');
+    gallery?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  const clearPlacementFilter = useCallback(() => {
+    setSelectedPlacement(null);
+  }, []);
 
   return (
     <>
@@ -54,23 +80,16 @@ export default function HomepageContent({
         <GallerySection
           portfolio={localizedContent.portfolio}
           instagramUrl={localizedContent.contact.instagramUrl}
+          selectedPlacement={selectedPlacement}
+          onClearPlacement={clearPlacementFilter}
+          lang={lang}
         />
         <hr className="section-rule mx-8 md:mx-16" />
-        <section className="reveal-section py-16 md:py-24 px-6 md:px-16 lg:px-24">
-          <div className="mx-auto w-full max-w-5xl">
-            <div className="mb-10 text-center">
-              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.34em] text-muted-parchment">
-                004 - {placementTitle}
-              </p>
-              <h2 className="font-serif text-4xl italic text-faded-gold md:text-5xl">{placementHeading}</h2>
-              <p className="mx-auto mt-4 max-w-2xl font-mono text-xs uppercase tracking-[0.16em] text-muted-parchment">
-                {placementSubtitle}
-              </p>
-            </div>
-
-            <TattooPlacementMap className="mx-auto" lang={lang} />
-          </div>
-        </section>
+        <TattooPlacementMap
+          className="reveal-section"
+          lang={lang}
+          onZoneClick={handlePlacementZoneClick}
+        />
         <hr className="section-rule mx-8 md:mx-16" />
         <BookingSection contact={localizedContent.contact} />
         <SiteFooter footer={localizedContent.footer} />

@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PortfolioImage } from '@/lib/content';
 import { useUIStrings } from '@/hooks/useUIStrings';
 import { useLang } from './LanguageContext';
@@ -56,6 +56,9 @@ interface GallerySectionProps {
     images: PortfolioImage[];
   };
   instagramUrl: string;
+  selectedPlacement?: string | null;
+  onClearPlacement?: () => void;
+  lang?: 'es' | 'en';
 }
 
 function useItemReveal(count: number) {
@@ -68,12 +71,12 @@ function useItemReveal(count: number) {
   }, [count]);
 
   useEffect(() => {
+    const observers: IntersectionObserver[] = [];
+
     if (typeof IntersectionObserver === 'undefined') {
       setVisible(Array(count).fill(true));
       return;
     }
-
-    const observers: IntersectionObserver[] = [];
 
     refs.current.forEach((el, i) => {
       if (!el) return;
@@ -105,10 +108,80 @@ function useItemReveal(count: number) {
   return { refs, visible };
 }
 
-export default function GallerySection({ portfolio, instagramUrl }: GallerySectionProps) {
+function imageMatchesPlacement(image: PortfolioImage, placement: string) {
+  const wanted = placement.trim().toLowerCase();
+  if (!wanted) return true;
+
+  if (image.placements?.some((tag) => tag.trim().toLowerCase() === wanted)) {
+    return true;
+  }
+
+  const haystack = `${image.title} ${image.category}`.toLowerCase();
+  const aliases: Record<string, string[]> = {
+    arm: ['arm', 'brazo', 'bicep', 'tricep', 'manga'],
+    forearm: ['forearm', 'antebrazo'],
+    hand: ['hand', 'wrist', 'mano', 'muneca'],
+    chest: ['chest', 'pecho', 'sternum'],
+    ribs: ['ribs', 'costilla'],
+    stomach: ['stomach', 'abdomen', 'estomago'],
+    shoulder: ['shoulder', 'hombro'],
+    'upper-back': ['upper back', 'espalda alta', 'backpiece'],
+    'lower-back': ['lower back', 'espalda baja'],
+    thigh: ['thigh', 'muslo'],
+    knee: ['knee', 'rodilla'],
+    calf: ['calf', 'shin', 'pantorrilla', 'espinilla'],
+    ankle: ['ankle', 'foot', 'heel', 'tobillo', 'pie', 'talon'],
+    head: ['head', 'scalp', 'cabeza'],
+    neck: ['neck', 'cuello'],
+  };
+
+  return (aliases[wanted] ?? [wanted]).some((term) => haystack.includes(term));
+}
+
+function formatCategoryLabel(category: string) {
+  return category
+    .split('-')
+    .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+    .join(' ');
+}
+
+export default function GallerySection({
+  portfolio,
+  instagramUrl,
+  selectedPlacement,
+  onClearPlacement,
+  lang,
+}: GallerySectionProps) {
   const ui = useUIStrings();
-  const { lang } = useLang();
-  const { refs, visible } = useItemReveal(portfolio.images.length);
+  const languageContext = useLang();
+  const currentLang = lang ?? languageContext.lang;
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
+
+  const categoryFilterOptions = useMemo(() => {
+    const categories = Array.from(
+      new Set(
+        portfolio.images
+          .map((image) => image.category.trim().toLowerCase())
+          .filter((value) => value.length > 0)
+      )
+    );
+    categories.sort((a, b) => a.localeCompare(b));
+    return ['all', ...categories];
+  }, [portfolio.images]);
+
+  const placementFilteredImages = useMemo(() => {
+    if (!selectedPlacement) return portfolio.images;
+    return portfolio.images.filter((image) => imageMatchesPlacement(image, selectedPlacement));
+  }, [portfolio.images, selectedPlacement]);
+
+  const filteredImages = useMemo(() => {
+    if (selectedCategoryFilter === 'all') return placementFilteredImages;
+    return placementFilteredImages.filter(
+      (image) => image.category.trim().toLowerCase() === selectedCategoryFilter
+    );
+  }, [placementFilteredImages, selectedCategoryFilter]);
+
+  const { refs, visible } = useItemReveal(filteredImages.length);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isShowcaseHovered, setIsShowcaseHovered] = useState(false);
 
@@ -142,13 +215,28 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
 
   const normalizedSectionLabel = portfolio.sectionLabel.trim().toLowerCase();
   const localizedSectionLabel =
-    lang === 'es' &&
+    currentLang === 'es' &&
     (normalizedSectionLabel === 'the work.' || normalizedSectionLabel === 'the work')
       ? ui.sectionPortfolioLabel
       : portfolio.sectionLabel;
-  const activeImage = activeIndex !== null ? portfolio.images[activeIndex] : null;
-  const totalImages = portfolio.images.length;
+  const activeImage = activeIndex !== null ? filteredImages[activeIndex] : null;
+  const totalImages = filteredImages.length;
   const hasMultipleImages = totalImages > 1;
+  const hasCategoryFilter = selectedCategoryFilter !== 'all';
+
+  useEffect(() => {
+    setActiveSlide(0);
+    setActiveIndex(null);
+  }, [selectedPlacement, selectedCategoryFilter]);
+
+  const emptyFilterMessage =
+    currentLang === 'es'
+      ? hasCategoryFilter
+        ? 'No hay imagenes para esta combinacion de zona y categoria.'
+        : 'No hay imagenes etiquetadas para esta zona aun.'
+      : hasCategoryFilter
+        ? 'No images match this placement and category combination.'
+        : 'No images are tagged for this placement yet.';
 
   const markManualInteraction = useCallback(() => {
     autoplayResumeAfterRef.current = Date.now() + AUTOPLAY_RESUME_DELAY_MS;
@@ -463,6 +551,7 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
 
   return (
     <section
+      id="gallery-section"
       className="reveal-section py-16 md:py-28 px-6 md:px-16 lg:px-24"
       aria-labelledby="gallery-heading"
       style={{ contentVisibility: 'auto', containIntrinsicSize: '0 800px' } as React.CSSProperties}
@@ -510,6 +599,65 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
           </p>
         </div>
 
+        {selectedPlacement && (
+          <div className="mb-6 flex flex-wrap items-center justify-center gap-3 md:justify-start">
+            <span className="font-mono-body text-xs uppercase tracking-[0.16em] text-faded-gold">
+              {currentLang === 'es' ? 'Filtro activo:' : 'Active filter:'} {selectedPlacement}
+            </span>
+            <button
+              type="button"
+              onClick={onClearPlacement}
+              className="border border-faded-gold/40 px-3 py-1 font-mono-body text-[10px] uppercase tracking-[0.16em] text-parchment transition-colors hover:bg-blood-red/20"
+            >
+              {currentLang === 'es' ? 'Limpiar filtro' : 'Clear filter'}
+            </button>
+          </div>
+        )}
+
+        <div className="mb-6">
+          <p className="mb-2 font-mono-body text-xs uppercase tracking-[0.16em] text-faded-gold">
+            {currentLang === 'es' ? 'Filtro de galeria' : 'Gallery filter'}
+          </p>
+          <div
+            className="-mx-1 flex snap-x snap-mandatory gap-2 overflow-x-auto px-1 pb-1 md:flex-wrap md:overflow-x-visible"
+            role="group"
+            aria-label={currentLang === 'es' ? 'Filtros de categorias' : 'Category filters'}
+          >
+            {categoryFilterOptions.map((option) => {
+              const isActive = option === selectedCategoryFilter;
+              const optionLabel =
+                option === 'all'
+                  ? currentLang === 'es'
+                    ? 'Todas'
+                    : 'All'
+                  : formatCategoryLabel(option);
+
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  aria-pressed={isActive}
+                  onClick={() => setSelectedCategoryFilter(option)}
+                  className={`snap-start whitespace-nowrap border px-3 py-1.5 font-mono-body text-[10px] uppercase tracking-[0.15em] transition-colors ${
+                    isActive
+                      ? 'border-faded-gold bg-blood-red/25 text-parchment'
+                      : 'border-faded-gold/35 bg-ink-black/60 text-muted-parchment hover:bg-blood-red/15 hover:text-parchment'
+                  }`}
+                >
+                  {optionLabel}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {filteredImages.length === 0 ? (
+          <div className="border border-faded-gold/20 bg-ink-black/40 px-6 py-10 text-center">
+            <p className="font-mono-body text-xs uppercase tracking-[0.16em] text-muted-parchment">
+              {emptyFilterMessage}
+            </p>
+          </div>
+        ) : (
         <div className="portfolio-showcase">
           <div
             ref={showcaseElRef}
@@ -520,7 +668,7 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
             onTouchStart={handleShowcaseTouchStart}
             onTouchEnd={handleShowcaseTouchEnd}
           >
-            {portfolio.images.map((image, index) => {
+            {filteredImages.map((image, index) => {
               const delta = getCircularDelta(index, activeSlide, totalImages);
               const absDelta = Math.abs(delta);
 
@@ -597,7 +745,7 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
           </div>
 
           <div className="portfolio-thumbnails" role="tablist" aria-label={ui.sectionPortfolioLabel}>
-            {portfolio.images.map((image, index) => {
+            {filteredImages.map((image, index) => {
               const isCurrent = index === activeSlide;
 
               return (
@@ -631,6 +779,7 @@ export default function GallerySection({ portfolio, instagramUrl }: GallerySecti
             })}
           </div>
         </div>
+        )}
 
         {activeImage && (
           <div
