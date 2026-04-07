@@ -65,12 +65,20 @@ interface CalculatorCopy {
   priceLabel: string;
   disclaimer: string;
   cta: string;
+  currency: string;
 }
 
 const STEPS: Step[] = ['size', 'style', 'complexity', 'color', 'result'];
 
 interface InkCalculatorProps {
   pricePerHour?: number;
+  whatsappNumber?: string;
+  whatsappBaseText?: string;
+}
+
+function createWhatsappUrl(number: string, message: string): string {
+  const clean = number.replace(/\D+/g, '');
+  return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
 }
 
 const SIZES: Record<'es' | 'en', SizeOption[]> = {
@@ -90,7 +98,7 @@ const SIZES: Record<'es' | 'en', SizeOption[]> = {
 
 const STYLES: Record<'es' | 'en', StyleOption[]> = {
   es: [
-    { id: 'fineline', label: 'Fine Line', multiplier: 1 },
+    { id: 'fineline', label: 'Línea fina', multiplier: 1 },
     { id: 'blackwork', label: 'Blackwork', multiplier: 1.2 },
     { id: 'realism', label: 'Realismo', multiplier: 1.5 },
     { id: 'neotraditional', label: 'Neo-Tradicional', multiplier: 1.3 },
@@ -122,9 +130,9 @@ const COMPLEXITIES: Record<'es' | 'en', ComplexityOption[]> = {
 
 const COPY: Record<'es' | 'en', CalculatorCopy> = {
   es: {
-    sectionBadge: 'Herramienta de estimación',
-    heading: 'Ink',
-    headingAccent: 'Calculator',
+    sectionBadge: '005 - Herramienta de estimación',
+    heading: 'Calculadora de',
+    headingAccent: 'Tinta',
     intro: 'Responde unas preguntas y obtén una estimación orientativa de sesiones, horas y precio.',
     stepLabels: {
       size: 'Tamaño',
@@ -153,6 +161,7 @@ const COPY: Record<'es' | 'en', CalculatorCopy> = {
     disclaimer:
       'Estimación orientativa. El presupuesto final depende del diseño, zona, piel y sesión. La consulta define el precio exacto.',
     cta: 'Reservar consulta',
+    currency: 'EUR',
   },
   en: {
     sectionBadge: 'Estimate Tool',
@@ -186,6 +195,7 @@ const COPY: Record<'es' | 'en', CalculatorCopy> = {
     disclaimer:
       'This is an orientative estimate. Final pricing depends on design details, placement, skin, and session planning.',
     cta: 'Book consultation',
+    currency: 'EUR',
   },
 };
 
@@ -215,7 +225,11 @@ function getEstimate(calc: CalcState, lang: 'es' | 'en', pricePerHour: number) {
   };
 }
 
-export default function InkCalculator({ pricePerHour = 150 }: InkCalculatorProps) {
+export default function InkCalculator({
+  pricePerHour = 150,
+  whatsappNumber = '',
+  whatsappBaseText = '',
+}: InkCalculatorProps) {
   const { lang } = useLang();
   const locale = lang === 'en' ? 'en' : 'es';
   const copy = COPY[locale];
@@ -230,6 +244,44 @@ export default function InkCalculator({ pricePerHour = 150 }: InkCalculatorProps
     () => (currentStep === 'result' ? getEstimate(calc, locale, normalizedRate) : null),
     [calc, currentStep, locale, normalizedRate]
   );
+  const selectedSize = SIZES[locale].find((size) => size.id === calc.size);
+  const selectedStyle = STYLES[locale].find((style) => style.id === calc.style);
+  const selectedComplexity = COMPLEXITIES[locale].find((complexity) => complexity.id === calc.complexity);
+  const selectedColor =
+    calc.color === 'yes' ? copy.colorLabel : calc.color === 'no' ? copy.bwLabel : '';
+  const formatPrice = (value: number) =>
+    new Intl.NumberFormat(locale === 'es' ? 'es-ES' : 'en-US', {
+      style: 'currency',
+      currency: copy.currency,
+      maximumFractionDigits: 0,
+    }).format(value);
+  const whatsappMessage = useMemo(() => {
+    if (!estimate || !selectedSize || !selectedStyle || !selectedComplexity || !selectedColor) {
+      return '';
+    }
+
+    const rangeText = (min: number, max: number) => (min === max ? String(min) : `${min}-${max}`);
+    const greeting = whatsappBaseText.trim();
+
+    if (locale === 'es') {
+      return `${greeting || 'Hola, quiero reservar una consulta.'}\n\nDatos del Ink Calculator:\n- Tamaño: ${selectedSize.label}\n- Estilo: ${selectedStyle.label}\n- Complejidad: ${selectedComplexity.label}\n- Color: ${selectedColor}\n- Sesiones estimadas: ${rangeText(estimate.minSessions, estimate.maxSessions)}\n- Horas estimadas: ${rangeText(estimate.minHours, estimate.maxHours)}\n- Presupuesto estimado: ${estimate.minPrice === estimate.maxPrice ? formatPrice(estimate.minPrice) : `${formatPrice(estimate.minPrice)}-${formatPrice(estimate.maxPrice)}`}\n\nMe gustaría agendar una consulta.`;
+    }
+
+    return `${greeting || 'Hi, I want to book a consultation.'}\n\nInk Calculator details:\n- Size: ${selectedSize.label}\n- Style: ${selectedStyle.label}\n- Complexity: ${selectedComplexity.label}\n- Color: ${selectedColor}\n- Estimated sessions: ${rangeText(estimate.minSessions, estimate.maxSessions)}\n- Estimated hours: ${rangeText(estimate.minHours, estimate.maxHours)}\n- Estimated budget: ${estimate.minPrice === estimate.maxPrice ? formatPrice(estimate.minPrice) : `${formatPrice(estimate.minPrice)}-${formatPrice(estimate.maxPrice)}`}\n\nI would like to schedule a consultation.`;
+  }, [
+    estimate,
+    formatPrice,
+    locale,
+    selectedColor,
+    selectedComplexity,
+    selectedSize,
+    selectedStyle,
+    whatsappBaseText,
+  ]);
+  const whatsappUrl =
+    whatsappNumber.trim().length > 0 && whatsappMessage
+      ? createWhatsappUrl(whatsappNumber, whatsappMessage)
+      : '#booking';
 
   const handleSelect = (field: keyof CalcState, value: string) => {
     setCalc((prev) => ({ ...prev, [field]: value }));
@@ -431,7 +483,9 @@ export default function InkCalculator({ pricePerHour = 150 }: InkCalculatorProps
                     {copy.priceLabel}
                   </p>
                   <p className="font-serif-display text-4xl">
-                    EUR {estimate.minPrice === estimate.maxPrice ? estimate.minPrice : `${estimate.minPrice}-${estimate.maxPrice}`}
+                    {estimate.minPrice === estimate.maxPrice
+                      ? formatPrice(estimate.minPrice)
+                      : `${formatPrice(estimate.minPrice)}-${formatPrice(estimate.maxPrice)}`}
                   </p>
                 </div>
               </div>
@@ -441,7 +495,13 @@ export default function InkCalculator({ pricePerHour = 150 }: InkCalculatorProps
               </p>
 
               <div className="mt-8">
-                <a href="#booking" className="inline-flex items-center px-8 py-3 rounded-full transition-transform duration-200 hover:scale-[1.03]" style={{ backgroundColor: 'var(--blood-red)', color: 'var(--parchment)', fontWeight: 700 }}>
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-8 py-3 rounded-full transition-transform duration-200 hover:scale-[1.03]"
+                  style={{ backgroundColor: 'var(--blood-red)', color: 'var(--parchment)', fontWeight: 700 }}
+                >
                   {copy.cta}
                 </a>
               </div>

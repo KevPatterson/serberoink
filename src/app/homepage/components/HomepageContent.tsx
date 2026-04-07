@@ -92,7 +92,11 @@ export default function HomepageContent({
           onZoneClick={handlePlacementZoneClick}
         />
         <hr className="section-rule mx-8 md:mx-16" />
-        <InkCalculator pricePerHour={localizedContent.contact.pricePerHour} />
+        <InkCalculator
+          pricePerHour={localizedContent.contact.pricePerHour}
+          whatsappNumber={localizedContent.contact.whatsapp}
+          whatsappBaseText={localizedContent.contact.whatsappText}
+        />
         <hr className="section-rule mx-8 md:mx-16" />
         <BookingSection contact={localizedContent.contact} />
         <SiteFooter footer={localizedContent.footer} />
