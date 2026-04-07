@@ -536,6 +536,10 @@ export default function AdminDashboardPage() {
                 showToast('error', 'Email y WhatsApp son requeridos');
                 return;
               }
+              if (!Number.isFinite(content.contact.pricePerHour) || content.contact.pricePerHour <= 0) {
+                showToast('error', 'Tarifa por hora invalida');
+                return;
+              }
               void persistContent(content, 'cms: update contact');
             }}
           />
@@ -1191,6 +1195,37 @@ function AdminContact(props: {
           })
         }
       />
+      <div className="mb-4">
+        <label
+          className="block mb-2 font-mono-body"
+          style={{
+            fontSize: '0.54rem',
+            letterSpacing: '0.08em',
+            textTransform: 'none',
+            color: 'rgba(240,234,214,0.62)',
+          }}
+        >
+          Tarifa por hora (EUR)
+        </label>
+        <input
+          type="number"
+          min={1}
+          step={1}
+          value={content.contact.pricePerHour}
+          onChange={(e) => {
+            const nextValue = Number(e.target.value);
+            setContent({
+              ...content,
+              contact: {
+                ...content.contact,
+                pricePerHour: Number.isFinite(nextValue) && nextValue > 0 ? Math.round(nextValue) : 0,
+              },
+            });
+          }}
+          className="w-full px-3 py-2 font-mono-body"
+          style={inputStyle}
+        />
+      </div>
       <TextareaField
         label="Texto WhatsApp"
         value={content.contact.whatsappText}

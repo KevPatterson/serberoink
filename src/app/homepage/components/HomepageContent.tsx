@@ -14,6 +14,7 @@ import ScrollRevealInit from './ScrollRevealInit';
 import TattooPreloader from './TattooPreloader';
 import SiteNav from './SiteNav';
 import TattooPlacementMap from '@/components/TattooPlacementMap';
+import InkCalculator from './InkCalculator';
 
 interface HomepageContentProps {
   initialContent: SiteContent;
@@ -90,6 +91,8 @@ export default function HomepageContent({
           lang={lang}
           onZoneClick={handlePlacementZoneClick}
         />
+        <hr className="section-rule mx-8 md:mx-16" />
+        <InkCalculator pricePerHour={localizedContent.contact.pricePerHour} />
         <hr className="section-rule mx-8 md:mx-16" />
         <BookingSection contact={localizedContent.contact} />
         <SiteFooter footer={localizedContent.footer} />

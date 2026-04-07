@@ -66,6 +66,7 @@ export interface SiteContent {
     whatsappText: string;
     ctaText: string;
     quote: string;
+    pricePerHour: number;
   };
   footer: {
     brand: string;
@@ -133,6 +134,7 @@ export const defaultSiteContent: SiteContent = {
     whatsappText: "Hi! I'd like to book a tattoo session with Serbero Ink.",
     ctaText: 'Get in Touch',
     quote: 'DMs open. Serious inquiries only.',
+    pricePerHour: 150,
   },
   footer: {
     brand: 'Serbero Ink',
@@ -171,6 +173,12 @@ function toLocalContentImageUrl(src: string): string {
 
 function normalizeContent(input: unknown): SiteContent {
   const data = (input ?? {}) as Partial<SiteContent>;
+  const rawPricePerHour = data.contact?.pricePerHour;
+  const normalizedPricePerHour =
+    typeof rawPricePerHour === 'number' && Number.isFinite(rawPricePerHour) && rawPricePerHour > 0
+      ? rawPricePerHour
+      : defaultSiteContent.contact.pricePerHour;
+
   return {
     ...defaultSiteContent,
     ...data,
@@ -250,7 +258,11 @@ function normalizeContent(input: unknown): SiteContent {
         }, []);
       })(),
     },
-    contact: { ...defaultSiteContent.contact, ...(data.contact ?? {}) },
+    contact: {
+      ...defaultSiteContent.contact,
+      ...(data.contact ?? {}),
+      pricePerHour: normalizedPricePerHour,
+    },
     footer: { ...defaultSiteContent.footer, ...(data.footer ?? {}) },
     _meta: { ...defaultSiteContent._meta, ...(data._meta ?? {}) },
     i18n: {

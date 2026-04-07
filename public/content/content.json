@@ -96,7 +96,8 @@
     "whatsapp": "5355128205",
     "whatsappText": "¡Hola! Me gustaría reservar una sesión de tatuaje con Serbero Ink.",
     "ctaText": "Contactarme",
-    "quote": "DMs abiertos. Solo consultas serias."
+    "quote": "DMs abiertos. Solo consultas serias.",
+    "pricePerHour": 150
   },
   "footer": {
     "brand": "Serbero Ink",
