@@ -720,6 +720,7 @@ function BodySVGMirrored({
 
 const labels = {
   es: {
+    kicker: "004 - Mapa interactivo",
     title: "Guía de ubicación del tatuaje",
     subtitle:
       "Explora zonas del cuerpo para ver dolor, cicatrizacion y estilos recomendados.",
@@ -736,6 +737,7 @@ const labels = {
       "Pasa el cursor o toca cualquier punto destacado para ver detalles.",
   },
   en: {
+    kicker: "004 - Interactive Map",
     title: "Tattoo Placement Guide",
     subtitle:
       "Explore body zones to compare pain, healing time, and best fitting styles.",
@@ -840,7 +842,7 @@ export default function TattooPlacementMap({
       <div className="tpm-bg" aria-hidden="true" />
       <div className="tpm-shell">
         <div className="tpm-header">
-          <p className="tpm-kicker">004 - Interactive Map</p>
+          <p className="tpm-kicker">{t.kicker}</p>
           <h2 className="tpm-title">{t.title}</h2>
           <p className="tpm-subtitle">{t.subtitle}</p>
         </div>

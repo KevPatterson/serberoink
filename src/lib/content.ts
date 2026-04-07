@@ -123,7 +123,7 @@ export const defaultSiteContent: SiteContent = {
     images: [],
   },
   contact: {
-    sectionNumber: '004',
+    sectionNumber: '006',
     sectionLabel: 'BOOK A SESSION.',
     heading: 'BOOK A SESSION.',
     email: 'studio@serberoink.com',

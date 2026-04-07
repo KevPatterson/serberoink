@@ -164,7 +164,7 @@ const COPY: Record<'es' | 'en', CalculatorCopy> = {
     currency: 'EUR',
   },
   en: {
-    sectionBadge: 'Estimate Tool',
+    sectionBadge: '005 - Estimate Tool',
     heading: 'Ink',
     headingAccent: 'Calculator',
     intro: 'Answer a few questions and get an orientative estimate for sessions, hours, and price.',
