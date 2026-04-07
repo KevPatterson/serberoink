@@ -99,7 +99,7 @@ export default function HomepageContent({
         />
         <hr className="section-rule mx-8 md:mx-16" />
         <BookingSection contact={localizedContent.contact} />
-        <SiteFooter footer={localizedContent.footer} />
+        <SiteFooter footer={localizedContent.footer} contact={localizedContent.contact} />
       </main>
     </>
   );
