@@ -23,7 +23,8 @@ export default function SiteFooter({ footer, contact }: SiteFooterProps) {
     lang === 'en'
       ? {
           devLabel: 'Development',
-          devText: 'Built by Kevin Patterson Forjan',
+          devText: 'Built by Kevin Patterson Forján from',
+          devCompany: 'Clavisoft',
           githubCta: 'View GitHub',
           devWhatsappCta: 'Build your own website',
           devWhatsappMessage:
@@ -34,7 +35,8 @@ export default function SiteFooter({ footer, contact }: SiteFooterProps) {
         }
       : {
           devLabel: 'Desarrollo',
-          devText: 'Hecho por Kevin Patterson Forjan',
+          devText: 'Hecho por Kevin Patterson Forján de',
+          devCompany: 'Clavisoft',
           githubCta: 'Ver GitHub',
           devWhatsappCta: 'Crear tu propio sitio web',
           devWhatsappMessage:
@@ -45,6 +47,7 @@ export default function SiteFooter({ footer, contact }: SiteFooterProps) {
         };
 
   const githubUrl = 'https://github.com/KevPatterson';
+  const devCompanyUrl = 'https://clavisoft.vercel.app';
   const devWhatsappUrl = `https://wa.me/5356954200?text=${encodeURIComponent(copy.devWhatsappMessage)}`;
   const whatsappUrl = `https://wa.me/${contact.whatsapp}?text=${encodeURIComponent(contact.whatsappText)}`;
   const instagramUrl = contact.instagramUrl;
@@ -83,7 +86,23 @@ export default function SiteFooter({ footer, contact }: SiteFooterProps) {
               opacity: 0.82,
             }}
           >
-            <span>{copy.devText}</span>
+            <span>
+              {copy.devText}{' '}
+              <a
+                href={devCompanyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-all duration-200 ease-out hover:opacity-100"
+                style={{
+                  color: 'var(--parchment)',
+                  textDecoration: 'none',
+                  borderBottom: '1px solid rgba(200,169,110,0.32)',
+                  opacity: 0.9,
+                }}
+              >
+                {copy.devCompany}
+              </a>
+            </span>
             <a
               href={githubUrl}
               target="_blank"
