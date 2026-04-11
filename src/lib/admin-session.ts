@@ -1,6 +1,6 @@
 export const ADMIN_COOKIE_NAME = 'admin_authenticated';
 export const ADMIN_HASH_PREFIX = 'serberoink:';
-export const ADMIN_COOKIE_VERSION = 'v1';
+export const ADMIN_COOKIE_VERSION = 'v2';
 
 export interface ParsedAdminSessionCookie {
   version: string;
