@@ -70,7 +70,7 @@ export default function HomepageContent({
     <>
       <TattooPreloader />
       <ScrollRevealInit />
-      <SiteNav />
+      <SiteNav whatsappNumber={localizedContent.contact.whatsapp} />
       <main className="bg-ink-black text-parchment overflow-x-hidden">
         <HeroSection hero={localizedContent.hero} />
         <hr className="section-rule mx-8 md:mx-16" />

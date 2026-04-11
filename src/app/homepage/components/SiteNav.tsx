@@ -4,9 +4,19 @@ import Link from 'next/link';
 import { useLang } from './LanguageContext';
 import { useUIStrings } from '@/hooks/useUIStrings';
 
-export default function SiteNav() {
+interface SiteNavProps {
+  whatsappNumber: string;
+}
+
+export default function SiteNav({ whatsappNumber }: SiteNavProps) {
   const { lang, setLanguage } = useLang();
   const ui = useUIStrings();
+  const contactCta = lang === 'en' ? 'Contact' : 'Contactar';
+  const bookingMessage =
+    lang === 'en'
+      ? 'Hi, I want to schedule a tattoo appointment.'
+      : 'Hola, quiero agendar un turno para tatuarme.';
+  const whatsappBookingUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(bookingMessage)}`;
 
   return (
     <nav
@@ -34,6 +44,26 @@ export default function SiteNav() {
 
       {/* Right controls */}
       <div className="flex items-center gap-3 md:gap-5">
+        <a
+          href={whatsappBookingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-mono-body nav-pill transition-all duration-200 ease-out hover:opacity-100 hover:-translate-y-px"
+          style={{
+            fontSize: '0.6rem',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: 'var(--parchment)',
+            background: 'rgba(200,169,110,0.12)',
+            border: '1px solid rgba(200,169,110,0.45)',
+            padding: '0.35rem 0.72rem',
+            textDecoration: 'none',
+            opacity: 0.9,
+          }}
+        >
+          {contactCta}
+        </a>
+
         <button
           type="button"
           onClick={() => setLanguage('es')}
