@@ -656,6 +656,7 @@ interface BodyMapProps {
   onHover: (id: string | null) => void;
   onClick: (zone: BodyZone) => void;
   isFront: boolean;
+  lang: "es" | "en";
 }
 
 function BodySVGMirrored({
@@ -665,13 +666,22 @@ function BodySVGMirrored({
   onHover,
   onClick,
   isFront,
+  lang,
 }: BodyMapProps) {
   return (
     <svg
       viewBox="0 0 200 480"
       className="tpm-body"
       style={{ filter: "drop-shadow(0 0 32px rgba(200,56,42,0.18))" }}
-      aria-label={isFront ? "Body front map" : "Body back map"}
+      aria-label={
+        lang === "es"
+          ? isFront
+            ? "Mapa corporal frontal"
+            : "Mapa corporal posterior"
+          : isFront
+            ? "Body front map"
+            : "Body back map"
+      }
     >
       {isFront ? <FrontSilhouette /> : <BackSilhouette />}
 
@@ -755,6 +765,117 @@ const labels = {
   },
 };
 
+const zoneLabelEs: Record<string, string> = {
+  "Head / Scalp": "Cabeza / Cuero cabelludo",
+  Neck: "Cuello",
+  Chest: "Pecho",
+  Ribs: "Costillas",
+  Stomach: "Estomago",
+  "Upper Arm": "Brazo superior",
+  Forearm: "Antebrazo",
+  "Hand / Wrist": "Mano / Muneca",
+  Thigh: "Muslo",
+  Knee: "Rodilla",
+  Calf: "Pantorrilla",
+  "Ankle / Foot": "Tobillo / Pie",
+  "Back of Head": "Parte posterior de la cabeza",
+  "Nape of Neck": "Nuca",
+  Shoulder: "Hombro",
+  "Upper Back": "Espalda alta",
+  "Back Ribs": "Costillas (espalda)",
+  "Lower Back": "Espalda baja",
+  Tricep: "Triceps",
+  "Forearm (Back)": "Antebrazo (posterior)",
+  "Back Thigh": "Muslo posterior",
+  "Back of Knee": "Parte posterior de la rodilla",
+  "Calf (Back)": "Pantorrilla (posterior)",
+  "Achilles / Heel": "Aquiles / Talon",
+};
+
+const healingEs: Record<string, string> = {
+  "2 weeks": "2 semanas",
+  "2-3 weeks": "2-3 semanas",
+  "3 weeks": "3 semanas",
+  "3-4 weeks": "3-4 semanas",
+  "4-6 weeks": "4-6 semanas",
+};
+
+const styleEs: Record<string, string> = {
+  Lettering: "Rotulacion",
+  Geometric: "Geometrico",
+  "Fine Line": "Linea fina",
+  Blackwork: "Blackwork",
+  Realism: "Realismo",
+  "Neo-Traditional": "Neo-Tradicional",
+  Sleeve: "Manga",
+  "Large Pieces": "Piezas grandes",
+  "Small Pieces": "Piezas pequenas",
+  Tribal: "Tribal",
+};
+
+const descriptionEs: Record<string, string> = {
+  "Very sensitive area. Thin skin over bone. Requires experienced artist.":
+    "Zona muy sensible. Piel fina sobre hueso. Requiere un artista con experiencia.",
+  "Sensitive with lots of nerve endings. Heals well but fades faster.":
+    "Zona sensible con muchas terminaciones nerviosas. Cura bien, pero se desvanece mas rapido.",
+  "Flat surface ideal for large pieces. Sternum area is very painful.":
+    "Superficie plana ideal para piezas grandes. La zona del esternon es muy dolorosa.",
+  "The most painful area. Thin skin over bone. Serbero has stunning rib pieces.":
+    "La zona mas dolorosa. Piel fina sobre hueso. Serbero tiene piezas de costillas increibles.",
+  "Soft tissue means more movement. Heals well with proper aftercare.":
+    "El tejido blando implica mas movimiento. Cura bien con cuidados adecuados.",
+  "One of the best spots. Fleshy, flat, and heals beautifully. Perfect for sleeves.":
+    "Una de las mejores zonas. Carnosa, plana y con excelente cicatrizacion. Perfecta para mangas.",
+  "Excellent visibility and healing. Serbero's most requested placement.":
+    "Excelente visibilidad y cicatrizacion. La ubicacion mas solicitada de Serbero.",
+  "High fade rate due to constant use. Requires touch-ups. Bold designs recommended.":
+    "Se desvanece rapido por el uso constante. Requiere retoques. Se recomiendan disenos marcados.",
+  "Large fleshy area perfect for big, detailed work. Heals very well.":
+    "Zona amplia y carnosa, ideal para trabajos grandes y detallados. Cura muy bien.",
+  "Bony and sensitive. Constant movement affects healing. Bold designs work best.":
+    "Zona osea y sensible. El movimiento constante afecta la cicatrizacion. Funcionan mejor disenos marcados.",
+  "Fleshy and forgiving. Great for medium to large pieces. Heals consistently well.":
+    "Carnosa y tolerante. Excelente para piezas medianas y grandes. Cura de forma consistente.",
+  "Thin skin over bone. Slow healing due to circulation. Delicate designs recommended.":
+    "Piel fina sobre hueso. Cicatrizacion lenta por la circulacion. Se recomiendan disenos delicados.",
+  "Thin skin over skull. Requires shaving. Very painful but striking results.":
+    "Piel fina sobre el craneo. Requiere rasurado. Muy dolorosa, pero con resultados impactantes.",
+  "Popular placement, highly visible. Heals well but can fade with sun exposure.":
+    "Ubicacion popular y muy visible. Cura bien, pero puede desvanecerse con exposicion al sol.",
+  "Rounded surface, great for wrapping designs. Heals beautifully.":
+    "Superficie redondeada, ideal para disenos envolventes. Cicatriza muy bien.",
+  "Large flat canvas. Ideal for back pieces and wings. Heals very well.":
+    "Lienzo grande y plano. Ideal para piezas de espalda y alas. Cura muy bien.",
+  "Extremely painful. Thin skin over ribs. Stunning placement for large work.":
+    "Extremadamente dolorosa. Piel fina sobre costillas. Ubicacion impactante para trabajos grandes.",
+  "Classic placement. Flat surface, heals well. Great for symmetrical designs.":
+    "Ubicacion clasica. Superficie plana, buena cicatrizacion. Ideal para disenos simetricos.",
+  "Tricep area. Fleshy and flat. Excellent for sleeve continuation.":
+    "Zona de triceps. Carnosa y plana. Excelente para continuar mangas.",
+  "Outer forearm. Very visible, heals well. One of the easiest placements.":
+    "Antebrazo externo. Muy visible y de buena cicatrizacion. Una de las ubicaciones mas faciles.",
+  "Hamstring area. Large fleshy canvas. Heals very well, low pain.":
+    "Zona de isquiotibiales. Lienzo amplio y carnoso. Cura muy bien y duele poco.",
+  "Ditch of the knee. One of the most painful spots. Constant movement slows healing.":
+    "Hueco de la rodilla. Una de las zonas mas dolorosas. El movimiento constante ralentiza la cicatrizacion.",
+  "Great canvas for detailed work. Heals consistently well.":
+    "Excelente lienzo para trabajos detallados. Cicatriza de forma consistente.",
+  "Thin skin over tendon. Slow healing. Minimal designs recommended.":
+    "Piel fina sobre tendon. Cicatrizacion lenta. Se recomiendan disenos minimalistas.",
+};
+
+function localizeZone(zone: BodyZone, lang: "es" | "en"): BodyZone {
+  if (lang === "en") return zone;
+
+  return {
+    ...zone,
+    label: zoneLabelEs[zone.label] ?? zone.label,
+    healing: healingEs[zone.healing] ?? zone.healing,
+    works: zone.works.map((work) => styleEs[work] ?? work),
+    description: descriptionEs[zone.description] ?? zone.description,
+  };
+}
+
 export default function TattooPlacementMap({
   onZoneClick,
   className,
@@ -788,6 +909,10 @@ export default function TattooPlacementMap({
       getDisplayZone(frontZones, activeFrontIds, hoveredFrontIds) ??
       getDisplayZone(backZones, activeBackIds, hoveredBackIds),
     [activeBackIds, activeFrontIds, hoveredBackIds, hoveredFrontIds]
+  );
+  const localizedDisplayZone = useMemo(
+    () => (displayZone ? localizeZone(displayZone, lang) : null),
+    [displayZone, lang]
   );
 
   const legend = useMemo(
@@ -858,6 +983,7 @@ export default function TattooPlacementMap({
                 onHover={handleFrontHover}
                 onClick={handleFrontClick}
                 isFront
+                lang={lang}
               />
               <p className="tpm-hint">{t.hint}</p>
             </div>
@@ -871,58 +997,59 @@ export default function TattooPlacementMap({
                 onHover={handleBackHover}
                 onClick={handleBackClick}
                 isFront={false}
+                lang={lang}
               />
               <p className="tpm-hint">{t.hint}</p>
             </div>
           </div>
 
           <div className="tpm-panel-wrap">
-            {displayZone ? (
+            {localizedDisplayZone ? (
               <div className="tpm-panel tpm-enter">
                 <div className="tpm-panel-head">
                   <div>
                     <p className="tpm-meta-label">{t.selected}</p>
-                    <h3 className="tpm-zone-title">{displayZone.label}</h3>
+                    <h3 className="tpm-zone-title">{localizedDisplayZone.label}</h3>
                   </div>
                   <span
                     className="tpm-pill"
                     style={{
-                      backgroundColor: `${painColors[displayZone.painLabel]}22`,
-                      color: painColors[displayZone.painLabel],
-                      borderColor: `${painColors[displayZone.painLabel]}44`,
+                      backgroundColor: `${painColors[localizedDisplayZone.painLabel]}22`,
+                      color: painColors[localizedDisplayZone.painLabel],
+                      borderColor: `${painColors[localizedDisplayZone.painLabel]}44`,
                     }}
                   >
-                    {translatePainLabel(displayZone.painLabel)}
+                    {translatePainLabel(localizedDisplayZone.painLabel)}
                   </span>
                 </div>
 
                 <div className="tpm-meter-wrap">
                   <div className="tpm-meter-head">
                     <span>{t.pain}</span>
-                    <span>{displayZone.pain}/10</span>
+                    <span>{localizedDisplayZone.pain}/10</span>
                   </div>
                   <div className="tpm-meter-track">
                     <div
                       className="tpm-meter-fill"
                       style={{
-                        width: `${displayZone.pain * 10}%`,
-                        backgroundColor: painColors[displayZone.painLabel],
+                        width: `${localizedDisplayZone.pain * 10}%`,
+                        backgroundColor: painColors[localizedDisplayZone.painLabel],
                       }}
                     />
                   </div>
                 </div>
 
-                <p className="tpm-desc">{displayZone.description}</p>
+                <p className="tpm-desc">{localizedDisplayZone.description}</p>
 
                 <div className="tpm-grid">
                   <div className="tpm-card">
                     <p className="tpm-meta-label">{t.healing}</p>
-                    <p className="tpm-card-value">{displayZone.healing}</p>
+                    <p className="tpm-card-value">{localizedDisplayZone.healing}</p>
                   </div>
                   <div className="tpm-card">
                     <p className="tpm-meta-label">{t.bestStyles}</p>
                     <div className="tpm-tags">
-                      {displayZone.works.map((work) => (
+                      {localizedDisplayZone.works.map((work) => (
                         <span key={work} className="tpm-tag">
                           {work}
                         </span>
@@ -934,7 +1061,7 @@ export default function TattooPlacementMap({
                 <button
                   type="button"
                   className="tpm-cta"
-                  onClick={() => onZoneClick?.(displayZone.id)}
+                  onClick={() => onZoneClick?.(localizedDisplayZone.id)}
                 >
                   {t.cta}
                 </button>
