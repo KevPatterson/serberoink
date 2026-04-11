@@ -6,9 +6,32 @@ type Bucket = {
 };
 
 const buckets = new Map<string, Bucket>();
+const MAX_MEMORY_BUCKETS = 5000;
+
+function cleanupExpiredBuckets(now: number, windowMs: number): void {
+  for (const [key, bucket] of buckets.entries()) {
+    if (now - bucket.startTime >= windowMs) {
+      buckets.delete(key);
+    }
+  }
+}
+
+function trimBucketsIfNeeded(): void {
+  if (buckets.size <= MAX_MEMORY_BUCKETS) {
+    return;
+  }
+
+  const entries = [...buckets.entries()].sort((a, b) => a[1].startTime - b[1].startTime);
+  const removeCount = buckets.size - MAX_MEMORY_BUCKETS;
+  for (let i = 0; i < removeCount; i += 1) {
+    buckets.delete(entries[i][0]);
+  }
+}
 
 function checkRateLimitInMemory(key: string, max = 10, windowMs = 60_000): boolean {
   const now = Date.now();
+  cleanupExpiredBuckets(now, windowMs);
+  trimBucketsIfNeeded();
   const current = buckets.get(key);
 
   if (!current || now - current.startTime >= windowMs) {

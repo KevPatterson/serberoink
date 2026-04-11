@@ -2,13 +2,21 @@ import { NextResponse } from 'next/server';
 import {
   ADMIN_COOKIE_NAME,
   ADMIN_SESSION_TTL_SECONDS,
+  createAdminCookieValue,
   createAdminSessionCookieValue,
   getAdminPassword,
+  secureEqual,
 } from '@/lib/cms-auth';
 import { checkRateLimit } from '@/lib/cms-rate-limit';
+import { getClientIp } from '@/lib/request-ip';
+import { isSameOriginRequest } from '@/lib/request-origin';
 
 export async function POST(req: Request) {
-  const ip = req.headers.get('x-forwarded-for') || 'unknown';
+  if (!isSameOriginRequest(req.headers)) {
+    return NextResponse.json({ error: 'Forbidden origin' }, { status: 403 });
+  }
+
+  const ip = getClientIp(req.headers);
   if (!(await checkRateLimit(`auth:${ip}`, 10, 60_000))) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
@@ -21,7 +29,9 @@ export async function POST(req: Request) {
   }
   const password = body.password || '';
 
-  if (password !== getAdminPassword()) {
+  const expectedHash = createAdminCookieValue(getAdminPassword());
+  const providedHash = createAdminCookieValue(password);
+  if (!secureEqual(providedHash, expectedHash)) {
     return NextResponse.json({ success: false }, { status: 401 });
   }
 

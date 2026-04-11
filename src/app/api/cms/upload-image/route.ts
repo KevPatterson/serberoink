@@ -7,6 +7,8 @@ import {
   putRepoBase64File,
   sanitizeFilename,
 } from '@/lib/cms-github';
+import { getClientIp } from '@/lib/request-ip';
+import { isSameOriginRequest } from '@/lib/request-origin';
 
 interface UploadBody {
   filename: string;
@@ -26,12 +28,16 @@ function toPublicImageUrl(repoPath: string): string {
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 export async function POST(req: NextRequest) {
+  if (!isSameOriginRequest(req.headers)) {
+    return NextResponse.json({ error: 'Forbidden origin' }, { status: 403 });
+  }
+
   const adminCookie = req.cookies.get(ADMIN_COOKIE_NAME)?.value ?? null;
   if (!isValidAdminCookie(adminCookie)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const ip = req.headers.get('x-forwarded-for') || 'unknown';
+  const ip = getClientIp(req.headers);
   if (!(await checkRateLimit(`upload:${ip}`, 10, 60_000))) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }

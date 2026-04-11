@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { posix as pathPosix } from 'node:path';
 import { ADMIN_COOKIE_NAME, isValidAdminCookie } from '@/lib/cms-auth';
 import { checkRateLimit } from '@/lib/cms-rate-limit';
 import { getRepoFileSha, putRepoBase64File, putRepoFile } from '@/lib/cms-github';
+import { getClientIp } from '@/lib/request-ip';
+import { isSameOriginRequest } from '@/lib/request-origin';
 import { buildContentWithFallbackI18n, translateSiteContent } from '@/lib/translate';
 import type { SiteContent } from '@/lib/content';
 
@@ -80,13 +83,37 @@ function isAllowedUpdatePath(path: string): boolean {
   return path.startsWith('public/content/images/');
 }
 
+function normalizeUpdatePath(rawPath: string): string | null {
+  const normalized = pathPosix.normalize(rawPath.trim().replace(/\\/g, '/'));
+  if (!normalized || normalized === '.' || normalized.startsWith('../') || normalized === '..') {
+    return null;
+  }
+
+  if (!isAllowedUpdatePath(normalized)) {
+    return null;
+  }
+
+  if (normalized.startsWith('public/content/images/')) {
+    const relative = normalized.slice('public/content/images/'.length);
+    if (!relative || relative.includes('..') || relative.startsWith('/')) {
+      return null;
+    }
+  }
+
+  return normalized;
+}
+
 export async function POST(req: NextRequest) {
+  if (!isSameOriginRequest(req.headers)) {
+    return NextResponse.json({ error: 'Forbidden origin' }, { status: 403 });
+  }
+
   const adminCookie = req.cookies.get(ADMIN_COOKIE_NAME)?.value ?? null;
   if (!isValidAdminCookie(adminCookie)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const ip = req.headers.get('x-forwarded-for') || 'unknown';
+  const ip = getClientIp(req.headers);
   if (!(await checkRateLimit(`update:${ip}`, 10, 60_000))) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
@@ -98,13 +125,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
   }
 
-  const path = body.path;
-  if (!path || !isAllowedUpdatePath(path)) {
+  const updatePath = typeof body.path === 'string' ? normalizeUpdatePath(body.path) : null;
+  if (!updatePath) {
     return NextResponse.json({ error: 'Missing path' }, { status: 400 });
   }
 
-  const sha = await getRepoFileSha(path);
-  const message = body.message || `cms: update ${path}`;
+  const sha = await getRepoFileSha(updatePath);
+  const message = body.message || `cms: update ${updatePath}`;
 
   try {
     if (typeof body.imageBase64 === 'string') {
@@ -113,7 +140,7 @@ export async function POST(req: NextRequest) {
       }
 
       await putRepoBase64File({
-        path,
+        path: updatePath,
         base64: body.imageBase64,
         message,
         sha: sha || undefined,
@@ -124,7 +151,7 @@ export async function POST(req: NextRequest) {
 
       if (typeof body.content === 'string') {
         contentPayload = body.content;
-      } else if (path === CONTENT_PATH) {
+      } else if (updatePath === CONTENT_PATH) {
         const normalizedContent = normalizeContentImageUrls(body.content as SiteContent);
         const translationResult = await withTranslationFallback(normalizedContent);
         contentPayload = translationResult.content;
@@ -139,7 +166,7 @@ export async function POST(req: NextRequest) {
           : JSON.stringify(contentPayload, null, 2);
 
       await putRepoFile({
-        path,
+        path: updatePath,
         content: nextContent,
         message,
         sha: sha || undefined,

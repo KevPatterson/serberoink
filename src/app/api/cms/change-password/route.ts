@@ -5,8 +5,11 @@ import {
   createAdminCookieValue,
   getAdminPassword,
   isValidAdminCookie,
+  secureEqual,
 } from '@/lib/cms-auth';
 import { checkRateLimit } from '@/lib/cms-rate-limit';
+import { getClientIp } from '@/lib/request-ip';
+import { isSameOriginRequest } from '@/lib/request-origin';
 
 interface ChangePasswordBody {
   currentPassword?: string;
@@ -20,12 +23,16 @@ interface VercelEnvVar {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isSameOriginRequest(req.headers)) {
+    return NextResponse.json({ error: 'Forbidden origin' }, { status: 403 });
+  }
+
   const adminCookie = req.cookies.get(ADMIN_COOKIE_NAME)?.value ?? null;
   if (!isValidAdminCookie(adminCookie)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const ip = req.headers.get('x-forwarded-for') || 'unknown';
+  const ip = getClientIp(req.headers);
   if (!(await checkRateLimit(`change-password:${ip}`, 5, 60_000))) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
@@ -46,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   const expectedHash = createAdminCookieValue(currentPassword);
   const currentHash = createAdminCookieValue(getAdminPassword());
-  if (expectedHash !== currentHash) {
+  if (!secureEqual(expectedHash, currentHash)) {
     return NextResponse.json({ error: 'Contrasena actual incorrecta' }, { status: 400 });
   }
 
