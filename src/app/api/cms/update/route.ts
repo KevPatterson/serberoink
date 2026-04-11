@@ -109,7 +109,8 @@ export async function POST(req: NextRequest) {
   }
 
   const adminCookie = req.cookies.get(ADMIN_COOKIE_NAME)?.value ?? null;
-  if (!isValidAdminCookie(adminCookie)) {
+  const userAgent = req.headers.get('user-agent') || '';
+  if (!isValidAdminCookie(adminCookie, userAgent)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

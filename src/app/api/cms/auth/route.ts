@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false }, { status: 401 });
   }
 
-  const cookieValue = createAdminSessionCookieValue(password);
+  const cookieValue = createAdminSessionCookieValue(password, req.headers.get('user-agent') || '');
   const res = NextResponse.json({ success: true });
   res.cookies.set({
     name: ADMIN_COOKIE_NAME,

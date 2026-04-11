@@ -4,6 +4,7 @@ import {
   ADMIN_COOKIE_NAME,
   ADMIN_COOKIE_VERSION,
   ADMIN_HASH_PREFIX,
+  getAdminAgentHash,
   parseAdminSessionCookie,
 } from '@/lib/admin-session';
 
@@ -69,7 +70,15 @@ export async function middleware(req: NextRequest) {
     return applyAdminSecurityHeaders(NextResponse.redirect(loginUrl));
   }
 
-  const expectedSignature = await sha256(`${ADMIN_HASH_PREFIX}${adminPassword}:${session.expiresAt}`);
+  const requestAgentHash = getAdminAgentHash(req.headers.get('user-agent') || '');
+  if (!secureEqual(session.agentHash, requestAgentHash)) {
+    const loginUrl = new URL('/admin/login', req.url);
+    return applyAdminSecurityHeaders(NextResponse.redirect(loginUrl));
+  }
+
+  const expectedSignature = await sha256(
+    `${ADMIN_HASH_PREFIX}${adminPassword}:${session.expiresAt}:${session.agentHash}`
+  );
   if (!secureEqual(session.signature, expectedSignature)) {
     const loginUrl = new URL('/admin/login', req.url);
     return applyAdminSecurityHeaders(NextResponse.redirect(loginUrl));

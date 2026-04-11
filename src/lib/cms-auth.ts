@@ -4,6 +4,7 @@ import { createHash, timingSafeEqual } from 'crypto';
 import {
   ADMIN_COOKIE_VERSION,
   ADMIN_HASH_PREFIX,
+  getAdminAgentHash,
   parseAdminSessionCookie,
 } from '@/lib/admin-session';
 
@@ -22,10 +23,15 @@ export function createAdminCookieValue(password: string): string {
   return createHash('sha256').update(`${ADMIN_HASH_PREFIX}${password}`).digest('hex');
 }
 
-export function createAdminSessionCookieValue(password: string, nowMs = Date.now()): string {
+export function createAdminSessionCookieValue(
+  password: string,
+  userAgent: string,
+  nowMs = Date.now()
+): string {
   const expiresAt = nowMs + ADMIN_SESSION_TTL_SECONDS * 1000;
-  const signature = createAdminCookieValue(`${password}:${expiresAt}`);
-  return `${ADMIN_COOKIE_VERSION}.${expiresAt}.${signature}`;
+  const agentHash = getAdminAgentHash(userAgent);
+  const signature = createAdminCookieValue(`${password}:${expiresAt}:${agentHash}`);
+  return `${ADMIN_COOKIE_VERSION}.${expiresAt}.${agentHash}.${signature}`;
 }
 
 export function getExpectedAdminCookieValue(): string {
@@ -39,7 +45,11 @@ export function secureEqual(a: string, b: string): boolean {
   return timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
 
-export function isValidAdminCookie(cookieValue: string | null, nowMs = Date.now()): boolean {
+export function isValidAdminCookie(
+  cookieValue: string | null,
+  userAgent: string,
+  nowMs = Date.now()
+): boolean {
   if (!cookieValue) return false;
 
   const session = parseAdminSessionCookie(cookieValue);
@@ -51,6 +61,13 @@ export function isValidAdminCookie(cookieValue: string | null, nowMs = Date.now(
     return false;
   }
 
-  const expectedSignature = createAdminCookieValue(`${getAdminPassword()}:${session.expiresAt}`);
+  const currentAgentHash = getAdminAgentHash(userAgent);
+  if (!secureEqual(session.agentHash, currentAgentHash)) {
+    return false;
+  }
+
+  const expectedSignature = createAdminCookieValue(
+    `${getAdminPassword()}:${session.expiresAt}:${session.agentHash}`
+  );
   return secureEqual(session.signature, expectedSignature);
 }
