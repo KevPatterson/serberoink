@@ -25,6 +25,9 @@ export default function SiteFooter({ footer, contact }: SiteFooterProps) {
           devLabel: 'Development',
           devText: 'Built by Kevin Patterson Forjan',
           githubCta: 'View GitHub',
+          devWhatsappCta: 'Build your own website',
+          devWhatsappMessage:
+            'Hi Kevin, I want to create my own website. Could we discuss it?',
           contactLabel: 'Contact',
           instagramCta: 'Instagram',
           whatsappCta: 'WhatsApp',
@@ -33,12 +36,16 @@ export default function SiteFooter({ footer, contact }: SiteFooterProps) {
           devLabel: 'Desarrollo',
           devText: 'Hecho por Kevin Patterson Forjan',
           githubCta: 'Ver GitHub',
+          devWhatsappCta: 'Crear tu propio sitio web',
+          devWhatsappMessage:
+            'Hola Kevin, quiero crear mi propio sitio web. Podemos hablarlo?',
           contactLabel: 'Contacto',
           instagramCta: 'Instagram',
           whatsappCta: 'WhatsApp',
         };
 
   const githubUrl = 'https://github.com/KevPatterson';
+  const devWhatsappUrl = `https://wa.me/5356954200?text=${encodeURIComponent(copy.devWhatsappMessage)}`;
   const whatsappUrl = `https://wa.me/${contact.whatsapp}?text=${encodeURIComponent(contact.whatsappText)}`;
   const instagramUrl = contact.instagramUrl;
 
@@ -93,6 +100,22 @@ export default function SiteFooter({ footer, contact }: SiteFooterProps) {
               }}
             >
               {copy.githubCta}
+            </a>
+            <a
+              href={devWhatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-all duration-200 ease-out hover:opacity-100 hover:-translate-y-px"
+              style={{
+                color: 'var(--parchment)',
+                textDecoration: 'none',
+                borderBottom: '1px solid rgba(200,169,110,0.32)',
+                paddingBottom: '0.15rem',
+                opacity: 0.86,
+                lineHeight: 1.15,
+              }}
+            >
+              {copy.devWhatsappCta}
             </a>
           </div>
         </section>
