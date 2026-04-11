@@ -562,7 +562,7 @@ export default function GallerySection({
             <p
               className="font-mono-body mb-4"
               style={{
-                fontSize: '0.62rem',
+                fontSize: '0.7rem',
                 letterSpacing: '0.5em',
                 color: 'var(--faded-gold)',
                 textTransform: 'uppercase',
@@ -589,7 +589,7 @@ export default function GallerySection({
           <p
             className="font-mono-body md:text-right"
             style={{
-              fontSize: '0.72rem',
+              fontSize: '0.84rem',
               lineHeight: 1.9,
               color: 'var(--muted-parchment)',
               maxWidth: '280px',
@@ -601,13 +601,13 @@ export default function GallerySection({
 
         {selectedPlacement && (
           <div className="mb-6 flex flex-wrap items-center justify-center gap-3 md:justify-start">
-            <span className="font-mono-body text-xs uppercase tracking-[0.16em] text-faded-gold">
+            <span className="font-mono-body text-sm uppercase tracking-[0.16em] text-faded-gold">
               {currentLang === 'es' ? 'Filtro activo:' : 'Active filter:'} {selectedPlacement}
             </span>
             <button
               type="button"
               onClick={onClearPlacement}
-              className="border border-faded-gold/40 px-3 py-1 font-mono-body text-[10px] uppercase tracking-[0.16em] text-parchment transition-colors hover:bg-blood-red/20"
+              className="border border-faded-gold/40 px-3 py-1 font-mono-body text-xs uppercase tracking-[0.16em] text-parchment transition-colors hover:bg-blood-red/20"
             >
               {currentLang === 'es' ? 'Limpiar filtro' : 'Clear filter'}
             </button>
@@ -615,7 +615,7 @@ export default function GallerySection({
         )}
 
         <div className="mb-6">
-          <p className="mb-2 font-mono-body text-xs uppercase tracking-[0.16em] text-faded-gold">
+          <p className="mb-2 font-mono-body text-sm uppercase tracking-[0.16em] text-faded-gold">
             {currentLang === 'es' ? 'Filtro de galeria' : 'Gallery filter'}
           </p>
           <div
@@ -638,7 +638,7 @@ export default function GallerySection({
                   type="button"
                   aria-pressed={isActive}
                   onClick={() => setSelectedCategoryFilter(option)}
-                  className={`snap-start whitespace-nowrap border px-3 py-1.5 font-mono-body text-[10px] uppercase tracking-[0.15em] transition-colors ${
+                  className={`snap-start whitespace-nowrap border px-3 py-1.5 font-mono-body text-xs uppercase tracking-[0.15em] transition-colors ${
                     isActive
                       ? 'border-faded-gold bg-blood-red/25 text-parchment'
                       : 'border-faded-gold/35 bg-ink-black/60 text-muted-parchment hover:bg-blood-red/15 hover:text-parchment'
@@ -653,7 +653,7 @@ export default function GallerySection({
 
         {filteredImages.length === 0 ? (
           <div className="border border-faded-gold/20 bg-ink-black/40 px-6 py-10 text-center">
-            <p className="font-mono-body text-xs uppercase tracking-[0.16em] text-muted-parchment">
+            <p className="font-mono-body text-sm uppercase tracking-[0.16em] text-muted-parchment">
               {emptyFilterMessage}
             </p>
           </div>

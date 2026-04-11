@@ -68,7 +68,7 @@ export default function BookingSection({ contact }: BookingSectionProps) {
         <p
           className="font-mono-body mb-10"
           style={{
-            fontSize: '0.62rem',
+            fontSize: '0.7rem',
             letterSpacing: '0.5em',
             color: 'var(--faded-gold)',
             textTransform: 'uppercase',
@@ -99,10 +99,10 @@ export default function BookingSection({ contact }: BookingSectionProps) {
 
         <div
           className="font-mono-body mb-12 space-y-2"
-          style={{ fontSize: '0.78rem', lineHeight: 2.2, color: 'var(--muted-parchment)', letterSpacing: '0.08em' }}
+          style={{ fontSize: '0.9rem', lineHeight: 2.2, color: 'var(--muted-parchment)', letterSpacing: '0.08em' }}
         >
           <p>
-            <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
+            <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.68rem', textTransform: 'uppercase' }}>
               {ui.contactEmail}{' '}
             </span>
             <a href={`mailto:${contact.email}`} style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}>
@@ -110,7 +110,7 @@ export default function BookingSection({ contact }: BookingSectionProps) {
             </a>
           </p>
           <p>
-            <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
+            <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.68rem', textTransform: 'uppercase' }}>
               {ui.contactInstagram}{' '}
             </span>
             <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--parchment)', textDecoration: 'none', borderBottom: '1px solid var(--rule-color)' }}>
@@ -118,7 +118,7 @@ export default function BookingSection({ contact }: BookingSectionProps) {
             </a>
           </p>
           <p>
-            <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.6rem', textTransform: 'uppercase' }}>
+            <span style={{ color: 'var(--faded-gold)', opacity: 0.6, letterSpacing: '0.3em', fontSize: '0.68rem', textTransform: 'uppercase' }}>
               {ui.contactLocation}{' '}
             </span>
             <span>{contact.location}</span>
@@ -143,7 +143,7 @@ export default function BookingSection({ contact }: BookingSectionProps) {
 
         <p
           className="font-mono-body"
-          style={{ fontSize: '0.65rem', letterSpacing: '0.18em', fontStyle: 'italic', color: 'var(--muted-parchment)', opacity: 0.6 }}
+          style={{ fontSize: '0.73rem', letterSpacing: '0.18em', fontStyle: 'italic', color: 'var(--muted-parchment)', opacity: 0.6 }}
         >
           {contact.quote}
         </p>

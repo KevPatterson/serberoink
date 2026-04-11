@@ -300,19 +300,19 @@ export default function InkCalculator({
     <section id="ink-calculator" className="reveal-section py-20 md:py-32 px-6 md:px-16 lg:px-24" aria-labelledby="ink-calculator-heading">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <p className="font-mono-body mb-6 text-xs uppercase" style={{ letterSpacing: '0.32em', color: 'var(--faded-gold)', opacity: 0.72 }}>
+          <p className="font-mono-body mb-6 text-sm uppercase" style={{ letterSpacing: '0.32em', color: 'var(--faded-gold)', opacity: 0.72 }}>
             {copy.sectionBadge}
           </p>
           <h2 id="ink-calculator-heading" className="font-serif-display" style={{ fontSize: 'clamp(2rem, 6vw, 4.4rem)', fontWeight: 300, lineHeight: 1.02 }}>
             {copy.heading} <span style={{ color: 'var(--blood-red)', fontStyle: 'italic', fontWeight: 800 }}>{copy.headingAccent}</span>
           </h2>
-          <p className="font-mono-body mx-auto mt-5" style={{ maxWidth: '44rem', color: 'var(--muted-parchment)', fontSize: '0.78rem', letterSpacing: '0.08em', lineHeight: 1.9 }}>
+          <p className="font-mono-body mx-auto mt-5" style={{ maxWidth: '44rem', color: 'var(--muted-parchment)', fontSize: '0.9rem', letterSpacing: '0.08em', lineHeight: 1.9 }}>
             {copy.intro}
           </p>
         </div>
 
         <div className="mb-8">
-          <div className="grid grid-cols-5 gap-2 font-mono-body text-[0.62rem] uppercase mb-3" style={{ letterSpacing: '0.18em', color: 'var(--muted-parchment)' }}>
+          <div className="grid grid-cols-5 gap-2 font-mono-body text-[0.7rem] uppercase mb-3" style={{ letterSpacing: '0.18em', color: 'var(--muted-parchment)' }}>
             {(Object.keys(copy.stepLabels) as Array<keyof CalculatorCopy['stepLabels']>).map((stepKey, index) => (
               <span key={stepKey} className="text-center" style={{ color: STEPS.indexOf(currentStep) >= index ? 'var(--faded-gold)' : 'var(--muted-parchment)' }}>
                 {copy.stepLabels[stepKey]}
@@ -334,7 +334,7 @@ export default function InkCalculator({
           {currentStep === 'size' && (
             <div>
               <h3 className="font-serif-display text-3xl md:text-4xl font-light mb-2">{copy.sizeQuestion}</h3>
-              <p className="font-mono-body text-xs mb-8" style={{ color: 'var(--muted-parchment)', letterSpacing: '0.08em' }}>
+              <p className="font-mono-body text-sm mb-8" style={{ color: 'var(--muted-parchment)', letterSpacing: '0.08em' }}>
                 {copy.sizeHint}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -350,7 +350,7 @@ export default function InkCalculator({
                   >
                     <span className="text-2xl mb-3 block" style={{ color: 'var(--blood-red)' }}>{size.icon}</span>
                     <p className="font-semibold text-parchment mb-1">{size.label}</p>
-                    <p className="text-xs" style={{ color: 'var(--muted-parchment)' }}>{size.desc}</p>
+                    <p className="text-sm" style={{ color: 'var(--muted-parchment)' }}>{size.desc}</p>
                   </button>
                 ))}
               </div>
@@ -360,7 +360,7 @@ export default function InkCalculator({
           {currentStep === 'style' && (
             <div>
               <h3 className="font-serif-display text-3xl md:text-4xl font-light mb-2">{copy.styleQuestion}</h3>
-              <p className="font-mono-body text-xs mb-8" style={{ color: 'var(--muted-parchment)', letterSpacing: '0.08em' }}>
+              <p className="font-mono-body text-sm mb-8" style={{ color: 'var(--muted-parchment)', letterSpacing: '0.08em' }}>
                 {copy.styleHint}
               </p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -374,7 +374,7 @@ export default function InkCalculator({
                       backgroundColor: calc.style === styleOption.id ? 'rgba(200,169,110,0.08)' : 'rgba(240,234,214,0.02)',
                     }}
                   >
-                    <p className="font-semibold text-sm text-parchment">{styleOption.label}</p>
+                    <p className="font-semibold text-base text-parchment">{styleOption.label}</p>
                   </button>
                 ))}
               </div>
@@ -384,7 +384,7 @@ export default function InkCalculator({
           {currentStep === 'complexity' && (
             <div>
               <h3 className="font-serif-display text-3xl md:text-4xl font-light mb-2">{copy.complexityQuestion}</h3>
-              <p className="font-mono-body text-xs mb-8" style={{ color: 'var(--muted-parchment)', letterSpacing: '0.08em' }}>
+              <p className="font-mono-body text-sm mb-8" style={{ color: 'var(--muted-parchment)', letterSpacing: '0.08em' }}>
                 {copy.complexityHint}
               </p>
               <div className="space-y-3">
@@ -407,7 +407,7 @@ export default function InkCalculator({
                     />
                     <div>
                       <p className="font-semibold text-parchment">{complexity.label}</p>
-                      <p className="text-xs" style={{ color: 'var(--muted-parchment)' }}>{complexity.desc}</p>
+                      <p className="text-sm" style={{ color: 'var(--muted-parchment)' }}>{complexity.desc}</p>
                     </div>
                   </button>
                 ))}
@@ -418,7 +418,7 @@ export default function InkCalculator({
           {currentStep === 'color' && (
             <div>
               <h3 className="font-serif-display text-3xl md:text-4xl font-light mb-2">{copy.colorQuestion}</h3>
-              <p className="font-mono-body text-xs mb-8" style={{ color: 'var(--muted-parchment)', letterSpacing: '0.08em' }}>
+              <p className="font-mono-body text-sm mb-8" style={{ color: 'var(--muted-parchment)', letterSpacing: '0.08em' }}>
                 {copy.colorHint}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -431,7 +431,7 @@ export default function InkCalculator({
                     <div className="w-6 h-6 rounded-full" style={{ background: 'linear-gradient(135deg, rgba(161,161,170,1) 0%, rgba(39,39,42,1) 100%)' }} />
                   </div>
                   <p className="font-semibold text-parchment">{copy.bwLabel}</p>
-                  <p className="text-xs mt-1" style={{ color: 'var(--muted-parchment)' }}>{copy.bwHint}</p>
+                  <p className="text-sm mt-1" style={{ color: 'var(--muted-parchment)' }}>{copy.bwHint}</p>
                 </button>
                 <button
                   onClick={() => handleSelect('color', 'yes')}
@@ -442,7 +442,7 @@ export default function InkCalculator({
                     <div className="w-6 h-6 rounded-full" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,1) 0%, rgba(250,204,21,1) 50%, rgba(59,130,246,1) 100%)' }} />
                   </div>
                   <p className="font-semibold text-parchment">{copy.colorLabel}</p>
-                  <p className="text-xs mt-1" style={{ color: 'var(--muted-parchment)' }}>{copy.colorHintShort}</p>
+                  <p className="text-sm mt-1" style={{ color: 'var(--muted-parchment)' }}>{copy.colorHintShort}</p>
                 </button>
               </div>
             </div>
@@ -454,7 +454,7 @@ export default function InkCalculator({
                 <h3 className="font-serif-display text-3xl md:text-4xl font-light">{copy.resultTitle}</h3>
                 <button
                   onClick={reset}
-                  className="font-mono-body text-xs uppercase transition-colors"
+                  className="font-mono-body text-sm uppercase transition-colors"
                   style={{ letterSpacing: '0.16em', color: 'var(--muted-parchment)' }}
                 >
                   {copy.startOver}
@@ -463,7 +463,7 @@ export default function InkCalculator({
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="rounded-xl p-5 text-center" style={{ border: '1px solid var(--rule-color)', backgroundColor: 'rgba(240,234,214,0.02)' }}>
-                  <p className="font-mono-body text-[0.62rem] uppercase mb-2" style={{ letterSpacing: '0.16em', color: 'var(--muted-parchment)' }}>
+                  <p className="font-mono-body text-[0.7rem] uppercase mb-2" style={{ letterSpacing: '0.16em', color: 'var(--muted-parchment)' }}>
                     {copy.sessionsLabel}
                   </p>
                   <p className="font-serif-display text-4xl">
@@ -471,7 +471,7 @@ export default function InkCalculator({
                   </p>
                 </div>
                 <div className="rounded-xl p-5 text-center" style={{ border: '1px solid var(--rule-color)', backgroundColor: 'rgba(240,234,214,0.02)' }}>
-                  <p className="font-mono-body text-[0.62rem] uppercase mb-2" style={{ letterSpacing: '0.16em', color: 'var(--muted-parchment)' }}>
+                  <p className="font-mono-body text-[0.7rem] uppercase mb-2" style={{ letterSpacing: '0.16em', color: 'var(--muted-parchment)' }}>
                     {copy.hoursLabel}
                   </p>
                   <p className="font-serif-display text-4xl">
@@ -479,7 +479,7 @@ export default function InkCalculator({
                   </p>
                 </div>
                 <div className="rounded-xl p-5 text-center" style={{ border: '1px solid rgba(139,0,0,0.42)', backgroundColor: 'rgba(139,0,0,0.1)' }}>
-                  <p className="font-mono-body text-[0.62rem] uppercase mb-2" style={{ letterSpacing: '0.16em', color: 'var(--blood-red)' }}>
+                  <p className="font-mono-body text-[0.7rem] uppercase mb-2" style={{ letterSpacing: '0.16em', color: 'var(--blood-red)' }}>
                     {copy.priceLabel}
                   </p>
                   <p className="font-serif-display text-4xl">
@@ -490,7 +490,7 @@ export default function InkCalculator({
                 </div>
               </div>
 
-              <p className="font-mono-body text-xs leading-7" style={{ color: 'var(--muted-parchment)', letterSpacing: '0.05em' }}>
+              <p className="font-mono-body text-sm leading-7" style={{ color: 'var(--muted-parchment)', letterSpacing: '0.05em' }}>
                 {copy.disclaimer}
               </p>
 

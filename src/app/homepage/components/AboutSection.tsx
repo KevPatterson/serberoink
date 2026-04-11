@@ -75,7 +75,7 @@ export default function AboutSection({ about }: AboutSectionProps) {
         <p
           className="font-mono-body mb-10 md:mb-16"
           style={{
-            fontSize: '0.62rem',
+            fontSize: '0.7rem',
             letterSpacing: '0.5em',
             color: 'var(--faded-gold)',
             textTransform: 'uppercase',
@@ -108,7 +108,7 @@ export default function AboutSection({ about }: AboutSectionProps) {
             <p
               className="drop-cap font-mono-body mb-6"
               style={{
-                fontSize: '0.82rem',
+                fontSize: '0.92rem',
                 lineHeight: 1.9,
                 color: 'var(--muted-parchment)',
               }}
@@ -119,7 +119,7 @@ export default function AboutSection({ about }: AboutSectionProps) {
             <p
               className="font-mono-body mb-8"
               style={{
-                fontSize: '0.82rem',
+                fontSize: '0.92rem',
                 lineHeight: 1.9,
                 color: 'var(--muted-parchment)',
               }}
@@ -176,7 +176,7 @@ export default function AboutSection({ about }: AboutSectionProps) {
             <div
               className="font-mono-body"
               style={{
-                fontSize: '0.62rem',
+                fontSize: '0.68rem',
                 letterSpacing: '0.3em',
                 color: 'var(--faded-gold)',
                 textTransform: 'uppercase',

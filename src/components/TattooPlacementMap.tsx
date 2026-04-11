@@ -990,7 +990,7 @@ export default function TattooPlacementMap({
           margin: 0 0 0.75rem;
           color: var(--faded-gold);
           font-family: "DM Mono", monospace;
-          font-size: 0.72rem;
+          font-size: 0.8rem;
           letter-spacing: 0.28em;
           text-transform: uppercase;
         }
@@ -1007,7 +1007,7 @@ export default function TattooPlacementMap({
           max-width: 740px;
           color: var(--muted-parchment);
           font-family: "DM Mono", monospace;
-          font-size: 0.8rem;
+          font-size: 0.9rem;
           letter-spacing: 0.08em;
           line-height: 1.7;
           text-transform: uppercase;
@@ -1035,7 +1035,7 @@ export default function TattooPlacementMap({
           margin-bottom: 0.45rem;
           color: var(--faded-gold);
           font-family: "DM Mono", monospace;
-          font-size: 0.66rem;
+          font-size: 0.74rem;
           letter-spacing: 0.22em;
           text-transform: uppercase;
         }
@@ -1055,7 +1055,7 @@ export default function TattooPlacementMap({
           margin: 0.5rem 0 0;
           color: var(--muted-parchment);
           font-family: "DM Mono", monospace;
-          font-size: 0.62rem;
+          font-size: 0.7rem;
           letter-spacing: 0.16em;
           text-transform: uppercase;
           text-align: center;
@@ -1083,7 +1083,7 @@ export default function TattooPlacementMap({
           margin: 0 0 0.25rem;
           color: var(--muted-parchment);
           font-family: "DM Mono", monospace;
-          font-size: 0.6rem;
+          font-size: 0.68rem;
           letter-spacing: 0.18em;
           text-transform: uppercase;
         }
@@ -1100,7 +1100,7 @@ export default function TattooPlacementMap({
           border-radius: 999px;
           padding: 0.25rem 0.55rem;
           font-family: "DM Mono", monospace;
-          font-size: 0.6rem;
+          font-size: 0.68rem;
           letter-spacing: 0.12em;
           text-transform: uppercase;
           white-space: nowrap;
@@ -1114,7 +1114,7 @@ export default function TattooPlacementMap({
           margin-bottom: 0.35rem;
           color: var(--muted-parchment);
           font-family: "DM Mono", monospace;
-          font-size: 0.62rem;
+          font-size: 0.7rem;
           letter-spacing: 0.12em;
           text-transform: uppercase;
         }
@@ -1131,7 +1131,7 @@ export default function TattooPlacementMap({
           margin: 0 0 0.9rem;
           color: var(--parchment);
           font-family: "DM Mono", monospace;
-          font-size: 0.7rem;
+          font-size: 0.8rem;
           letter-spacing: 0.08em;
           line-height: 1.65;
           opacity: 0.9;
@@ -1165,7 +1165,7 @@ export default function TattooPlacementMap({
           background: rgba(139, 0, 0, 0.18);
           color: #f8d6d2;
           font-family: "DM Mono", monospace;
-          font-size: 0.58rem;
+          font-size: 0.66rem;
           letter-spacing: 0.08em;
           text-transform: uppercase;
           padding: 0.18rem 0.36rem;
@@ -1177,7 +1177,7 @@ export default function TattooPlacementMap({
           color: var(--faded-gold);
           padding: 0.6rem 0.75rem;
           font-family: "DM Mono", monospace;
-          font-size: 0.65rem;
+          font-size: 0.74rem;
           letter-spacing: 0.15em;
           text-transform: uppercase;
           cursor: pointer;
@@ -1206,7 +1206,7 @@ export default function TattooPlacementMap({
           gap: 0.32rem;
           color: var(--muted-parchment);
           font-family: "DM Mono", monospace;
-          font-size: 0.58rem;
+          font-size: 0.66rem;
           letter-spacing: 0.08em;
           text-transform: uppercase;
         }
@@ -1238,7 +1238,21 @@ export default function TattooPlacementMap({
             padding: 4rem 0.8rem;
           }
           .tpm-maps {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.6rem;
+          }
+          .tpm-map-col {
+            padding: 0.65rem 0.5rem;
+          }
+          .tpm-body {
+            max-width: 158px;
+          }
+          .tpm-hint {
+            margin-top: 0.35rem;
+            font-size: 0.62rem;
+          }
+          .tpm-panel {
+            padding: 0.82rem;
           }
           .tpm-grid {
             grid-template-columns: 1fr;

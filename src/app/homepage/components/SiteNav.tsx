@@ -50,7 +50,7 @@ export default function SiteNav({ whatsappNumber }: SiteNavProps) {
           rel="noopener noreferrer"
           className="font-mono-body nav-pill transition-all duration-200 ease-out hover:opacity-100 hover:-translate-y-px"
           style={{
-            fontSize: '0.6rem',
+            fontSize: '0.68rem',
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
             color: 'var(--parchment)',
@@ -70,7 +70,7 @@ export default function SiteNav({ whatsappNumber }: SiteNavProps) {
           aria-label="Cambiar a Espanol"
           className="font-mono-body nav-pill"
           style={{
-            fontSize: '0.6rem',
+            fontSize: '0.68rem',
             letterSpacing: '0.3em',
             textTransform: 'uppercase',
             color: lang === 'es' ? 'var(--parchment)' : 'var(--faded-gold)',
@@ -91,7 +91,7 @@ export default function SiteNav({ whatsappNumber }: SiteNavProps) {
           aria-label="Switch to English"
           className="font-mono-body nav-pill"
           style={{
-            fontSize: '0.6rem',
+            fontSize: '0.68rem',
             letterSpacing: '0.3em',
             textTransform: 'uppercase',
             color: lang === 'en' ? 'var(--parchment)' : 'var(--faded-gold)',
@@ -111,7 +111,7 @@ export default function SiteNav({ whatsappNumber }: SiteNavProps) {
           href="/admin"
           className="font-mono-body nav-admin-link"
           style={{
-            fontSize: '0.6rem',
+            fontSize: '0.68rem',
             letterSpacing: '0.3em',
             textTransform: 'uppercase',
             color: 'rgba(200,169,110,0.55)',

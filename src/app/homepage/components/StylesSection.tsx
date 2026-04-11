@@ -71,7 +71,7 @@ function StyleCard({ id, label, icon, borderRight, borderBottom }: StyleCardProp
       <p
         className="font-mono-body"
         style={{
-          fontSize: '0.58rem',
+          fontSize: '0.66rem',
           letterSpacing: '0.25em',
           textTransform: 'uppercase',
           color: 'var(--parchment)',
@@ -241,7 +241,7 @@ export default function StylesSection({ specialties }: StylesSectionProps) {
         <p
           className="font-mono-body mb-6"
           style={{
-            fontSize: '0.62rem',
+            fontSize: '0.7rem',
             letterSpacing: '0.5em',
             color: 'var(--faded-gold)',
             textTransform: 'uppercase',

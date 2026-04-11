@@ -135,7 +135,7 @@ export default function HeroSection({ hero }: HeroSectionProps) {
               <p
                 className="font-mono-body mb-8 md:mb-12"
                 style={{
-                  fontSize: '0.65rem',
+                  fontSize: '0.72rem',
                   letterSpacing: '0.45em',
                   color: 'var(--faded-gold)',
                   textTransform: 'uppercase',
@@ -379,7 +379,7 @@ export default function HeroSection({ hero }: HeroSectionProps) {
                 ref={taglineRef}
                 className="font-mono-body mt-6 md:mt-10"
                 style={{
-                  fontSize: 'clamp(0.65rem, 1.2vw, 0.85rem)',
+                  fontSize: 'clamp(0.78rem, 1.45vw, 1rem)',
                   letterSpacing: '0.25em',
                   color: 'var(--muted-parchment)',
                   fontStyle: 'italic',
@@ -414,7 +414,7 @@ export default function HeroSection({ hero }: HeroSectionProps) {
                 <span
                   className="font-mono-body"
                   style={{
-                    fontSize: '0.62rem',
+                    fontSize: '0.7rem',
                     letterSpacing: '0.35em',
                     color: 'var(--muted-parchment)',
                     textTransform: 'uppercase',
@@ -474,7 +474,7 @@ export default function HeroSection({ hero }: HeroSectionProps) {
                 <span
                   className="font-mono-body"
                   style={{
-                    fontSize: '0.58rem',
+                    fontSize: '0.66rem',
                     letterSpacing: '0.4em',
                     color: 'var(--muted-parchment)',
                     textTransform: 'uppercase',
