@@ -108,7 +108,7 @@ export default function SiteNav({ whatsappNumber }: SiteNavProps) {
 
         {/* Admin link */}
         <Link
-          href="/admin"
+          href="/admin/login"
           className="font-mono-body nav-admin-link"
           style={{
             fontSize: '0.68rem',

@@ -45,6 +45,29 @@ function applyAdminSecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
+async function hasValidAdminSession(req: NextRequest): Promise<boolean> {
+  const authCookie = req.cookies.get(ADMIN_COOKIE_NAME)?.value ?? '';
+  const adminPassword = process.env.ADMIN_PASSWORD || '';
+  if (!authCookie || !adminPassword) {
+    return false;
+  }
+
+  const session = parseAdminSessionCookie(authCookie);
+  if (!session || session.version !== ADMIN_COOKIE_VERSION || session.expiresAt <= Date.now()) {
+    return false;
+  }
+
+  const requestAgentHash = getAdminAgentHash(req.headers.get('user-agent') || '');
+  if (!secureEqual(session.agentHash, requestAgentHash)) {
+    return false;
+  }
+
+  const expectedSignature = await sha256(
+    `${ADMIN_HASH_PREFIX}${adminPassword}:${session.expiresAt}:${session.agentHash}`
+  );
+  return secureEqual(session.signature, expectedSignature);
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -53,33 +76,14 @@ export async function middleware(req: NextRequest) {
   }
 
   if (pathname === '/admin/login') {
+    if (await hasValidAdminSession(req)) {
+      const adminUrl = new URL('/admin', req.url);
+      return applyAdminSecurityHeaders(NextResponse.redirect(adminUrl));
+    }
     return applyAdminSecurityHeaders(NextResponse.next());
   }
 
-  const authCookie = req.cookies.get(ADMIN_COOKIE_NAME)?.value ?? '';
-  const adminPassword = process.env.ADMIN_PASSWORD || '';
-
-  if (!authCookie || !adminPassword) {
-    const loginUrl = new URL('/admin/login', req.url);
-    return applyAdminSecurityHeaders(NextResponse.redirect(loginUrl));
-  }
-
-  const session = parseAdminSessionCookie(authCookie);
-  if (!session || session.version !== ADMIN_COOKIE_VERSION || session.expiresAt <= Date.now()) {
-    const loginUrl = new URL('/admin/login', req.url);
-    return applyAdminSecurityHeaders(NextResponse.redirect(loginUrl));
-  }
-
-  const requestAgentHash = getAdminAgentHash(req.headers.get('user-agent') || '');
-  if (!secureEqual(session.agentHash, requestAgentHash)) {
-    const loginUrl = new URL('/admin/login', req.url);
-    return applyAdminSecurityHeaders(NextResponse.redirect(loginUrl));
-  }
-
-  const expectedSignature = await sha256(
-    `${ADMIN_HASH_PREFIX}${adminPassword}:${session.expiresAt}:${session.agentHash}`
-  );
-  if (!secureEqual(session.signature, expectedSignature)) {
+  if (!(await hasValidAdminSession(req))) {
     const loginUrl = new URL('/admin/login', req.url);
     return applyAdminSecurityHeaders(NextResponse.redirect(loginUrl));
   }
@@ -88,5 +92,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin', '/admin/:path*'],
 };

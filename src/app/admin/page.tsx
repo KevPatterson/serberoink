@@ -89,6 +89,13 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const load = async () => {
       try {
+        const sessionRes = await fetch('/api/cms/session', { cache: 'no-store' });
+        if (sessionRes.status === 401) {
+          router.replace('/admin/login');
+          return;
+        }
+        if (!sessionRes.ok) throw new Error('No se pudo validar la sesion');
+
         const res = await fetch('/api/cms/content', { cache: 'no-store' });
         if (res.status === 401) {
           router.replace('/admin/login');
